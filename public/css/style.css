@@ -1,0 +1,248 @@
+body{
+	padding: 0;
+	margin: 0;
+	font-family: Arial, Helvetica, sans-serif;
+}
+/* herder css start */
+.header-bar{
+	top: 0px; z-index: 1;
+	position: -webkit-sticky;
+box-shadow: 2px 2px 6px 1px #053259;
+	position: sticky;
+}
+.first-header{
+	background-color: #0a3659;
+	/* color: #fff; */
+	width: 100%;
+	max-height: auto;
+}
+.first-header .navbar-nav{
+	background-color: #053259;
+	z-index: 1;
+}
+.first-header .navbar-nav .nav-item a{
+	color: #fff;
+}
+.first-header .navbar-nav .nav-item .active{
+	color: #0a3659;
+	background-color: #fff;
+	border-radius: 18px;
+	
+}
+.first-header .navbar-nav .nav-item a:hover{
+	color: #0a3659;
+	background-color: #fff;
+	border-radius: 18px;
+	
+}
+.first-header .dropdown-menu{
+	background-color: #0a3659;
+	color: #fff;
+}
+.first-header .dropdown-menu li a{
+	color: #fff;
+}
+.first-header .dropdown-menu li a:hover{
+	color: #0a3659;
+}
+.second-header, .second-header .navbar-nav{
+	background-color:#fff;
+	display: block;
+}
+.second-header a{
+	padding: 1px 10px;
+	cursor: pointer;
+	border-radius: 15px;
+	border-color: #053259;
+box-shadow: 2px 2px 6px 1px #053259;
+
+}
+.second-header .navbar-nav .nav-item a:hover{
+	color:#fff;
+	background-color: #053259;
+box-shadow: 2px 2px 6px 1px #053259;
+
+}
+.collapse{
+	height: 1.5rem;
+}
+.live{
+	color: #099a13;
+	/* background-color: #07710e; */
+}
+.live .animation{
+	width: 100%; height: 1.5px; background-color: #099a13;
+}
+.match-formate{
+	text-align:end;padding:1rem 1.5rem 0 0;
+}
+.match-formate span{
+	background-color: #0d67b5;
+	padding:.1rem .5rem;
+	border-radius: 18px;
+	color: #fff;
+}
+.match-formate .t20-series{
+	background-color:brown;
+}
+.match-formate .test-series{
+	/* background-color:darkgray; */
+	background-color:#978787;
+}
+/*  herder css end */
+
+.scoreboard{
+	height: auto;
+}
+/*  main-section css start */
+.main-section {
+	padding: 1.5rem 1.5rem;
+	margin: 0;
+}
+.main-section h4{
+	padding: 0rem 0 1.5rem 0;
+	margin: 0;
+	text-align: center;
+}
+.main-section h4 span{
+	
+	font-size: 1.5rem;
+	color:#301c1c;
+}
+.card-body .img{
+	height: 30px; width: 30px; border-radius: 50%;
+	/* padding: 0 3rem 0 0 ; */
+}
+/*  main-section css end */
+
+/*  footer css start */
+.whitefoter {
+	width: 100%;
+	padding: 0 1rem;
+	color: #fff;
+	background-color: #0a3659;
+box-shadow: 1px 1px 1px 6px #053259;
+	text-align:center;
+}
+.whitefoter nav ul{
+	float: right;
+	list-style: none;
+	margin:0px;
+}
+ul li{
+	float: left;
+	display: flex;
+	margin:4px;
+	padding: 5px auto; background-color: none;
+}
+li a{
+	color: #fff;
+	text-decoration: none;
+}
+li span .fa{
+	margin: 5px;
+	/* color: #1b22a7; */
+	color: #fff;
+}
+.title{
+	cursor: pointer;
+}
+/* Scorecard container */
+.scoreboard .card-body {
+    padding: 15px;
+}
+
+/* Headings */
+.scoreboard h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #053259;
+}
+
+.scoreboard h4 {
+    font-size: 16px;
+    margin: 15px 0 8px;
+    color: #0b4f6c;
+    border-left: 4px solid #053259;
+    padding-left: 8px;
+}
+
+/* Table styling */
+.scoreboard table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Table header */
+.scoreboard table th {
+    background: #053259;
+    color: #fff;
+    font-weight: 500;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Table rows */
+.scoreboard table td {
+    padding: 8px;
+    font-size: 13px;
+    text-align: center;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+/* Alternate row color */
+.scoreboard table tr:nth-child(even) {
+    background: #f7f9fb;
+}
+
+/* Hover effect */
+.scoreboard table tr:hover {
+    background: #eef4f8;
+}
+
+/* Player name column left align */
+.scoreboard table td:first-child {
+    text-align: left;
+    font-weight: 500;
+}
+
+/* Responsive table for mobile */
+
+
+/*  footer css end */
+
+/* do this use in media Query  */
+@media (max-width: 992px) {
+  .scoreboard {
+    height: auto;
+    min-height: 200px;
+  }
+}
+
+
+/* Mobile */
+@media (max-width: 576px) and (min-width: 250px) {
+  .scoreboard{
+	height: auto;
+    min-height: 200px;
+}
+.scoreboard table th,
+    .scoreboard table td {
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    .scoreboard h3 {
+        font-size: 18px;
+    }
+
+    .scoreboard h4 {
+        font-size: 14px;
+    }
+}
