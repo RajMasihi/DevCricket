@@ -31,14 +31,7 @@ $(document).on('click', '.second-header .nav-link', function (e) {
 
 //  Searching nav working.........
 
-  // Ensure "Point Table" link ('.point-table-nav') works as a normal link and does not trigger this handler.
   $('.second-header .nav-item .link').on('click', function (e) {
-    // Skip if this is the Point Table nav (identified by class or id)
-    if ($(this).hasClass('point-table-nav') || $(this).attr('id') === 'point-table') {
-      // Allow default navigation for Point Table
-      return;
-    }
-
     e.preventDefault();
 
     let te = $(this).text().trim().toLowerCase();
@@ -59,8 +52,6 @@ $(document).on('click', '.second-header .nav-link', function (e) {
         }
     });
 });
-
-
  $('#team1').click(function(){
   $('#scorecard1').show();
 //   $('#scorecard2').hide();
