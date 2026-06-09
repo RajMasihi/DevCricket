@@ -14,7 +14,7 @@
             $activeTab = 'live';
         }
     @endphp
-    <div class="container-fluid main-section">
+    <div class="container-fluid main-section" id="cricket-index-page" data-active-tab="{{ e($activeTab) }}">
         <h4 class="text-center mb-3">Cricket Live Scores</h4>
         <div class="d-flex pb-3">
             <a href="{{ url('/?tab=live') }}"
@@ -40,7 +40,7 @@
         <div id="tab-sections">
             <!-- Live Tab Section -->
             <section id="live_section" style="display:{{ $activeTab == 'live' ? 'block' : 'none' }};">
-                <div class="row row-cols-1 row-cols-md-2 g-4 pt-2">
+                <div class="row row-cols-1 row-cols-md-2 g-4 pt-2" id="live_matches_container">
                     @if(isset($error) && $activeTab == 'live')
                         <span style="color:red;">{{ $error }}</span>
                     @elseif(isset($matches) && count($matches) === 0 && $activeTab == 'live')
@@ -68,6 +68,7 @@
                                 $team2Img = (!empty($team2['imageId']) && !empty($team2Name)) ? 'https://static.cricbuzz.com/a/img/v1/0x0/i1/c' . $team2['imageId'] . '/' . $team2NameSlug . '.jpg' : '';
                                 $startDate = isset($mi['startDate']) ? ((int)$mi['startDate'] / 1000) : null;
                                 $localTime = $startDate ? date('d M, Y h:i A', $startDate) : '';
+                                $matchDateShort = $startDate ? date('d M', $startDate) : '';
                                 $matchFormat = strtoupper($mi['matchFormat'] ?? '');
                                 $matchFormatClass = $matchFormat === 'ODI' ? '' : ($matchFormat === 'T20' ? 'match-format-t20' : ($matchFormat === 'TEST' ? 'match-format-test' : ''));
                                 $state = strtolower($mi['state'] ?? '');
@@ -98,12 +99,17 @@
                                 <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}" style="text-decoration: none; color:#141010;">
                                     <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                                         <div class="row card-body">
-                                            <div class="col-7">
+                                            <div class="col-6">
                                                 <p class="card-text mb-0" style="color: #817373; font-size:14px">
                                                     <strong>{{ $matchDesc }} - {{ $seriesName }}</strong>
                                                 </p>
+                                                @if(!empty($matchDateShort))
+                                                    <p class="card-text mb-0 mt-1" style="color: #5d6570; font-size:12px;">
+                                                        Match Date: {{ $matchDateShort }}
+                                                    </p>
+                                                @endif
                                             </div>
-                                            <p class="col-2 match-formate {{ $matchFormatClass }}">
+                                            <p class="col-3 match-formate {{ $matchFormatClass }}">
                                                 @if($matchFormat === 'T20')
                                                     <span class="t20-series">{{ $matchFormat }}</span>
                                                 @elseif($matchFormat === 'TEST')
@@ -212,6 +218,8 @@
                                     $team1Img = (!empty($team1['imageId']) && !empty($team1Name)) ? 'https://static.cricbuzz.com/a/img/v1/0x0/i1/c' . $team1['imageId'] . '/' . $team1NameSlug . '.jpg' : '';
                                     $team2Img = (!empty($team2['imageId']) && !empty($team2Name)) ? 'https://static.cricbuzz.com/a/img/v1/0x0/i1/c' . $team2['imageId'] . '/' . $team2NameSlug . '.jpg' : '';
                                     $matchFormat = strtoupper($mi['matchFormat'] ?? '');
+                                    $startDate = isset($mi['startDate']) ? ((int)$mi['startDate'] / 1000) : null;
+                                    $matchDateShort = $startDate ? date('d M', $startDate) : '';
                                     $matchFormatClass = $matchFormat === 'ODI' ? '' : ($matchFormat === 'T20' ? 'match-format-t20' : ($matchFormat === 'TEST' ? 'match-format-test' : ''));
                                     $state = strtolower($mi['state'] ?? '');
                                     $status = $mi['status'] ?? '';
@@ -245,6 +253,11 @@
                                                     <p class="card-text mb-0" style="color: #817373; font-size:14px">
                                                         <strong>{{ $matchDesc }} - {{ $seriesName }}</strong>
                                                     </p>
+                                                    @if(!empty($matchDateShort))
+                                                        <p class="card-text mb-0 mt-1" style="color: #5d6570; font-size:12px;">
+                                                            Match Date: {{ $matchDateShort }}
+                                                        </p>
+                                                    @endif
                                                 </div>
                                                 <p class="col-2 match-formate {{ $matchFormatClass }}">
                                                     @if($matchFormat === 'T20')
@@ -356,6 +369,8 @@
                                     $team1Img = (!empty($team1['imageId']) && !empty($team1Name)) ? 'https://static.cricbuzz.com/a/img/v1/0x0/i1/c' . $team1['imageId'] . '/' . $team1NameSlug . '.jpg' : '';
                                     $team2Img = (!empty($team2['imageId']) && !empty($team2Name)) ? 'https://static.cricbuzz.com/a/img/v1/0x0/i1/c' . $team2['imageId'] . '/' . $team2NameSlug . '.jpg' : '';
                                     $matchFormat = strtoupper($mi['matchFormat'] ?? '');
+                                    $startDate = isset($mi['startDate']) ? ((int)$mi['startDate'] / 1000) : null;
+                                    $matchDateShort = $startDate ? date('d M', $startDate) : '';
                                     $matchFormatClass = $matchFormat === 'ODI' ? '' : ($matchFormat === 'T20' ? 'match-format-t20' : ($matchFormat === 'TEST' ? 'match-format-test' : ''));
                                     $state = strtolower($mi['state'] ?? '');
                                     $status = $mi['status'] ?? '';
@@ -389,6 +404,11 @@
                                                     <p class="card-text mb-0" style="color: #817373; font-size:14px">
                                                         <strong>{{ $matchDesc }} - {{ $seriesName }}</strong>
                                                     </p>
+                                                    @if(!empty($matchDateShort))
+                                                        <p class="card-text mb-0 mt-1" style="color: #5d6570; font-size:12px;">
+                                                            Match Date: {{ $matchDateShort }}
+                                                        </p>
+                                                    @endif
                                                 </div>
                                                 <p class="col-2 match-formate {{ $matchFormatClass }}">
                                                     @if($matchFormat === 'T20')

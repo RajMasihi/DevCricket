@@ -76,7 +76,7 @@
                                 </ul>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link link" href="{{ asset('/serieslist/9241/indian-premier-league-2026') }}">IPL 2026</a>
+                                <a class="nav-link link" href="{{ asset('/serieslist/10119/icc-womens-t20-world-cup-2026') }}">Womens WC 2026</a>
                             </li>
                         </ul>
                     </div>
@@ -85,7 +85,7 @@
             </nav>
         </div>
         <div class="second-header">
-            <nav class="navbar navbar-expand-lg navbar-light">
+            <!-- <nav class="navbar navbar-expand-lg navbar-light">
                 <div class="container-fluid">
                     <div class="navbar-collapse justify-content-center" id="navbarNavDropdownsecond">
                         <ul class="navbar-nav">
@@ -125,8 +125,8 @@
                                         }
                                     @endphp
                                     @if(!empty($pointTableId))
-                                        <!-- <a class="point-table-nav nav-link link" href="javascript:void(0);" id="point-table"
-                                            data-seriesid="{{ $pointTableId }}">Point Table</a> -->
+                                       <a class="point-table-nav nav-link link" href="javascript:void(0);" id="point-table"
+                                            data-seriesid="{{ $pointTableId }}">Point Table</a> 
                                             <a class="point-table-nav nav-link link" href="{{url('/point-table')}}/{{ $pointTableId }}" id="point-table"
                                             data-seriesid="{{ $pointTableId }}">Point Table</a>
                                     @endif
@@ -135,7 +135,7 @@
                         </ul>
                     </div>
                 </div>
-            </nav>
+            </nav> -->
         </div>
     </header>
     <div class="search-items">

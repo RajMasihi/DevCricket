@@ -3,23 +3,24 @@
 @section('title', $scorecardDatainfo['appindex']['seotitle'] ?? '')
 
 @section('main-container')
-    <div class="container-fluid main-section">
         @php
             $team1 = $scorecardDatainfo['team1']['teamname'] ?? '';
-            $team1NameSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '0', $team1), '0'));
+            $team1NameSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $team1), '0'));
             $team2 = $scorecardDatainfo['team2']['teamname'] ?? '';
-            $team2NameSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '0', $team2), '0'));
+            $team2NameSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $team2), '0'));
             $matchId = $scorecardDatainfo['matchid'] ?? $scorecardDatainfo['matchId'] ?? '';
             $seriesId = $scorecardDatainfo['seriesid'] ?? $scorecardDatainfo['seriesid'] ?? '';
             $seriesName = $scorecardDatainfo['seriesname'] ?? $scorecardDatainfo['seriesname'] ?? '';
-            $seriesNameSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '0', $seriesName), '0'));
+            $seriesNameSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $seriesName), '0'));
             $activeTab = request()->get('tab', 'informe');
+            $matchState = strtolower($scorecardDatainfo['state'] ?? '');
         @endphp
+        <div class="container-fluid main-section" id="cricket-matchdetail-page" data-active-tab="{{ e($activeTab) }}" data-match-state="{{ e($matchState) }}">
 
         <div class="d-flex pb-3">
             @php
                 // Adjust for second flow: URLs without "vs" and use only team1NameSlug and team2NameSlug plain (hyphen-case), if needed.
-                $matchUrlTeamSlug = $team1NameSlug . '0' . $team2NameSlug;
+                $matchUrlTeamSlug = $team1NameSlug . '-' . $team2NameSlug;
             @endphp
             <a href="{{ url('/score/' . $matchId . '/' . $matchUrlTeamSlug . '?tab=informe') }}"
                id="inform_btn"
@@ -117,7 +118,7 @@
 
         <!-- Scoreboard Section -->
         <section id="scoreboard" style="display:{{ $activeTab == 'scoreboard' ? 'block' : 'none' }};">
-            <div class="row row-cols-1 row-cols-md-2 g-4 pt-2">
+            <div class="row row-cols-1 row-cols-md-2 g-4 pt-2" id="scoreboard_live_container">
                 @php
                     $matchStatus = $scorecardData['status'] ?? '';
                     $scoreCards = $scorecardData['scorecard'] ?? [];
@@ -129,6 +130,9 @@
                     <div class="col-12 match-result-row mb-3 border shadow-sm rounded bg-white py-3 px-2" >
                         <div class="text-center">
                             <span class="winner-title">{{ $matchStatus }}</span>
+                            @if($matchState === 'in progress')
+                                <div class="small text-success mt-1">Live ball-by-ball auto update every 8 seconds</div>
+                            @endif
                         </div>
                     </div>
                     <!-- Scorecards -->

@@ -6,7 +6,16 @@
 <div class="container-fluid main-section py-4">
     @php
         $activeTab = $activeTab ?? request()->get('tab', 'stats');
-        $seoTitle = $statsData['seriesName'] ?? ($pointtable['seriesName'] ?? 'Series Stats');
+        <!-- $seoTitle = $statsData['seriesName'] ?? ($pointtable['seriesName'] ?? 'Series Stats'); -->
+        $seriesName = $statsData['seriesName'] ?? ($pointtable['seriesName'] ?? 'Series');
+
+if (!empty($statsData['seriesName'])) {
+    $seoTitle = $seriesName . ' Stats';
+} elseif (!empty($pointtable['seriesName'])) {
+    $seoTitle = $seriesName . ' Point Table';
+} else {
+    $seoTitle = 'Series Stats';
+}
         $seriesId = request()->route('id');
    
         $seriesNameSlug = request()->route('seriesname') ?? 'series';

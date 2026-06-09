@@ -29,22 +29,31 @@
             'teams' => 'Teams',
         ];
 
-        $formatTabs = [
-            'test' => 'TEST',
-            'odi' => 'ODI',
-            't20' => 'T20',
-        ];
-
         $genderTabs = [
             'mens' => "Men's",
             'womens' => "Women's",
         ];
+
+        $formatTabs = $activeGender === 'womens'
+            ? [
+                'odi' => 'ODI',
+                't20' => 'T20',
+            ]
+            : [
+                'test' => 'TEST',
+                'odi' => 'ODI',
+                't20' => 'T20',
+            ];
+
+        if (!array_key_exists($activeFormat, $formatTabs)) {
+            $activeFormat = array_key_first($formatTabs);
+        }
     @endphp
 
     <div class="container-fluid main-section">
         <h4 class="text-center mb-3">ICC {{ $activeGender === 'mens' ? "Men's" : "Women's" }} Cricket Rankings</h4>
 
-        <div class="d-flex flex-wrap pb-3 gap-2">
+        <div class="d-flex flex-wrap pb-3 gap-2 d-none">
             @foreach($genderTabs as $genderKey => $genderLabel)
                 <a href="{{ url('/icc-ranking/' . $genderKey . '/' . $activeCategory . '/' . $activeFormat) }}"
                    class="btn scoreboard-title {{ $activeGender === $genderKey ? 'active-ranking-tab' : '' }}">
@@ -115,8 +124,7 @@
                         <thead>
                             <tr>
                                 <th class="ps-3">Rank</th>
-                                <th>Name</th>
-                                <th>Country</th>
+                                <th>Player Name</th>
                                 <th>Points</th>
                             </tr>
                         </thead>
@@ -131,27 +139,35 @@
                                                 break;
                                             }
                                         }
-                                        $itemName = $rowData['name'] ?? $rowData['teamName'] ?? 'N/A';
-                                        $itemCountry = $rowData['country'] ?? '-';
+                                        $itemName = $row['name'] ?? $row['teamName'] ?? 'N/A';
+                                        $itemCountry = $row['country'] ?? '-';
                                         $itemRank = $row['rank'] ?? '-';
                                         $itemPoints = $row['points'] ?? '-';
-                                        $itemId = $rowData['id'] ?? $rowData['teamId'] ?? '';
+                                        
+                                        $itemId = $row['id'] ?? $row['teamId'] ?? '';
+                                        $itemImage = $row['faceImageId'] ?? $row['imageId'] ?? '';
+                                        $itemName = $row['name'] ?? $row['teamName'] ?? '';
                                         $itemSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $itemName), '-'));
+                                        $itemImg = 'https://static.cricbuzz.com/a/img/v1/0x0/i1/c' 
+                                                    . $itemImage . '/' . $itemSlug . '.jpg?d=low&p=gthumb';
                                     @endphp
 
                                     <tr>
                                         <td class="ps-3">{{ $itemRank }}</td>
                                         <td>
                                             @if(!empty($itemId))
+
                                                 <a href="{{ url('/icc-ranking/' . $activeGender . '/' . $activeCategory . '/' . $activeFormat . '/' . $itemId . '/' . $itemSlug) }}"
                                                    style="text-decoration:none; color:#053259;">
+                                                    <img class="img" src="{{ $itemImg }}" alt="{{ $itemName ?: 'No Image' }}" />
+
                                                     {{ $itemName }}
+                                                    <span style="font-size:15px;color:#6c757d;">( {{ $itemCountry }} )</span>
                                                 </a>
                                             @else
                                                 {{ $itemName }}
                                             @endif
                                         </td>
-                                        <td>{{ $itemCountry }}</td>
                                         <td>{{ $itemPoints }}</td>
                                     </tr>
                                 @endforeach

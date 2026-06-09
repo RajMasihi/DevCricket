@@ -565,242 +565,6 @@ class Cricketlivescorecontroller extends Controller
         return view('news_details', compact('newsDetails'));
     }
 
-    // icc_ranking all function 
-    // icc_ranking all function in Teams 
-    public function icc_rankteamstest(){
-        $apiUrl = env('CriBase_Url')."stats/v1/rankings/teams?isMen=0&formatType=test";
-        try {
-            $response = Http::withHeaders([
-                'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
-                'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                'Content-Type'    => 'application/json',
-            ])->get($apiUrl);
-
-            $iccRankteamtest = $response->json();
-        } catch (\Exception $e) {
-            $iccRankteamtest = [];
-            $errorMsg = $e->getMessage();
-            return view('icc_ranking', compact('iccRankteamtest', 'errorMsg'));
-        }
-            // echo "<pre>";print_r($iccRankteamtest);die;
-        return view('icc_ranking',compact('iccRankteamtest'));
-        
-    }
-    public function icc_rankteamsodi(){
-        $apiUrl = env('CriBase_Url')."stats/v1/rankings/teams?isMen=0&formatType=odi";
-        try {
-            $response = Http::withHeaders([
-                'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
-                'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                'Content-Type'    => 'application/json',
-            ])->get($apiUrl);
-
-            $iccRankteamodi = $response->json();
-        } catch (\Exception $e) {
-            $iccRankteamodi = [];
-            $errorMsg = $e->getMessage();
-            return view('icc_ranking', compact('iccRankteamodi', 'errorMsg'));
-        }
-            // echo "<pre>";print_r($iccRankteamodi);die;
-        return view('icc_ranking',compact('iccRankteamodi'));
-        
-    }
-    public function icc_rankteamst20(){
-        $apiUrl = env('CriBase_Url')."stats/v1/rankings/teams?isMen=0&formatType=t20";
-        try {
-            $response = Http::withHeaders([
-                'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
-                'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                'Content-Type'    => 'application/json',
-            ])->get($apiUrl);
-
-            $iccRankteamt20 = $response->json();
-        } catch (\Exception $e) {
-            $iccRankteamt20 = [];
-            $errorMsg = $e->getMessage();
-            return view('icc_ranking', compact('iccRankteamt20', 'errorMsg'));
-        }
-            // echo "<pre>";print_r($iccRankteamt20);die;
-        return view('icc_ranking',compact('iccRankteamt20'));
-        
-    }
-    // icc_ranking all function in Batsmens
-
-    public function icc_rankbatsment20(){
-        $apiUrl = env('CriBase_Url')."stats/v1/rankings/batsmen?isMen=0&formatType=t20";
-        try {
-            $response = Http::withHeaders([
-                'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
-                'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                'Content-Type'    => 'application/json',
-            ])->get($apiUrl);
-
-            $iccRankbatsment20 = $response->json();
-        } catch (\Exception $e) {
-            $iccRankbatsment20 = [];
-            $errorMsg = $e->getMessage();
-            return view('icc_ranking', compact('iccRankbatsment20', 'errorMsg'));
-        }
-            // echo "<pre>";print_r($iccRankbatsment20);die;
-        return view('icc_ranking',compact('iccRankbatsment20'));
-        
-    }
-    public function icc_rankbatsmenodi(){
-        $apiUrl = env('CriBase_Url')."stats/v1/rankings/batsmen?isMen=0&formatType=odi";
-        try {
-            $response = Http::withHeaders([
-                'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
-                'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                'Content-Type'    => 'application/json',
-            ])->get($apiUrl);
-
-            $iccRankbatsmenodi = $response->json();
-        } catch (\Exception $e) {
-            $iccRankbatsmenodi = [];
-            $errorMsg = $e->getMessage();
-            return view('icc_ranking', compact('iccRankbatsmenodi', 'errorMsg'));
-        }
-            // echo "<pre>";print_r($iccRankbatsmenodi);die;
-        return view('icc_ranking',compact('iccRankbatsmenodi'));
-        
-    }
-    public function icc_rankbatsmentest(){
-        $apiUrl = env('CriBase_Url')."stats/v1/rankings/batsmen?isMen=0&formatType=test";
-        try {
-            $response = Http::withHeaders([
-                'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
-                'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                'Content-Type'    => 'application/json',
-            ])->get($apiUrl);
-
-            $iccRankbatsmentest = $response->json();
-        } catch (\Exception $e) {
-            $iccRankbatsmentest = [];
-            $errorMsg = $e->getMessage();
-            return view('icc_ranking', compact('iccRankbatsmentest', 'errorMsg'));
-        }
-            echo "<pre>";print_r($iccRankbatsmentest);die;
-        return view('icc_ranking',compact('iccRankbatsmentest'));
-        
-    }
-    // icc_ranking all function in allrounders
-
-    public function icc_rankallroundert20(){
-        $apiUrl = env('CriBase_Url')."stats/v1/rankings/allrounders?isMen=0&formatType=t20";
-        try {
-            $response = Http::withHeaders([
-                'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
-                'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                'Content-Type'    => 'application/json',
-            ])->get($apiUrl);
-
-            $iccRankallroundert20 = $response->json();
-        } catch (\Exception $e) {
-            $iccRankallroundert20 = [];
-            $errorMsg = $e->getMessage();
-            return view('icc_ranking', compact('iccRankallroundert20', 'errorMsg'));
-        }
-            // echo "<pre>";print_r($iccRankallroundert20);die;
-        return view('icc_ranking',compact('iccRankallroundert20'));
-        
-    }
-    public function icc_rankallrounderodi(){
-        $apiUrl = env('CriBase_Url')."stats/v1/rankings/allrounders?isMen=0&formatType=odi";
-        try {
-            $response = Http::withHeaders([
-                'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
-                'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                'Content-Type'    => 'application/json',
-            ])->get($apiUrl);
-
-            $iccRankallrounderodi = $response->json();
-        } catch (\Exception $e) {
-            $iccRankallrounderodi = [];
-            $errorMsg = $e->getMessage();
-            return view('icc_ranking', compact('iccRankallrounderodi', 'errorMsg'));
-        }
-            // echo "<pre>";print_r($iccRankallrounderodi);die;
-        return view('icc_ranking',compact('iccRankallrounderodi'));
-        
-    }
-    public function icc_rankallroundertest(){
-        $apiUrl = env('CriBase_Url')."stats/v1/rankings/allrounders?isMen=0&formatType=test";
-        try {
-            $response = Http::withHeaders([
-                'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
-                'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                'Content-Type'    => 'application/json',
-            ])->get($apiUrl);
-
-            $iccRankallroundertest = $response->json();
-        } catch (\Exception $e) {
-            $iccRankallroundertest = [];
-            $errorMsg = $e->getMessage();
-            return view('icc_ranking', compact('iccRankallroundertest', 'errorMsg'));
-        }
-            // echo "<pre>";print_r($iccRankallroundertest);die;
-        return view('icc_ranking',compact('iccRankallroundertest'));
-        
-    }
-    // icc_ranking all function in bowlers
-
-    public function icc_rankbowlerst20(){
-        $apiUrl = env('CriBase_Url')."stats/v1/rankings/bowlers?isMen=0&formatType=t20";
-        try {
-            $response = Http::withHeaders([
-                'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
-                'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                'Content-Type'    => 'application/json',
-            ])->get($apiUrl);
-
-            $iccRankbowlerst20 = $response->json();
-        } catch (\Exception $e) {
-            $iccRankbowlerst20 = [];
-            $errorMsg = $e->getMessage();
-            return view('icc_ranking', compact('iccRankbowlerst20', 'errorMsg'));
-        }
-            // echo "<pre>";print_r($iccRankbowlerst20);die;
-        return view('icc_ranking',compact('iccRankbowlerst20'));
-        
-    }
-    public function icc_rankbowlersodi(){
-        $apiUrl = env('CriBase_Url')."stats/v1/rankings/bowlers?isMen=0&formatType=odi";
-        try {
-            $response = Http::withHeaders([
-                'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
-                'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                'Content-Type'    => 'application/json',
-            ])->get($apiUrl);
-
-            $iccRankbowlersodi = $response->json();
-        } catch (\Exception $e) {
-            $iccRankbowlersodi = [];
-            $errorMsg = $e->getMessage();
-            return view('icc_ranking', compact('iccRankbowlersodi', 'errorMsg'));
-        }
-            // echo "<pre>";print_r($iccRankbowlersodi);die;
-        return view('icc_ranking',compact('iccRankbowlersodi'));
-        
-    }
-    public function icc_rankbowlerstest(){
-        $apiUrl = env('CriBase_Url')."stats/v1/rankings/bowlers?isMen=0&formatType=test";
-        try {
-            $response = Http::withHeaders([
-                'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
-                'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                'Content-Type'    => 'application/json',
-            ])->get($apiUrl);
-
-            $iccRankbowlerstest = $response->json();
-        } catch (\Exception $e) {
-            $iccRankbowlerstest = [];
-            $errorMsg = $e->getMessage();
-            return view('icc_ranking', compact('iccRankbowlerstest', 'errorMsg'));
-        }
-            // echo "<pre>";print_r($iccRankbowlerstest);die;
-        return view('icc_ranking',compact('iccRankbowlerstest'));
-        
-    }
 
     public function icc_ranking(Request $request, $gender = null, $category = null, $format = null)
     {
@@ -811,17 +575,18 @@ class Cricketlivescorecontroller extends Controller
 
         $gender = strtolower($pathGender) === 'womens' ? 'womens' : 'mens';
         $category = strtolower($category ?: $request->query('category', 'allrounders'));
-        $format = strtolower($format ?: $request->query('format', 'test'));
+        $defaultFormat = $gender === 'womens' ? 'odi' : 'test';
+        $format = strtolower($format ?: $request->query('format', $defaultFormat));
 
         $allowedCategories = ['batsmen', 'bowlers', 'allrounders', 'teams'];
-        $allowedFormats = ['test', 'odi', 't20'];
+        $allowedFormats = $gender === 'womens' ? ['odi', 't20'] : ['test', 'odi', 't20'];
 
         if (!in_array($category, $allowedCategories, true)) {
             $category = 'allrounders';
         }
 
         if (!in_array($format, $allowedFormats, true)) {
-            $format = 'test';
+            $format = $defaultFormat;
         }
 
         try {
@@ -844,14 +609,15 @@ class Cricketlivescorecontroller extends Controller
         $format = strtolower($format);
 
         $allowedCategories = ['batsmen', 'bowlers', 'allrounders', 'teams'];
-        $allowedFormats = ['test', 'odi', 't20'];
+        $defaultFormat = $gender === 'womens' ? 'odi' : 'test';
+        $allowedFormats = $gender === 'womens' ? ['odi', 't20'] : ['test', 'odi', 't20'];
 
         if (!in_array($category, $allowedCategories, true)) {
             $category = 'allrounders';
         }
 
         if (!in_array($format, $allowedFormats, true)) {
-            $format = 'test';
+            $format = $defaultFormat;
         }
 
         try {
@@ -883,15 +649,19 @@ class Cricketlivescorecontroller extends Controller
 
     private function fetchIccRankingData($gender, $category, $format)
     {
+        
         $isMen = $gender === 'mens' ? '0' : '1';
+        if($gender == 'womens'){
+        $apiUrl = env('CriBase_Url') . "stats/v1/rankings/{$category}?isWomen={$isMen}&formatType={$format}";
+        }else{
         $apiUrl = env('CriBase_Url') . "stats/v1/rankings/{$category}?isMen={$isMen}&formatType={$format}";
-
+        }
         $response = Http::withHeaders([
             'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
             'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
             'Content-Type'    => 'application/json',
         ])->get($apiUrl);
-
+            // echo "<pre>";print_r($apiUrl);die;
         return $response->json();
     }
 }

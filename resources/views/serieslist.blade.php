@@ -6,9 +6,21 @@ use Illuminate\Support\Str;
 @section('main-container')
     <div class="container-fluit main-section">
         <h4 style="text-align: center; font-size:28px">
-            Series Full Matches: <span>{{ $serieslists['seriesName'] ?? $serieslists['name'] ?? '' }}</span>
+            Series Full Matches: <span>@if(isset($serieslists['seriesName'])){{ $serieslists['seriesName'] ?? $serieslists['name'] ?? '' }}</span>
+            @else
+                IPL 2026
+            @endif
         </h4>
-
+        @php
+            $seriesId = request()->route('id') ?? ($serieslists['seriesId'] ?? '');
+            $seriesNameForSlug = $serieslists['seriesName'] ?? $serieslists['name'] ?? request()->route('seriesname') ?? '';
+            $seriesNameSlug = request()->route('seriesname') ?? Str::slug($seriesNameForSlug);
+        @endphp
+        <a href="{{ url('/point-table/' . $seriesId . '/' . $seriesNameSlug) }}"
+               class="btn me-2 scoreboard-title point-table-nav"
+               type="button">
+                Point Table
+            </a>
         @php
             $today = \Carbon\Carbon::now('Asia/Kolkata')->format('Y-m-d');
             $todayMatches = [];
