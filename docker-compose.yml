@@ -23,7 +23,7 @@
 services:
 
   app:
-    image: yourdockerhub/cricketapp:latest
+    image: rajmasihi63/cricketapp:latest
     restart: always
     env_file:
       - .env
