@@ -21,7 +21,7 @@
                id="live_tab_btn"
                class="btn me-2 scoreboard-title{{ $activeTab == 'live' ? ' active-tab' : '' }}"
                type="button">
-                Live Score
+                Live Score match
             </a>
             <a href="{{ url('/result?tab=result') }}"
                id="result_tab_btn"
