@@ -37,24 +37,20 @@ jobs:
 
           ssh -o StrictHostKeyChecking=no \
           -i key.pem \
-          ubuntu@${{ secrets.EC2_IP }} << EOF
+          ubuntu@${{ secrets.EC2_IP }} << 'EOF'
 
           cd ~/cricketapp
+
+          pwd
+          ls -la
 
           docker compose pull
 
           docker compose down
 
           docker compose up -d
-          docker compose exec -T app php artisan optimize:clear
 
-          docker compose exec -T app php artisan config:cache
-
-          docker compose exec -T app php artisan route:cache
-
-          docker compose exec -T app php artisan view:cache
-
-          docker image prune -f
+          docker compose ps
 
           EOF
 
