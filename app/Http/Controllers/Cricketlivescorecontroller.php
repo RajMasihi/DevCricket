@@ -104,7 +104,7 @@ class Cricketlivescorecontroller extends Controller
             } catch (\Exception $e) {
                 return view('index', [
                     'result' => [],
-                    'error' => 'Error fetching data: ' . $e->getMessage(),
+                    'error' => 'Error fetching data: ' .'Yoy can Reload Page its Session time out.',
                 ]);
             }
         }
@@ -159,7 +159,7 @@ class Cricketlivescorecontroller extends Controller
         } catch (\Exception $e) {
             return view('index', [
                 'matches' => [],
-                'error' => 'Error fetching data: ' . $e->getMessage(),
+                'error' => 'Error fetching data: ' .'Yoy can Reload Page its Session time out.',
             ]);
         }
     }
@@ -214,7 +214,7 @@ class Cricketlivescorecontroller extends Controller
             } catch (\Exception $e) {
                 return view('index', [
                     'sduling' => [],
-                    'error' => 'Error fetching data: ' . $e->getMessage(),
+                    'error' => 'Error fetching data: ' .'Yoy can Reload Page its Session time out.',
                 ]);
             }
         }

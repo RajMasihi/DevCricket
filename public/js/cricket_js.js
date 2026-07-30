@@ -134,64 +134,64 @@ function initIndexLiveMatchesRefresh() {
     });
 }
 
-function initMatchdetailScoreboardRefresh() {
-    var root = document.getElementById('cricket-matchdetail-page');
-    if (!root) {
-        return;
-    }
-    var activeTab = (root.getAttribute('data-active-tab') || 'informe').toLowerCase();
-    var matchState = (root.getAttribute('data-match-state') || '').toLowerCase();
-    if (activeTab !== 'scoreboard' || matchState !== 'in progress') {
-        return;
-    }
+// function initMatchdetailScoreboardRefresh() {
+//     var root = document.getElementById('cricket-matchdetail-page');
+//     if (!root) {
+//         return;
+//     }
+//     var activeTab = (root.getAttribute('data-active-tab') || 'informe').toLowerCase();
+//     var matchState = (root.getAttribute('data-match-state') || '').toLowerCase();
+//     if (activeTab !== 'scoreboard' || matchState !== 'in progress') {
+//         return;
+//     }
 
-    var sectionId = 'scoreboard_live_container';
-    var refreshTimer = null;
-    var isRefreshing = false;
+//     var sectionId = 'scoreboard_live_container';
+//     var refreshTimer = null;
+//     var isRefreshing = false;
 
-    async function refreshScoreboardSection() {
-        if (isRefreshing) {
-            return;
-        }
+//     async function refreshScoreboardSection() {
+//         if (isRefreshing) {
+//             return;
+//         }
 
-        var currentSection = document.getElementById(sectionId);
-        if (!currentSection) {
-            return;
-        }
+//         var currentSection = document.getElementById(sectionId);
+//         if (!currentSection) {
+//             return;
+//         }
 
-        isRefreshing = true;
-        try {
-            var url = new URL(window.location.href);
-            url.searchParams.set('tab', 'scoreboard');
-            url.searchParams.set('_ts', Date.now());
+//         isRefreshing = true;
+//         try {
+//             var url = new URL(window.location.href);
+//             url.searchParams.set('tab', 'scoreboard');
+//             url.searchParams.set('_ts', Date.now());
 
-            var response = await fetch(url.toString(), {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
+//             var response = await fetch(url.toString(), {
+//                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
+//             });
 
-            if (!response.ok) {
-                return;
-            }
+//             if (!response.ok) {
+//                 return;
+//             }
 
-            var html = await response.text();
-            var doc = new DOMParser().parseFromString(html, 'text/html');
-            var updatedSection = doc.getElementById(sectionId);
-            if (updatedSection) {
-                currentSection.innerHTML = updatedSection.innerHTML;
-            }
-        } catch (err) {
-            console.error('Live scoreboard refresh failed:', err);
-        } finally {
-            isRefreshing = false;
-        }
-    }
+//             var html = await response.text();
+//             var doc = new DOMParser().parseFromString(html, 'text/html');
+//             var updatedSection = doc.getElementById(sectionId);
+//             if (updatedSection) {
+//                 currentSection.innerHTML = updatedSection.innerHTML;
+//             }
+//         } catch (err) {
+//             console.error('Live scoreboard refresh failed:', err);
+//         } finally {
+//             isRefreshing = false;
+//         }
+//     }
 
-    refreshTimer = window.setInterval(refreshScoreboardSection, 20000);
-    window.addEventListener('beforeunload', function () {
-        if (refreshTimer) {
-            window.clearInterval(refreshTimer);
-        }
-    });
-}
+//     refreshTimer = window.setInterval(refreshScoreboardSection, 20000);
+//     window.addEventListener('beforeunload', function () {
+//         if (refreshTimer) {
+//             window.clearInterval(refreshTimer);
+//         }
+//     });
+// }
 
 

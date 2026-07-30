@@ -42,7 +42,7 @@
             <section id="live_section" style="display:{{ $activeTab == 'live' ? 'block' : 'none' }};">
                 <div class="row row-cols-1 row-cols-md-2 g-4 pt-2" id="live_matches_container">
                     @if(isset($error) && $activeTab == 'live')
-                        <span style="color:red;">{{ $error }}</span>
+                        <span style="color:red;">Wait ...</span>
                     @elseif(isset($matches) && count($matches) === 0 && $activeTab == 'live')
                         <p>No recent matches found.</p>
                     @elseif(isset($matches) && $activeTab == 'live')
@@ -193,7 +193,7 @@
                     <h3 class="text-center">Cricket Result Matches</h3>
                     <div class="row row-cols-1 row-cols-md-2 g-4 pt-2">
                         @if(isset($error) && $activeTab == 'result')
-                            <span style="color:red;">{{ $error }}</span>
+                            <span style="color:red;">Wait ...</span>
                         @elseif(isset($result) && count($result) === 0 && $activeTab == 'result')
                             <p>No recent matches found.</p>
                         @elseif(isset($result) && $activeTab == 'result')
@@ -344,7 +344,7 @@
                     <h3 class="text-center">Cricket Upcoming Matches</h3>
                     <div class="row row-cols-1 row-cols-md-2 g-4 pt-2">
                         @if(isset($error) && $activeTab == 'upcoming')
-                            <span style="color:red;">{{ $error }}</span>
+                            <span style="color:red;">Wait ...</span>
                         @elseif(isset($sduling) && count($sduling) === 0 && $activeTab == 'upcoming')
                             <p>No upcoming matches found.</p>
                         @elseif(isset($sduling) && $activeTab == 'upcoming')
