@@ -75,64 +75,64 @@ $('#team2').on('click', function(){
     initMatchdetailScoreboardRefresh();
 });
 
-function initIndexLiveMatchesRefresh() {
-    var root = document.getElementById('cricket-index-page');
-    if (!root) {
-        return;
-    }
-    var activeTab = (root.getAttribute('data-active-tab') || 'live').toLowerCase();
-    if (activeTab !== 'live') {
-        return;
-    }
+// function initIndexLiveMatchesRefresh() {
+//     var root = document.getElementById('cricket-index-page');
+//     if (!root) {
+//         return;
+//     }
+//     var activeTab = (root.getAttribute('data-active-tab') || 'live').toLowerCase();
+//     if (activeTab !== 'live') {
+//         return;
+//     }
 
-    var liveContainerId = 'live_matches_container';
-    var liveRefreshTimer = null;
-    var isLiveRefreshRunning = false;
+//     var liveContainerId = 'live_matches_container';
+//     var liveRefreshTimer = null;
+//     var isLiveRefreshRunning = false;
 
-    async function refreshLiveMatches() {
-        if (isLiveRefreshRunning) {
-            return;
-        }
+//     async function refreshLiveMatches() {
+//         if (isLiveRefreshRunning) {
+//             return;
+//         }
 
-        var currentContainer = document.getElementById(liveContainerId);
-        if (!currentContainer) {
-            return;
-        }
+//         var currentContainer = document.getElementById(liveContainerId);
+//         if (!currentContainer) {
+//             return;
+//         }
 
-        isLiveRefreshRunning = true;
-        try {
-            var url = new URL(window.location.href);
-            url.searchParams.set('tab', 'live');
-            url.searchParams.set('_ts', Date.now());
+//         isLiveRefreshRunning = true;
+//         try {
+//             var url = new URL(window.location.href);
+//             url.searchParams.set('tab', 'live');
+//             url.searchParams.set('_ts', Date.now());
 
-            var response = await fetch(url.toString(), {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
+//             var response = await fetch(url.toString(), {
+//                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
+//             });
 
-            if (!response.ok) {
-                return;
-            }
+//             if (!response.ok) {
+//                 return;
+//             }
 
-            var html = await response.text();
-            var doc = new DOMParser().parseFromString(html, 'text/html');
-            var updatedContainer = doc.getElementById(liveContainerId);
-            if (updatedContainer) {
-                currentContainer.innerHTML = updatedContainer.innerHTML;
-            }
-        } catch (err) {
-            console.error('Live match refresh failed:', err);
-        } finally {
-            isLiveRefreshRunning = false;
-        }
-    }
+//             var html = await response.text();
+//             var doc = new DOMParser().parseFromString(html, 'text/html');
+//             var updatedContainer = doc.getElementById(liveContainerId);
+//             if (updatedContainer) {
+//                 currentContainer.innerHTML = updatedContainer.innerHTML;
+//             }
+//         } catch (err) {
+//             console.error('Live match refresh failed:', err);
+//         } finally {
+//             isLiveRefreshRunning = false;
+//         }
+//     }
 
-    liveRefreshTimer = window.setInterval(refreshLiveMatches, 20000);
-    window.addEventListener('beforeunload', function () {
-        if (liveRefreshTimer) {
-            window.clearInterval(liveRefreshTimer);
-        }
-    });
-}
+//     liveRefreshTimer = window.setInterval(refreshLiveMatches, 20000);
+//     window.addEventListener('beforeunload', function () {
+//         if (liveRefreshTimer) {
+//             window.clearInterval(liveRefreshTimer);
+//         }
+//     });
+// }
 
 // function initMatchdetailScoreboardRefresh() {
 //     var root = document.getElementById('cricket-matchdetail-page');
