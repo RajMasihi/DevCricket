@@ -15,13 +15,21 @@
         }
     @endphp
     <div class="container-fluid main-section" id="cricket-index-page" data-active-tab="{{ e($activeTab) }}">
+<<<<<<< HEAD
         <h4 class="text-center mb-3">Cricket Live Scores</h4>
+=======
+        <h4 class="text-center mb-3">Cricket Live Score</h4>
+>>>>>>> origin/main
         <div class="d-flex pb-3">
             <a href="{{ url('/?tab=live') }}"
                id="live_tab_btn"
                class="btn me-2 scoreboard-title{{ $activeTab == 'live' ? ' active-tab' : '' }}"
                type="button">
+<<<<<<< HEAD
                 Live Score match
+=======
+                Live Score
+>>>>>>> origin/main
             </a>
             <a href="{{ url('/result?tab=result') }}"
                id="result_tab_btn"
@@ -42,7 +50,11 @@
             <section id="live_section" style="display:{{ $activeTab == 'live' ? 'block' : 'none' }};">
                 <div class="row row-cols-1 row-cols-md-2 g-4 pt-2" id="live_matches_container">
                     @if(isset($error) && $activeTab == 'live')
+<<<<<<< HEAD
                         <span style="color:red;">{{ $error }}</span>
+=======
+                        <span style="color:red;">Wait ...</span>
+>>>>>>> origin/main
                     @elseif(isset($matches) && count($matches) === 0 && $activeTab == 'live')
                         <p>No recent matches found.</p>
                     @elseif(isset($matches) && $activeTab == 'live')
@@ -193,7 +205,11 @@
                     <h3 class="text-center">Cricket Result Matches</h3>
                     <div class="row row-cols-1 row-cols-md-2 g-4 pt-2">
                         @if(isset($error) && $activeTab == 'result')
+<<<<<<< HEAD
                             <span style="color:red;">{{ $error }}</span>
+=======
+                            <span style="color:red;">Wait ...</span>
+>>>>>>> origin/main
                         @elseif(isset($result) && count($result) === 0 && $activeTab == 'result')
                             <p>No recent matches found.</p>
                         @elseif(isset($result) && $activeTab == 'result')
@@ -344,7 +360,11 @@
                     <h3 class="text-center">Cricket Upcoming Matches</h3>
                     <div class="row row-cols-1 row-cols-md-2 g-4 pt-2">
                         @if(isset($error) && $activeTab == 'upcoming')
+<<<<<<< HEAD
                             <span style="color:red;">{{ $error }}</span>
+=======
+                            <span style="color:red;">Wait ...</span>
+>>>>>>> origin/main
                         @elseif(isset($sduling) && count($sduling) === 0 && $activeTab == 'upcoming')
                             <p>No upcoming matches found.</p>
                         @elseif(isset($sduling) && $activeTab == 'upcoming')

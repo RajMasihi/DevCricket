@@ -9,13 +9,6 @@ body {
     color: #232323;
     transition: background 0.2s, color 0.2s;
 }
-<<<<<<< HEAD
-=======
-.criclivem-logo
-{
-    width: 150px; height: 80px; background-color: none;
-}
->>>>>>> origin/main
 .px-4 {
     padding-left: 1.5rem !important;
     padding-right: 1.5rem !important;
@@ -373,90 +366,7 @@ body {
 .status-else {
     color:#0c7cde;
 }
-<<<<<<< HEAD
 
-=======
-/* Desktop */
-.summary-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: auto;
-}
-
-.summary-table th,
-.summary-table td {
-    padding: 8px 10px;
-    text-align: center;
-    vertical-align: middle;
-}
-
-.summary-table th:first-child,
-.summary-table td:first-child {
-    text-align: left;
-}
-
-/* Remove horizontal scroll */
-.table-overflow-x {
-    overflow-x: visible;
-}
-
-/* Mobile View */
-@media (max-width: 768px) {
-
-    .scoreboard-card {
-        width: 100%;
-        margin: 0;
-    }
-
-    .card-body {
-        padding: 12px !important;
-    }
-
-    .table-overflow-x {
-        overflow-x: visible !important;
-    }
-
-    .summary-table {
-        width: 100%;
-        table-layout: fixed;
-    }
-
-    .summary-table th,
-    .summary-table td {
-        padding: 2px 2px;
-        font-size: 11px;
-        word-break: break-word;
-    }
-
-    /* First column wider for player names */
-    .summary-table th:first-child,
-    .summary-table td:first-child {
-        width: 42%;
-        text-align: left;
-    }
-
-    .dismissal-text {
-        font-size: 10px;
-        line-height: 1.2;
-    }
-
-    .batbowl-title {
-        font-size: 15px;
-    }
-
-    .score-line {
-        font-size: 18px;
-    }
-
-    .team-name-down {
-        font-size: 16px;
-    }
-
-    .extras-info {
-        font-size: 11px !important;
-    }
-}
->>>>>>> origin/main
 /* ---------- Bat/Bowl Table Section ---------- */
 .batbowl-title {
     font-weight:700; 
@@ -803,53 +713,6 @@ li span .fa {
     background: transparent;
     transition: background 0.18s;
 }
-<<<<<<< HEAD
-=======
-
-/* Desktop */
-.score-nav-wrapper {
-    width: 100%;
-    overflow: hidden;
-}
-
-.score-nav {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
-}
-
-/* Button spacing */
-.score-nav .btn {
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-    .score-nav-wrapper {
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none; /* Firefox */
-    }
-
-    .score-nav-wrapper::-webkit-scrollbar {
-        display: none; /* Chrome, Safari */
-    }
-
-    .score-nav {
-        width: max-content;
-        flex-wrap: nowrap;
-        padding-bottom: 5px;
-    }
-
-    .score-nav .btn {
-        margin-right: 10px !important;
-        white-space: nowrap;
-        flex: 0 0 auto;
-    }
-}
->>>>>>> origin/main
 .scoreboard table tr:nth-child(even) td {
     background: #f0f4fa;
 }
@@ -861,9 +724,6 @@ li span .fa {
     font-weight: 600;
     color: #0a3659;
 }
-<<<<<<< HEAD
-
-=======
 .whitefooter-cont {
     display: flex;
     justify-content: space-between;
@@ -950,7 +810,6 @@ li span .fa {
         justify-content: center;
     }
 }
->>>>>>> origin/main
 /* ---------- Responsive styles ---------- */
 @media (max-width: 1200px) {
     .main-section {

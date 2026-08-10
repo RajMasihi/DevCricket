@@ -17,6 +17,7 @@
         @endphp
         <div class="container-fluid main-section" id="cricket-matchdetail-page" data-active-tab="{{ e($activeTab) }}" data-match-state="{{ e($matchState) }}">
 
+<<<<<<< HEAD
         <div class="d-flex pb-3">
             @php
                 // Adjust for second flow: URLs without "vs" and use only team1NameSlug and team2NameSlug plain (hyphen-case), if needed.
@@ -50,6 +51,42 @@
                type="button">
                 Stats
             </a>
+=======
+        <div class="score-nav-wrapper">
+            <div class="score-nav d-flex">
+                @php
+                    $matchUrlTeamSlug = $team1NameSlug . '-' . $team2NameSlug;
+                @endphp
+
+                <a href="{{ url('/score/' . $matchId . '/' . $matchUrlTeamSlug . '?tab=informe') }}"
+                    id="inform_btn"
+                    class="btn me-2 scoreboard-title{{ $activeTab == 'informe' ? ' active-tab' : '' }}">
+                    Informe
+                </a>
+
+                <a href="{{ url('/score-scoreboard/' . $matchId . '/' . $matchUrlTeamSlug . '?tab=scoreboard') }}"
+                    id="scoreboard_btn"
+                    class="btn me-2 scoreboard-title{{ $activeTab == 'scoreboard' ? ' active-tab' : '' }}">
+                    Match Scoreboard
+                </a>
+
+                <a href="{{ url('/score-player/' . $matchId . '/' . $matchUrlTeamSlug . '?tab=players') }}"
+                    id="players_btn"
+                    class="btn me-2 scoreboard-title{{ $activeTab == 'players' ? ' active-tab' : '' }}">
+                    Players
+                </a>
+
+                <a href="{{ url('/point-table/'.$seriesId.'/'.$seriesNameSlug) }}"
+                    class="btn me-2 scoreboard-title point-table-nav">
+                    Point Table
+                </a>
+
+                <a href="{{ url('/stats/'.$seriesId.'/'.$seriesNameSlug) }}"
+                    class="btn me-2 scoreboard-title">
+                    Stats
+                </a>
+            </div>
+>>>>>>> origin/main
         </div>
 
 
