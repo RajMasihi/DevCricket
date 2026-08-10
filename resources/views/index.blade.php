@@ -16,7 +16,7 @@
     @endphp
     <div class="container-fluid main-section" id="cricket-index-page" data-active-tab="{{ e($activeTab) }}">
 <<<<<<< HEAD
-        <h4 class="text-center mb-3">Cricket Live Scores</h4>
+        <h4 class="text-center mb-3">Cricket Live Score</h4>
 =======
         <h4 class="text-center mb-3">Cricket Live Score</h4>
 >>>>>>> origin/main
