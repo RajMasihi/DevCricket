@@ -75,8 +75,8 @@
                                     </li>
                                 </ul>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link link" href="{{ asset('/serieslist/10119/icc-womens-t20-world-cup-2026') }}">Womens WC 2026</a>
+                            <li class="nav-item">&nbsp;&nbsp;
+                                <!-- <a class="nav-link link" href="{{ asset('/serieslist/10119/icc-womens-t20-world-cup-2026') }}">Womens WC 2026</a> -->
                             </li>
                         </ul>
                     </div>

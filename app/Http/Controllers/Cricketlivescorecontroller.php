@@ -11,15 +11,17 @@ class Cricketlivescorecontroller extends Controller
     public function series()
     {
         $apiUrl = env('CriBase_Url') . "series/v1/all";
-        try {
-            $response = Http::withHeaders([
+        if ($apiUrl) {
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                 'Accept' => 'application/json',
                 'x-rapidapi-host' => 'cricbuzz-cricket2.p.rapidapi.com',
                 'x-rapidapi-key' => env('RAPIDAPI_KEY'),
             ])->get($apiUrl);
 
             $seriess = $response->json();
-        } catch (\Exception $e) {
+        } else {
             // Pass error msg to view or fallback mode
             $seriess = [];
             $errorMsg = $e->getMessage();
@@ -33,15 +35,17 @@ class Cricketlivescorecontroller extends Controller
     public function serieslist($id)
     {
         $apiUrl = env('CriBase_Url') . "series/v1/{$id}";
-        try {
-            $response = Http::withHeaders([
+        if ($apiUrl) {
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                 'Accept' => 'application/json',
                 'x-rapidapi-host' => 'cricbuzz-cricket2.p.rapidapi.com',
                 'x-rapidapi-key' => env('RAPIDAPI_KEY'),
             ])->get($apiUrl);
 
             $serieslists = $response->json();
-        } catch (\Exception $e) {
+        } else {
             // Pass error msg to view or fallback mode
             $serieslists = [];
             $errorMsg = $e->getMessage();
@@ -59,8 +63,10 @@ class Cricketlivescorecontroller extends Controller
         {
             $apiUrl = env('CriBase_Url').'matches/v1/recent';
             // $apiUrl = env('CriBase_Url').'live';
-            try {
-                $response = Http::withHeaders([
+            if ($apiUrl) {
+                $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                     'Content-Type'      => 'application/json',
                     'x-rapidapi-host'   => 'cricbuzz-cricket2.p.rapidapi.com',
                     'x-rapidapi-key'    => env('RAPIDAPI_KEY'), // Never hardcode your API key!
@@ -101,7 +107,7 @@ class Cricketlivescorecontroller extends Controller
                 }
                     // echo "<pre>";print_r($result);die;
                 return view('index', ['result' => $result, 'error' => null]);
-            } catch (\Exception $e) {
+            } else {
                 return view('index', [
                     'result' => [],
 
@@ -116,12 +122,13 @@ class Cricketlivescorecontroller extends Controller
     {
         // $apiUrl = env('CriBase_Url').'recent';
         $apiUrl = env('CriBase_Url').'matches/v1/live';
-        try {
-            $response = Http::withHeaders([
-                // 'x-rapidapi-key'    => '8523f1f3d8msh9899dce10cce67bp18d09fjsn6f4dec60701d', // Never hardcode your API key!
-                'Content-Type'      => 'application/json',
-                'x-rapidapi-host'   => 'cricbuzz-cricket2.p.rapidapi.com',
-                'x-rapidapi-key'    => env('RAPIDAPI_KEY'), // Never hardcode your API key!
+        if($apiUrl) {
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
+                'Content-Type'    => 'application/json',
+                'x-rapidapi-host' => 'cricbuzz-cricket2.p.rapidapi.com',
+                'x-rapidapi-key'  => env('RAPIDAPI_KEY'),
             ])->get($apiUrl);
                 // echo $response;
             if ($response->failed()) {
@@ -158,7 +165,7 @@ class Cricketlivescorecontroller extends Controller
             }
                 // echo "<pre>";print_r($matches);die;
             return view('index', ['matches' => $matches, 'error' => null]);
-        } catch (\Exception $e) {
+        } else {
             return view('index', [
                 'matches' => [],
 
@@ -170,11 +177,13 @@ class Cricketlivescorecontroller extends Controller
 
     public function upcoming()
     {
-        {
+        
             // $apiUrl = env('CriBase_Url').'recent';
             $apiUrl = env('CriBase_Url').'matches/v1/upcoming';
-            try {
-                $response = Http::withHeaders([
+            if ($apiUrl) {
+                $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                     'Content-Type'      => 'application/json',
                     'x-rapidapi-host'   => 'cricbuzz-cricket2.p.rapidapi.com',
                     'x-rapidapi-key'    => env('RAPIDAPI_KEY'), // Never hardcode your API key!
@@ -215,7 +224,7 @@ class Cricketlivescorecontroller extends Controller
                 }
                     // echo "<pre>";print_r($sduling);die;
                 return view('index', ['sduling' => $sduling, 'error' => null]);
-            } catch (\Exception $e) {
+            } else {
                 return view('index', [
                     'sduling' => [],
 
@@ -223,23 +232,27 @@ class Cricketlivescorecontroller extends Controller
 
                 ]);
             }
-        }
+        
     }
     // Live match function end
 
     // Match details scoreboard 
     public function matchdetailscore($id)
     {
-        try {
-            $apiUrlscard = env('CriBase_Url')."mcenter/v1/{$id}/scard";
-            $response = Http::withHeaders([
+        $apiUrlscard = env('CriBase_Url')."mcenter/v1/{$id}/scard";
+        if ($apiUrlscard) {
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                 'Accept' => 'application/json',
                 'x-rapidapi-host' => 'cricbuzz-cricket2.p.rapidapi.com',
                 'x-rapidapi-key' => env('RAPIDAPI_KEY'),
                 ])->get($apiUrlscard);
                 // info
             $apiUrlscardinfo = env('CriBase_Url')."mcenter/v1/{$id}";
-            $responseinfo = Http::withHeaders([
+            $responseinfo = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                     'Accept' => 'application/json',
                     'x-rapidapi-host' => 'cricbuzz-cricket2.p.rapidapi.com',
                     'x-rapidapi-key' => env('RAPIDAPI_KEY'),
@@ -247,7 +260,7 @@ class Cricketlivescorecontroller extends Controller
             
             $scorecardDatainfo = $responseinfo->json();
             $scorecardData = $response->json();
-        } catch (\Exception $e) {
+        } else {
             // Pass error msg to view or fallback mode
             $scorecardData = [];
             $errorMsg = $e->getMessage();
@@ -259,15 +272,17 @@ class Cricketlivescorecontroller extends Controller
     public function matchdetailinforme($id)
     {
         $apiUrl = env('CriBase_Url')."mcenter/v1/{$id}";
-        try {
-            $response = Http::withHeaders([
+        if ($apiUrl) {
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                 'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
                 'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
                 'Content-Type'    => 'application/json',
             ])->get($apiUrl);
             
             $scorecardDatainfo = $response->json();
-        } catch (\Exception $e) {
+        } else {
             $scorecardDatainfo = [];
             $errorMsg = $e->getMessage();
             return view('matchdetail', compact('scorecardDatainfo', 'errorMsg'));
@@ -278,14 +293,18 @@ class Cricketlivescorecontroller extends Controller
     public function matchdetailplayer($id)
     {
         $apiUrl = env('CriBase_Url')."mcenter/v1/{$id}/teams";
-        try {
-            $response = Http::withHeaders([
+        if ($apiUrl) {
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                 'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
                 'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
                 'Content-Type'    => 'application/json',
             ])->get($apiUrl);
             $apiUrlscardinfo = env('CriBase_Url')."mcenter/v1/{$id}";
-            $responseinfo = Http::withHeaders([
+            $responseinfo = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                     'Accept' => 'application/json',
                     'x-rapidapi-host' => 'cricbuzz-cricket2.p.rapidapi.com',
                     'x-rapidapi-key' => env('RAPIDAPI_KEY'),
@@ -293,7 +312,7 @@ class Cricketlivescorecontroller extends Controller
             
             $scorecardDatainfo = $responseinfo->json();
             $teamsData = $response->json();
-        } catch (\Exception $e) {
+        } else {
             $teamsData = [];
             $errorMsg = $e->getMessage();
             return view('matchdetail', compact('teamsData', 'errorMsg'));
@@ -306,21 +325,25 @@ class Cricketlivescorecontroller extends Controller
     {
         $pointTableUrl = env('CriBase_Url')."stats/v1/series/{$id}/points-table";
         $statsUrl = env('CriBase_Url')."stats/v1/series/{$id}?statsType=mostRuns";
-        try {
+        if ($pointTableUrl) {
             $headers = [
                 'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
                 'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
                 'Content-Type'    => 'application/json',
             ];
 
-            $pointTableResponse = Http::withHeaders($headers)->get($pointTableUrl);
-            $statsResponse = Http::withHeaders($headers)->get($statsUrl);
+            $pointTableResponse = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders($headers)->get($pointTableUrl);
+            $statsResponse = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders($headers)->get($statsUrl);
 
             $pointtable = $pointTableResponse->json();
         // echo "<pre>"; print_r($pointtable);die;
 
             $statsData = $statsResponse->json();
-        } catch (\Exception $e) {
+        } else {
             $pointtable = [];
             $statsData = [];
             $errorMsg = $e->getMessage();
@@ -334,19 +357,23 @@ class Cricketlivescorecontroller extends Controller
     {
         $statsUrl = env('CriBase_Url')."stats/v1/series/{$id}?statsType=mostRuns";
         $pointTableUrl = env('CriBase_Url')."stats/v1/series/{$id}/points-table";
-        try {
+        if ($statsUrl) {
             $headers = [
                 'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
                 'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
                 'Content-Type'    => 'application/json',
             ];
 
-            $statsResponse = Http::withHeaders($headers)->get($statsUrl);
-            $pointTableResponse = Http::withHeaders($headers)->get($pointTableUrl);
+            $statsResponse = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders($headers)->get($statsUrl);
+            $pointTableResponse = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders($headers)->get($pointTableUrl);
 
             $statsData = $statsResponse->json();
             $pointtable = $pointTableResponse->json();
-        } catch (\Exception $e) {
+        } else {
             $statsData = [];
             $pointtable = [];
             $errorMsg = $e->getMessage();
@@ -358,15 +385,17 @@ class Cricketlivescorecontroller extends Controller
     }
     public function teamsinternational(){
         $apiUrl = env('CriBase_Url')."teams/v1/international";
-        try {
-            $response = Http::withHeaders([
+        if ($apiUrl) {
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                 'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
                 'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
                 'Content-Type'    => 'application/json',
             ])->get($apiUrl);
 
             $teamsinternational = $response->json();
-        } catch (\Exception $e) {
+        } else {
             $teamsinternational = [];
             $errorMsg = $e->getMessage();
             return view('teams', compact('teamsinternational', 'errorMsg'));
@@ -376,15 +405,17 @@ class Cricketlivescorecontroller extends Controller
     }
     public function teamsdomestic(){
         $apiUrl = env('CriBase_Url')."teams/v1/domestic";
-        try {
-            $response = Http::withHeaders([
+        if ($apiUrl) {
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                 'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
                 'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
                 'Content-Type'    => 'application/json',
             ])->get($apiUrl);
 
             $teamsDomestic = $response->json();
-        } catch (\Exception $e) {
+        } else {
             $teamsDomestic = [];
             $errorMsg = $e->getMessage();
             return view('teams', compact('teamsDomestic', 'errorMsg'));
@@ -394,15 +425,17 @@ class Cricketlivescorecontroller extends Controller
     }
     public function teamswomens(){
         $apiUrl = env('CriBase_Url')."teams/v1/women";
-        try {
-            $response = Http::withHeaders([
+        if ($apiUrl) {
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                 'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
                 'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
                 'Content-Type'    => 'application/json',
             ])->get($apiUrl);
 
             $teamsWomens = $response->json();
-        } catch (\Exception $e) {
+        } else {
             $teamsWomens = [];
             $errorMsg = $e->getMessage();
             return view('teams', compact('teamsWomens', 'errorMsg'));
@@ -412,15 +445,17 @@ class Cricketlivescorecontroller extends Controller
     }
     public function teamsleague(){
         $apiUrl = env('CriBase_Url')."teams/v1/league";
-        try {
-            $response = Http::withHeaders([
+        if ($apiUrl) {
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                 'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
                 'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
                 'Content-Type'    => 'application/json',
             ])->get($apiUrl);
 
             $teamsleague = $response->json();
-        } catch (\Exception $e) {
+        } else {
             $teamsleague = [];
             $errorMsg = $e->getMessage();
             return view('teams', compact('teamsleague', 'errorMsg'));
@@ -436,15 +471,17 @@ class Cricketlivescorecontroller extends Controller
    //  Sduling_upcoming match International 
     public function sdulinginternational(){
         $apiUrl = env('CriBase_Url')."schedule/v1/International?lastTime=1729555200000";
-        try {
-            $response = Http::withHeaders([
+        if ($apiUrl) {
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                 'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
                 'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
                 'Content-Type'    => 'application/json',
             ])->get($apiUrl);
 
             $sdulinginternational = $response->json();
-        } catch (\Exception $e) {
+        } else {
             $sdulinginternational = [];
             $errorMsg = $e->getMessage();
             return view('sduling', compact('sdulinginternational', 'errorMsg'));
@@ -455,15 +492,17 @@ class Cricketlivescorecontroller extends Controller
    //  Sduling_upcoming match domestic 
     public function sdulingdomestic(){
         $apiUrl = env('CriBase_Url')."schedule/v1/domestic?lastTime=1729555200000";
-        try {
-            $response = Http::withHeaders([
+        if ($apiUrl) {
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                 'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
                 'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
                 'Content-Type'    => 'application/json',
             ])->get($apiUrl);
 
             $sdulingdomestic = $response->json();
-        } catch (\Exception $e) {
+        } else {
             $sdulingdomestic = [];
             $errorMsg = $e->getMessage();
             return view('sduling', compact('sdulingdomestic', 'errorMsg'));
@@ -473,15 +512,17 @@ class Cricketlivescorecontroller extends Controller
     }
     public function sdulingwomen(){
         $apiUrl = env('CriBase_Url')."schedule/v1/women?lastTime=1729555200000";
-        try {
-            $response = Http::withHeaders([
+        if ($apiUrl) {
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                 'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
                 'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
                 'Content-Type'    => 'application/json',
             ])->get($apiUrl);
 
             $sdulingwomen = $response->json();
-        } catch (\Exception $e) {
+        } else {
             $sdulingwomen = [];
             $errorMsg = $e->getMessage();
             return view('sduling', compact('sdulingwomen', 'errorMsg'));
@@ -491,15 +532,17 @@ class Cricketlivescorecontroller extends Controller
     }
     public function sdulingleague(){
         $apiUrl = env('CriBase_Url')."schedule/v1/league?lastTime=1729555200000";
-        try {
-            $response = Http::withHeaders([
+        if ($apiUrl) {
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                 'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
                 'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
                 'Content-Type'    => 'application/json',
             ])->get($apiUrl);
 
             $sdulingleague = $response->json();
-        } catch (\Exception $e) {
+        } else {
             $sdulingleague = [];
             $errorMsg = $e->getMessage();
             return view('sduling', compact('sdulingleague', 'errorMsg'));
@@ -519,8 +562,10 @@ class Cricketlivescorecontroller extends Controller
             'Content-Type'    => 'application/json',
         ];
 
-        try {
-            $catResponse = Http::withHeaders($headers)->get(env('CriBase_Url') . "news/v1/cat");
+        if ($headers) {
+            $catResponse = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders($headers)->get(env('CriBase_Url') . "news/v1/cat");
             $newscat = $catResponse->json();
 
             $categories = isset($newscat['storyType']) && is_array($newscat['storyType'])
@@ -534,7 +579,9 @@ class Cricketlivescorecontroller extends Controller
 
             $newsItems = [];
             if (!empty($activeCategoryId)) {
-                $listResponse = Http::withHeaders($headers)->get(env('CriBase_Url') . "news/v1/cat/{$activeCategoryId}");
+                $listResponse = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders($headers)->get(env('CriBase_Url') . "news/v1/cat/{$activeCategoryId}");
                 $newsData = $listResponse->json();
                 $newsItems = isset($newsData['storyList']) && is_array($newsData['storyList'])
                     ? $newsData['storyList']
@@ -542,7 +589,7 @@ class Cricketlivescorecontroller extends Controller
             }
 
             return view('news', compact('newscat', 'categories', 'activeCategoryId', 'newsItems'));
-        } catch (\Exception $e) {
+        } else {
             $newscat = [];
             $categories = [];
             $activeCategoryId = null;
@@ -555,7 +602,9 @@ class Cricketlivescorecontroller extends Controller
     public function newscatdetail($id, $name = null)
     {
         try {
-            $response = Http::withHeaders([
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
                 'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
                 'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
                 'Content-Type'    => 'application/json',
@@ -662,7 +711,9 @@ class Cricketlivescorecontroller extends Controller
         }else{
         $apiUrl = env('CriBase_Url') . "stats/v1/rankings/{$category}?isMen={$isMen}&formatType={$format}";
         }
-        $response = Http::withHeaders([
+        $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
             'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
             'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
             'Content-Type'    => 'application/json',

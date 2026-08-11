@@ -15,9 +15,15 @@
         }
     @endphp
     <div class="container-fluid main-section" id="cricket-index-page" data-active-tab="{{ e($activeTab) }}">
-
-        <h4 class="text-center mb-3">Cricket Live Score</h4>
-
+        <div id="live_section" style="display:{{ $activeTab == 'live' ? 'block' : 'none' }};">
+            <h4 class="text-center mb-3">Cricket Live Score</h4>
+        </div>
+        <div id="result_section" style="display:{{ $activeTab == 'result' ? 'block' : 'none' }};">
+            <h4 class="text-center mb-3">Cricket Result Matches</h4>
+        </div>
+        <div id="upcoming_section" style="display:{{ $activeTab == 'upcoming' ? 'block' : 'none' }};">
+            <h4 class="text-center mb-3">Cricket Upcoming Matches</h4>
+        </div>
         <div class="d-flex pb-3">
             <a href="{{ url('/?tab=live') }}"
                id="live_tab_btn"
@@ -115,15 +121,17 @@
                                                     </p>
                                                 @endif
                                             </div>
-                                            <p class="col-3 match-formate {{ $matchFormatClass }}">
-                                                @if($matchFormat === 'T20')
-                                                    <span class="t20-series">{{ $matchFormat }}</span>
-                                                @elseif($matchFormat === 'TEST')
-                                                    <span class="test-series">{{ $matchFormat }}</span>
-                                                @else
-                                                    <span>{{ $matchFormat }}</span>
-                                                @endif
-                                            </p>
+                                            <div class="col-3">
+                                                <p class="match-formate {{ $matchFormatClass }}">
+                                                    @if($matchFormat === 'T20')
+                                                        <span class="t20-series">{{ $matchFormat }}</span>
+                                                    @elseif($matchFormat === 'TEST')
+                                                        <span class="test-series">{{ $matchFormat }}</span>
+                                                    @else
+                                                        <span>{{ $matchFormat }}</span>
+                                                    @endif
+                                                </p>
+                                            </div>
                                             <div class="col-3 mt-1">
                                                 @if($state === 'in progress')
                                                     <span class="badge bg-success">Live<span class="animation"></span></span>
@@ -196,7 +204,7 @@
             <!-- Result Tab Section -->
             <section id="result_section" style="display:{{ $activeTab == 'result' ? 'block' : 'none' }};">
                 <div class="container-fluid">
-                    <h3 class="text-center">Cricket Result Matches</h3>
+                    
                     <div class="row row-cols-1 row-cols-md-2 g-4 pt-2">
                         @if(isset($error) && $activeTab == 'result')
 
@@ -349,7 +357,6 @@
             <!-- Upcoming Tab Section -->
             <section id="upcoming_section" style="display:{{ $activeTab == 'upcoming' ? 'block' : 'none' }};">
                 <div class="container-fluid">
-                    <h3 class="text-center">Cricket Upcoming Matches</h3>
                     <div class="row row-cols-1 row-cols-md-2 g-4 pt-2">
                         @if(isset($error) && $activeTab == 'upcoming')
 
