@@ -9,13 +9,12 @@ body {
     color: #232323;
     transition: background 0.2s, color 0.2s;
 }
-<<<<<<< HEAD
-=======
+
 .criclivem-logo
 {
     width: 150px; height: 80px; background-color: none;
 }
->>>>>>> origin/main
+
 .px-4 {
     padding-left: 1.5rem !important;
     padding-right: 1.5rem !important;
@@ -373,9 +372,7 @@ body {
 .status-else {
     color:#0c7cde;
 }
-<<<<<<< HEAD
 
-=======
 /* Desktop */
 .summary-table {
     width: 100%;
@@ -456,7 +453,7 @@ body {
         font-size: 11px !important;
     }
 }
->>>>>>> origin/main
+
 /* ---------- Bat/Bowl Table Section ---------- */
 .batbowl-title {
     font-weight:700; 
@@ -803,8 +800,7 @@ li span .fa {
     background: transparent;
     transition: background 0.18s;
 }
-<<<<<<< HEAD
-=======
+
 
 /* Desktop */
 .score-nav-wrapper {
@@ -849,7 +845,7 @@ li span .fa {
         flex: 0 0 auto;
     }
 }
->>>>>>> origin/main
+
 .scoreboard table tr:nth-child(even) td {
     background: #f0f4fa;
 }
@@ -861,9 +857,7 @@ li span .fa {
     font-weight: 600;
     color: #0a3659;
 }
-<<<<<<< HEAD
 
-=======
 .whitefooter-cont {
     display: flex;
     justify-content: space-between;
@@ -950,7 +944,7 @@ li span .fa {
         justify-content: center;
     }
 }
->>>>>>> origin/main
+
 /* ---------- Responsive styles ---------- */
 @media (max-width: 1200px) {
     .main-section {

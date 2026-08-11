@@ -1,10 +1,7 @@
 *.log
 .DS_Store
 .env
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/main
 .env.backup
 .env.production
 .phpactor.json

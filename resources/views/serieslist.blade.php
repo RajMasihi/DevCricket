@@ -140,11 +140,9 @@ use Illuminate\Support\Str;
                                             , {{ $match['venueInfo']['city'] }}
                                         @endif
                                     </p>
-<<<<<<< HEAD
-                                    <p class="match-formate col-2" style='margin-top:-15px;'>
-=======
+
                                     <p class="match-formate col-3" style='margin-top:-15px;'>
->>>>>>> origin/main
+
                                         @php
                                             $format = $match['matchFormat'] ?? $match['matchType'] ?? '';
                                         @endphp
