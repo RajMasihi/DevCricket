@@ -107,7 +107,7 @@
                                 $team1CssClass = $team1Won ? 'winner-team' : 'loser-team';
                                 $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                             @endphp
-                            <div class="col match-item">
+                            <div class="col match-item" data-match-id="{{ $match_id }}">
                                 <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}" style="text-decoration: none; color:#141010;">
                                     <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                                         <div class="row card-body">
@@ -261,7 +261,7 @@
                                     $team1CssClass = $team1Won ? 'winner-team' : 'loser-team';
                                     $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                                 @endphp
-                                <div class="col match-item">
+                                <div class="col match-item" data-match-id="{{ $match_id }}">
                                     <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}" style="text-decoration: none; color:#141010;">
                                         <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                                             <div class="row card-body">
@@ -413,7 +413,7 @@
                                     $team1CssClass = $team1Won ? 'winner-team' : 'loser-team';
                                     $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                                 @endphp
-                                <div class="col match-item">
+                                <div class="col match-item" data-match-id="{{ $match_id }}">
                                     <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}" style="text-decoration: none; color:#141010;">
                                         <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                                             <div class="row card-body">

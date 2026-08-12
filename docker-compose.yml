@@ -22,11 +22,19 @@
 
 services:
 
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+
   app:
     image: rajmasihi63/cricketapp:latest
     restart: always
     env_file:
       - .env
+    depends_on:
+      - redis
 
   nginx:
     image: nginx:alpine

@@ -1,6 +1,5 @@
 
 $(function () {
-// navebar active class 
     let currentUrl = window.location.href;
     $('.first-header .nav-item a').each(function () {
         if (this.href === currentUrl) {
@@ -8,190 +7,250 @@ $(function () {
             $(this).addClass('active');
         }
     });
-//    filter in t20, ODi, test, 
 
-$(document).on('click', '.second-header .nav-link', function (e) {
-    e.preventDefault();
+    $(document).on('click', '.second-header .nav-link', function (e) {
+        e.preventDefault();
 
-    $('.second-header .nav-link')
-        .removeClass('active')
-        .css({
-            'background-color': '',
-            'color': ''
+        $('.second-header .nav-link')
+            .removeClass('active')
+            .css({
+                'background-color': '',
+                'color': ''
+            });
+
+        $(this)
+            .addClass('active')
+            .css({
+                'background-color': '#053259',
+                'color': '#fff'
+            });
+    });
+
+    $('.second-header .nav-item .link').on('click', function (e) {
+        if ($(this).hasClass('point-table-nav') || $(this).attr('id') === 'point-table') {
+            return;
+        }
+
+        e.preventDefault();
+
+        let te = $(this).text().trim().toLowerCase();
+        $('#search').val(te);
+
+        if (te === 'all' || te === 'mens') {
+            $('.match-item').show();
+            return;
+        }
+
+        $('.match-item').each(function () {
+            let text = $(this).text().toLowerCase();
+
+            if (text.indexOf(te) > -1) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
         });
+    });
 
-    $(this)
-        .addClass('active')
-        .css({
-            'background-color': '#053259', // Bootstrap primary
-            'color': '#fff'
-        });
+    $('#team1').click(function () {
+        $('#scorecard1').show();
+    });
+
+    $('#team2').on('click', function () {
+        $('#scorecard1').hide();
+        $('#scorecard2').removeClass('d-block').show();
+    });
+
+    initIndexLiveMatchesRefresh();
+    initMatchdetailLiveRefresh();
 });
 
-
-//  Searching nav working.........
-
-  // Ensure "Point Table" link ('.point-table-nav') works as a normal link and does not trigger this handler.
-  $('.second-header .nav-item .link').on('click', function (e) {
-    // Skip if this is the Point Table nav (identified by class or id)
-    if ($(this).hasClass('point-table-nav') || $(this).attr('id') === 'point-table') {
-      // Allow default navigation for Point Table
-      return;
-    }
-
-    e.preventDefault();
-
-    let te = $(this).text().trim().toLowerCase();
-    $('#search').val(te);
-
-    if (te === 'all' || te ==='mens') {
-        $('.match-item').show();
+function initMatchdetailLiveRefresh() {
+    var root = document.getElementById('cricket-matchdetail-page');
+    if (!root) {
         return;
     }
 
-    $('.match-item').each(function () {
-        let text = $(this).text().toLowerCase();
+    var activeTab = (root.getAttribute('data-active-tab') || 'informe').toLowerCase();
+    var matchState = (root.getAttribute('data-match-state') || '').toLowerCase();
+    var matchId = root.getAttribute('data-match-id') || '';
 
-        if (text.indexOf(te) > -1) {
-            $(this).show();
-        } else {
-            $(this).hide();
+    if (!matchId || matchState !== 'in progress') {
+        return;
+    }
+
+    var refreshTimer = null;
+    var isRefreshing = false;
+    var intervalMs = activeTab === 'scoreboard' ? 8000 : 15000;
+
+    async function refreshMatchDetail() {
+        if (isRefreshing) {
+            return;
+        }
+
+        isRefreshing = true;
+        try {
+            if (activeTab === 'informe') {
+                var infoResponse = await fetch('/api/match/' + matchId + '/info', {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (infoResponse.ok) {
+                    var infoData = await infoResponse.json();
+                    var statusEl = document.getElementById('informe_match_status');
+                    if (statusEl && infoData.info && infoData.info.status) {
+                        statusEl.textContent = infoData.info.status;
+                    }
+                }
+            }
+
+            if (activeTab === 'scoreboard') {
+                var scoreboardResponse = await fetch('/api/match/' + matchId + '/scoreboard', {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (scoreboardResponse.ok) {
+                    var scoreData = await scoreboardResponse.json();
+                    var statusText = document.getElementById('match_status_text');
+                    var status = scoreData.scorecard && scoreData.scorecard.status
+                        ? scoreData.scorecard.status
+                        : (scoreData.info && scoreData.info.status ? scoreData.info.status : '');
+
+                    if (statusText && status) {
+                        statusText.textContent = status;
+                    }
+                }
+
+                var commentaryResponse = await fetch('/api/match/' + matchId + '/commentary', {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (commentaryResponse.ok) {
+                    var commData = await commentaryResponse.json();
+                    updateCommentaryList(commData.commentary || {});
+                }
+            }
+        } catch (err) {
+            console.error('Live match detail refresh failed:', err);
+        } finally {
+            isRefreshing = false;
+        }
+    }
+
+    function updateCommentaryList(commentary) {
+        var listEl = document.getElementById('commentary_list');
+        if (!listEl) {
+            return;
+        }
+
+        var commList = commentary.commentaryList || commentary.commentary || [];
+        if (!Array.isArray(commList) || commList.length === 0) {
+            return;
+        }
+
+        var html = '';
+        commList.slice(0, 15).forEach(function (comm) {
+            var over = comm.over || '';
+            var text = comm.commText || comm.text || '';
+            html += '<div class="border-bottom py-1"><span class="text-muted">' + over + '</span> ' + text + '</div>';
+        });
+
+        listEl.innerHTML = html;
+    }
+
+    refreshTimer = window.setInterval(refreshMatchDetail, intervalMs);
+    window.addEventListener('beforeunload', function () {
+        if (refreshTimer) {
+            window.clearInterval(refreshTimer);
         }
     });
-});
+}
 
+function initIndexLiveMatchesRefresh() {
+    var root = document.getElementById('cricket-index-page');
+    if (!root) {
+        return;
+    }
 
- $('#team1').click(function(){
-  $('#scorecard1').show();
-//   $('#scorecard2').hide();
-});
+    var activeTab = (root.getAttribute('data-active-tab') || 'live').toLowerCase();
+    if (activeTab !== 'live') {
+        return;
+    }
 
-$('#team2').on('click', function(){
-      $('#scorecard1').hide();
-      $('#scorecard2').removeClass('d-block').show();
-  });
+    var refreshTimer = null;
+    var isRefreshing = false;
 
-    initIndexLiveMatchesRefresh();
-    initMatchdetailScoreboardRefresh();
-});
+    async function refreshLiveMatches() {
+        if (isRefreshing) {
+            return;
+        }
 
-// function initIndexLiveMatchesRefresh() {
-//     var root = document.getElementById('cricket-index-page');
-//     if (!root) {
-//         return;
-//     }
-//     var activeTab = (root.getAttribute('data-active-tab') || 'live').toLowerCase();
-//     if (activeTab !== 'live') {
-//         return;
-//     }
+        isRefreshing = true;
+        try {
+            var response = await fetch('/api/live-matches', {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            });
 
-//     var liveContainerId = 'live_matches_container';
-//     var liveRefreshTimer = null;
-//     var isLiveRefreshRunning = false;
+            if (!response.ok) {
+                return;
+            }
 
-//     async function refreshLiveMatches() {
-//         if (isLiveRefreshRunning) {
-//             return;
-//         }
+            var data = await response.json();
+            var matches = data.matches || [];
 
-//         var currentContainer = document.getElementById(liveContainerId);
-//         if (!currentContainer) {
-//             return;
-//         }
+            matches.forEach(function (match) {
+                var mi = match.matchInfo || {};
+                var score = match.matchScore || {};
+                var matchId = mi.matchId || '';
+                if (!matchId) {
+                    return;
+                }
 
-//         isLiveRefreshRunning = true;
-//         try {
-//             var url = new URL(window.location.href);
-//             url.searchParams.set('tab', 'live');
-//             url.searchParams.set('_ts', Date.now());
+                var card = document.querySelector('.match-item[data-match-id="' + matchId + '"]');
+                if (!card) {
+                    return;
+                }
 
-//             var response = await fetch(url.toString(), {
-//                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
-//             });
+                var statusEl = card.querySelector('.status-else, .status-complete');
+                if (statusEl && mi.status) {
+                    statusEl.textContent = mi.status;
+                }
 
-//             if (!response.ok) {
-//                 return;
-//             }
+                updateTeamScore(card, score.team1Score, 0);
+                updateTeamScore(card, score.team2Score, 1);
+            });
+        } catch (err) {
+            console.error('Live match refresh failed:', err);
+        } finally {
+            isRefreshing = false;
+        }
+    }
 
-//             var html = await response.text();
-//             var doc = new DOMParser().parseFromString(html, 'text/html');
-//             var updatedContainer = doc.getElementById(liveContainerId);
-//             if (updatedContainer) {
-//                 currentContainer.innerHTML = updatedContainer.innerHTML;
-//             }
-//         } catch (err) {
-//             console.error('Live match refresh failed:', err);
-//         } finally {
-//             isLiveRefreshRunning = false;
-//         }
-//     }
+    function updateTeamScore(card, teamScore, teamIndex) {
+        if (!teamScore) {
+            return;
+        }
 
-//     liveRefreshTimer = window.setInterval(refreshLiveMatches, 20000);
-//     window.addEventListener('beforeunload', function () {
-//         if (liveRefreshTimer) {
-//             window.clearInterval(liveRefreshTimer);
-//         }
-//     });
-// }
+        var inngs = teamScore.inngs1 || teamScore.inngs2 || teamScore;
+        if (!inngs) {
+            return;
+        }
 
-// function initMatchdetailScoreboardRefresh() {
-//     var root = document.getElementById('cricket-matchdetail-page');
-//     if (!root) {
-//         return;
-//     }
-//     var activeTab = (root.getAttribute('data-active-tab') || 'informe').toLowerCase();
-//     var matchState = (root.getAttribute('data-match-state') || '').toLowerCase();
-//     if (activeTab !== 'scoreboard' || matchState !== 'in progress') {
-//         return;
-//     }
+        var scoreSpans = card.querySelectorAll('.score-span');
+        if (!scoreSpans[teamIndex]) {
+            return;
+        }
 
-//     var sectionId = 'scoreboard_live_container';
-//     var refreshTimer = null;
-//     var isRefreshing = false;
+        var runs = inngs.runs ?? '-';
+        var wickets = inngs.wickets ?? '0';
+        var overs = inngs.overs ?? '-';
+        scoreSpans[teamIndex].textContent = runs + '/' + wickets + ' (' + overs + ' ovs)';
+    }
 
-//     async function refreshScoreboardSection() {
-//         if (isRefreshing) {
-//             return;
-//         }
-
-//         var currentSection = document.getElementById(sectionId);
-//         if (!currentSection) {
-//             return;
-//         }
-
-//         isRefreshing = true;
-//         try {
-//             var url = new URL(window.location.href);
-//             url.searchParams.set('tab', 'scoreboard');
-//             url.searchParams.set('_ts', Date.now());
-
-//             var response = await fetch(url.toString(), {
-//                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
-//             });
-
-//             if (!response.ok) {
-//                 return;
-//             }
-
-//             var html = await response.text();
-//             var doc = new DOMParser().parseFromString(html, 'text/html');
-//             var updatedSection = doc.getElementById(sectionId);
-//             if (updatedSection) {
-//                 currentSection.innerHTML = updatedSection.innerHTML;
-//             }
-//         } catch (err) {
-//             console.error('Live scoreboard refresh failed:', err);
-//         } finally {
-//             isRefreshing = false;
-//         }
-//     }
-
-//     refreshTimer = window.setInterval(refreshScoreboardSection, 20000);
-//     window.addEventListener('beforeunload', function () {
-//         if (refreshTimer) {
-//             window.clearInterval(refreshTimer);
-//         }
-//     });
-// }
-
-
+    refreshTimer = window.setInterval(refreshLiveMatches, 15000);
+    window.addEventListener('beforeunload', function () {
+        if (refreshTimer) {
+            window.clearInterval(refreshTimer);
+        }
+    });
+}

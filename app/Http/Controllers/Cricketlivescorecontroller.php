@@ -1,12 +1,14 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Support\Facades\Http;
+
+use App\Services\CricbuzzApiService;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
 
 class Cricketlivescorecontroller extends Controller
 {
+    public function __construct(private CricbuzzApiService $cricbuzzApi) {}
     // serires match function start
     public function series()
     {
@@ -60,265 +62,54 @@ class Cricketlivescorecontroller extends Controller
 
     public function result()
     {
-        {
-            $apiUrl = env('CriBase_Url').'matches/v1/recent';
-            // $apiUrl = env('CriBase_Url').'live';
-            if ($apiUrl) {
-                $response = Http::withOptions([
-                'verify' => false,
-            ])->withHeaders([
-                    'Content-Type'      => 'application/json',
-                    'x-rapidapi-host'   => 'cricbuzz-cricket2.p.rapidapi.com',
-                    'x-rapidapi-key'    => env('RAPIDAPI_KEY'), // Never hardcode your API key!
-                ])->get($apiUrl);
-    
-                if ($response->failed()) {
-                    return view('index', ['matches' => [], 'error' => 'No Match data!']);
-                }
-    
-                $data = $response->json();
-                $result = [];
-    
-                if (isset($data['matches']) && is_array($data['matches'])) {
-                    $result = $data['matches'];
-                } elseif (isset($data['typeMatches']) && is_array($data['typeMatches'])) {
-                    foreach ($data['typeMatches'] as $typeMatch) {
-                        if (isset($typeMatch['seriesMatches']) && is_array($typeMatch['seriesMatches'])) {
-                            foreach ($typeMatch['seriesMatches'] as $seriesObj) {
-                                if (
-                                    isset($seriesObj['seriesAdWrapper'], $seriesObj['seriesAdWrapper']['matches']) &&
-                                    is_array($seriesObj['seriesAdWrapper']['matches'])
-                                ) {
-                                    foreach ($seriesObj['seriesAdWrapper']['matches'] as $m) {
-                                        // Get matchInfo and matchScore arrays if present
-                                        $matchInfo = isset($m['matchInfo']) && is_array($m['matchInfo']) ? $m['matchInfo'] : [];
-                                        $matchScore = isset($m['matchScore']) && is_array($m['matchScore']) ? $m['matchScore'] : [];
-    
-                                        // Push match details as array: preserve both matchInfo and matchScore fully, top-level
-                                        $result[] = [
-                                            'matchInfo'  => $matchInfo,
-                                            'matchScore' => $matchScore,
-                                        ];
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                    // echo "<pre>";print_r($result);die;
-                return view('index', ['result' => $result, 'error' => null]);
-            } else {
-                return view('index', [
-                    'result' => [],
-
-                    'error' => 'Error fetching data: ' .'Yoy can Reload Page its Session time out.',
-
-                ]);
-            }
-        }
+        return view('index', [
+            'result' => $this->cricbuzzApi->recentMatches(),
+            'error' => null,
+        ]);
     }
 
     public function CricketliveScores()
     {
-        // $apiUrl = env('CriBase_Url').'recent';
-        $apiUrl = env('CriBase_Url').'matches/v1/live';
-        if($apiUrl) {
-            $response = Http::withOptions([
-                'verify' => false,
-            ])->withHeaders([
-                'Content-Type'    => 'application/json',
-                'x-rapidapi-host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                'x-rapidapi-key'  => env('RAPIDAPI_KEY'),
-            ])->get($apiUrl);
-                // echo $response;
-            if ($response->failed()) {
-                return view('index', ['matches' => [], 'error' => 'No Match data!']);
-            }
-
-            $data = $response->json();
-            $matches = [];
-            if (isset($data['matches']) && is_array($data['matches'])) {
-                $matches = $data['matches'];
-            } elseif (isset($data['typeMatches']) && is_array($data['typeMatches'])) {
-                foreach ($data['typeMatches'] as $typeMatch) {
-                    if (isset($typeMatch['seriesMatches']) && is_array($typeMatch['seriesMatches'])) {
-                        foreach ($typeMatch['seriesMatches'] as $seriesObj) {
-                            if (
-                                isset($seriesObj['seriesAdWrapper'], $seriesObj['seriesAdWrapper']['matches']) &&
-                                is_array($seriesObj['seriesAdWrapper']['matches'])
-                            ) {
-                                foreach ($seriesObj['seriesAdWrapper']['matches'] as $m) {
-                                    // Get matchInfo and matchScore arrays if present
-                                    $matchInfo = isset($m['matchInfo']) && is_array($m['matchInfo']) ? $m['matchInfo'] : [];
-                                    $matchScore = isset($m['matchScore']) && is_array($m['matchScore']) ? $m['matchScore'] : [];
-
-                                    // Push match details as array: preserve both matchInfo and matchScore fully, top-level
-                                    $matches[] = [
-                                        'matchInfo'  => $matchInfo,
-                                        'matchScore' => $matchScore,
-                                    ];
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-                // echo "<pre>";print_r($matches);die;
-            return view('index', ['matches' => $matches, 'error' => null]);
-        } else {
-            return view('index', [
-                'matches' => [],
-
-                'error' => 'Error fetching data: ' .'Yoy can Reload Page its Session time out.',
-
-            ]);
-        }
+        return view('index', [
+            'matches' => $this->cricbuzzApi->liveMatches(),
+            'error' => null,
+        ]);
     }
 
     public function upcoming()
     {
-        
-            // $apiUrl = env('CriBase_Url').'recent';
-            $apiUrl = env('CriBase_Url').'matches/v1/upcoming';
-            if ($apiUrl) {
-                $response = Http::withOptions([
-                'verify' => false,
-            ])->withHeaders([
-                    'Content-Type'      => 'application/json',
-                    'x-rapidapi-host'   => 'cricbuzz-cricket2.p.rapidapi.com',
-                    'x-rapidapi-key'    => env('RAPIDAPI_KEY'), // Never hardcode your API key!
-                ])->get($apiUrl);
-    
-                if ($response->failed()) {
-                    return view('index', ['matches' => [], 'error' => 'No Match data!']);
-                }
-    
-                $data = $response->json();
-                $sduling = [];
-    
-                if (isset($data['matches']) && is_array($data['matches'])) {
-                    $sduling = $data['matches'];
-                } elseif (isset($data['typeMatches']) && is_array($data['typeMatches'])) {
-                    foreach ($data['typeMatches'] as $typeMatch) {
-                        if (isset($typeMatch['seriesMatches']) && is_array($typeMatch['seriesMatches'])) {
-                            foreach ($typeMatch['seriesMatches'] as $seriesObj) {
-                                if (
-                                    isset($seriesObj['seriesAdWrapper'], $seriesObj['seriesAdWrapper']['matches']) &&
-                                    is_array($seriesObj['seriesAdWrapper']['matches'])
-                                ) {
-                                    foreach ($seriesObj['seriesAdWrapper']['matches'] as $m) {
-                                        // Get matchInfo and matchScore arrays if present
-                                        $matchInfo = isset($m['matchInfo']) && is_array($m['matchInfo']) ? $m['matchInfo'] : [];
-                                        $matchScore = isset($m['matchScore']) && is_array($m['matchScore']) ? $m['matchScore'] : [];
-    
-                                        // Push match details as array: preserve both matchInfo and matchScore fully, top-level
-                                        $sduling[] = [
-                                            'matchInfo'  => $matchInfo,
-                                            'matchScore' => $matchScore,
-                                        ];
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                    // echo "<pre>";print_r($sduling);die;
-                return view('index', ['sduling' => $sduling, 'error' => null]);
-            } else {
-                return view('index', [
-                    'sduling' => [],
-
-                    'error' => 'Error fetching data: ' .'Yoy can Reload Page its Session time out.',
-
-                ]);
-            }
-        
+        return view('index', [
+            'sduling' => $this->cricbuzzApi->upcomingMatches(),
+            'error' => null,
+        ]);
     }
     // Live match function end
 
-    // Match details scoreboard 
-    public function matchdetailscore($id)
+    public function matchDetail(Request $request, $id, $name = null)
     {
-        $apiUrlscard = env('CriBase_Url')."mcenter/v1/{$id}/scard";
-        if ($apiUrlscard) {
-            $response = Http::withOptions([
-                'verify' => false,
-            ])->withHeaders([
-                'Accept' => 'application/json',
-                'x-rapidapi-host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                'x-rapidapi-key' => env('RAPIDAPI_KEY'),
-                ])->get($apiUrlscard);
-                // info
-            $apiUrlscardinfo = env('CriBase_Url')."mcenter/v1/{$id}";
-            $responseinfo = Http::withOptions([
-                'verify' => false,
-            ])->withHeaders([
-                    'Accept' => 'application/json',
-                    'x-rapidapi-host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                    'x-rapidapi-key' => env('RAPIDAPI_KEY'),
-                    ])->get($apiUrlscardinfo);
-            
-            $scorecardDatainfo = $responseinfo->json();
-            $scorecardData = $response->json();
-        } else {
-            // Pass error msg to view or fallback mode
-            $scorecardData = [];
-            $errorMsg = $e->getMessage();
-            return view('matchdetail', compact('scorecardData', 'errorMsg'));
+        $tab = $request->query('tab', 'informe');
+        if (!in_array($tab, ['informe', 'scoreboard', 'players'], true)) {
+            $tab = 'informe';
         }
-            // echo "<pre>";print_r($scorecardData);die;
-        return view('matchdetail', compact('scorecardData','scorecardDatainfo'));
-    }
-    public function matchdetailinforme($id)
-    {
-        $apiUrl = env('CriBase_Url')."mcenter/v1/{$id}";
-        if ($apiUrl) {
-            $response = Http::withOptions([
-                'verify' => false,
-            ])->withHeaders([
-                'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
-                'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                'Content-Type'    => 'application/json',
-            ])->get($apiUrl);
-            
-            $scorecardDatainfo = $response->json();
-        } else {
+
+        try {
+            $scorecardDatainfo = $this->cricbuzzApi->matchInfo($id);
+            $scorecardData = $tab === 'scoreboard' ? $this->cricbuzzApi->scorecard($id) : [];
+            $teamsData = $tab === 'players' ? $this->cricbuzzApi->teams($id) : [];
+            $commentary = ($tab === 'scoreboard' && strtolower($scorecardDatainfo['state'] ?? '') === 'in progress')
+                ? $this->cricbuzzApi->commentary($id)
+                : [];
+        } catch (\Exception $e) {
             $scorecardDatainfo = [];
-            $errorMsg = $e->getMessage();
-            return view('matchdetail', compact('scorecardDatainfo', 'errorMsg'));
-        }
-            // echo "<pre>";print_r($scorecardDatainfo);die;
-        return view('matchdetail', compact('scorecardDatainfo'));
-    }
-    public function matchdetailplayer($id)
-    {
-        $apiUrl = env('CriBase_Url')."mcenter/v1/{$id}/teams";
-        if ($apiUrl) {
-            $response = Http::withOptions([
-                'verify' => false,
-            ])->withHeaders([
-                'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
-                'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                'Content-Type'    => 'application/json',
-            ])->get($apiUrl);
-            $apiUrlscardinfo = env('CriBase_Url')."mcenter/v1/{$id}";
-            $responseinfo = Http::withOptions([
-                'verify' => false,
-            ])->withHeaders([
-                    'Accept' => 'application/json',
-                    'x-rapidapi-host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                    'x-rapidapi-key' => env('RAPIDAPI_KEY'),
-                    ])->get($apiUrlscardinfo);
-            
-            $scorecardDatainfo = $responseinfo->json();
-            $teamsData = $response->json();
-        } else {
+            $scorecardData = [];
             $teamsData = [];
+            $commentary = [];
             $errorMsg = $e->getMessage();
-            return view('matchdetail', compact('teamsData', 'errorMsg'));
+
+            return view('matchdetail', compact('scorecardDatainfo', 'scorecardData', 'teamsData', 'commentary', 'tab', 'errorMsg'));
         }
-            // echo "<pre>";print_r($teamsData);die;
-        return view('matchdetail', compact('teamsData','scorecardDatainfo'));
+
+        return view('matchdetail', compact('scorecardDatainfo', 'scorecardData', 'teamsData', 'commentary', 'tab'));
     }
 
     public function showSeriesPoints($id)

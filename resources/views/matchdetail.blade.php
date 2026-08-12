@@ -12,10 +12,13 @@
             $seriesId = $scorecardDatainfo['seriesid'] ?? $scorecardDatainfo['seriesid'] ?? '';
             $seriesName = $scorecardDatainfo['seriesname'] ?? $scorecardDatainfo['seriesname'] ?? '';
             $seriesNameSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $seriesName), '0'));
-            $activeTab = request()->get('tab', 'informe');
+            $activeTab = $tab ?? request()->get('tab', 'informe');
             $matchState = strtolower($scorecardDatainfo['state'] ?? '');
         @endphp
-        <div class="container-fluid main-section" id="cricket-matchdetail-page" data-active-tab="{{ e($activeTab) }}" data-match-state="{{ e($matchState) }}">
+        <div class="container-fluid main-section" id="cricket-matchdetail-page"
+             data-active-tab="{{ e($activeTab) }}"
+             data-match-state="{{ e($matchState) }}"
+             data-match-id="{{ e($matchId) }}">
 
 
         <div class="score-nav-wrapper">
@@ -30,13 +33,13 @@
                     Informe
                 </a>
 
-                <a href="{{ url('/score-scoreboard/' . $matchId . '/' . $matchUrlTeamSlug . '?tab=scoreboard') }}"
+                <a href="{{ url('/score/' . $matchId . '/' . $matchUrlTeamSlug . '?tab=scoreboard') }}"
                     id="scoreboard_btn"
                     class="btn me-2 scoreboard-title{{ $activeTab == 'scoreboard' ? ' active-tab' : '' }}">
                     Match Scoreboard
                 </a>
 
-                <a href="{{ url('/score-player/' . $matchId . '/' . $matchUrlTeamSlug . '?tab=players') }}"
+                <a href="{{ url('/score/' . $matchId . '/' . $matchUrlTeamSlug . '?tab=players') }}"
                     id="players_btn"
                     class="btn me-2 scoreboard-title{{ $activeTab == 'players' ? ' active-tab' : '' }}">
                     Players
@@ -68,7 +71,7 @@
                             </h3>
                             <div>
                                 <span class="badge bg-success">{{ $scorecardDatainfo['matchformat'] ?? '' }}</span>
-                                <span class="ms-2">Status: <b>{{ $scorecardDatainfo['status'] ?? '' }}</b></span>
+                                <span class="ms-2">Status: <b id="informe_match_status">{{ $scorecardDatainfo['status'] ?? '' }}</b></span>
                             </div>
                         </div>
                         <div class="card-body">
@@ -130,12 +133,34 @@
 
                 @if (!empty($seriesName) && !empty($scoreCards) && is_array($scoreCards))
                     <!-- Match Status -->
-                    <div class="col-12 match-result-row mb-3 border shadow-sm rounded bg-white py-3 px-2" >
+                    <div class="col-12 match-result-row mb-3 border shadow-sm rounded bg-white py-3 px-2" id="match_status_row">
                         <div class="text-center">
-                            <span class="winner-title">{{ $matchStatus }}</span>
+                            <span class="winner-title" id="match_status_text">{{ $matchStatus }}</span>
                             @if($matchState === 'in progress')
                                 <div class="small text-success mt-1">Live ball-by-ball auto update every 8 seconds</div>
                             @endif
+                        </div>
+                    </div>
+                    <div class="col-12 mb-3" id="commentary_live_container" style="{{ $matchState === 'in progress' ? '' : 'display:none;' }}">
+                        <div class="card shadow-sm">
+                            <div class="card-header" style="background-color:#053259;color:#fff;">
+                                <strong>Ball-by-Ball Commentary</strong>
+                            </div>
+                            <div class="card-body p-2" id="commentary_list" style="max-height:220px;overflow-y:auto;font-size:0.92rem;">
+                                @if(!empty($commentary))
+                                    @php
+                                        $commList = $commentary['commentaryList'] ?? $commentary['commentary'] ?? [];
+                                    @endphp
+                                    @foreach(array_slice(is_array($commList) ? $commList : [], 0, 15) as $comm)
+                                        <div class="border-bottom py-1">
+                                            <span class="text-muted">{{ $comm['over'] ?? '' }}</span>
+                                            {{ $comm['commText'] ?? $comm['text'] ?? '' }}
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <div class="text-muted">Commentary will appear when the match is live.</div>
+                                @endif
+                            </div>
                         </div>
                     </div>
                     <!-- Scorecards -->

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\CricbuzzApiService;
+use App\Services\MatchEventBroker;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +13,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(CricbuzzApiService::class);
+        $this->app->singleton(MatchEventBroker::class);
     }
 
     /**
