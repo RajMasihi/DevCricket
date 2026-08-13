@@ -1,9 +1,11 @@
 <?php
 
 namespace App\Services;
-
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+// Replace $redis = new Redis(); with Facade calls:
+
 
 class CricbuzzApiService
 {
