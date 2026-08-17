@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
             @endif
         </h4>
         @php
+            // update code
             $seriesId = request()->route('id') ?? ($serieslists['seriesId'] ?? '');
             $seriesNameForSlug = $serieslists['seriesName'] ?? $serieslists['name'] ?? request()->route('seriesname') ?? '';
             $seriesNameSlug = request()->route('seriesname') ?? Str::slug($seriesNameForSlug);

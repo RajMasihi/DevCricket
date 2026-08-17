@@ -9,6 +9,7 @@
         }
     </style>
     @php
+        //update
         $activeTab = request()->get('tab', 'live');
         if (!in_array($activeTab, ['live', 'result', 'upcoming'])) {
             $activeTab = 'live';

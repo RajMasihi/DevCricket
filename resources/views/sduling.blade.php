@@ -4,6 +4,7 @@
 
 @section('main-container')
     <style>
+        /* update code */
         .active-tab {
             border-bottom: 2px solid #053259 !important;
         }

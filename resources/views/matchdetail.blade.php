@@ -4,6 +4,7 @@
 
 @section('main-container')
         @php
+            // update code
             $team1 = $scorecardDatainfo['team1']['teamname'] ?? '';
             $team1NameSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $team1), '0'));
             $team2 = $scorecardDatainfo['team2']['teamname'] ?? '';

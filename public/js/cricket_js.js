@@ -165,7 +165,7 @@ function initMatchdetailLiveRefresh() {
         }
     });
 }
-
+// live match 
 function initIndexLiveMatchesRefresh() {
     var root = document.getElementById('cricket-index-page');
     if (!root) {
