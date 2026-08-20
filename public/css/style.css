@@ -134,7 +134,9 @@ body {
 
 /* ---------- Card / Scoreboard Structure ---------- */
 .scoreboard-card {
-    border-radius: 22px;
+    /* border-radius: 22px; */
+    border-top-left-radius: 22px;
+    border-top-right-radius: 22px;
     box-shadow: 0 2px 12px -2px #0532594f;
     border: none;
     margin-bottom: 24px;
@@ -810,6 +812,73 @@ li span .fa {
     flex-shrink: 0;
 }
 
+
+
+        .active-tab {
+                border-bottom: 2px solid #053259 !important;
+            }
+        
+        #scoreboard table,
+        #players table {
+            table-layout: auto !important;
+            width: 100% !important;
+        }
+        /* Custom Utility Classes derived from Inline Styles */
+        .bg-custom-navy {
+            background-color: #053259 !important;
+        }
+        .commentary-scroll-box {
+            max-height: 220px;
+            overflow-y: auto;
+            font-size: 0.92rem;
+        }
+        .btn-team-sc {
+            max-width: 100%;
+            white-space: normal;
+        }
+        .batbowl-title-custom {
+            font-size: 1rem;
+        }
+        .min-w-320 {
+            min-width: 320px;
+        }
+        .mobile-th-text {
+            font-size: 0.72rem;
+        }
+        .mobile-player-name {
+            font-size: 0.78rem;
+        }
+        .mobile-dismissal-text {
+            font-size: 0.68rem;
+            word-break: break-word;
+        }
+        .mobile-stat-text {
+            font-size: 0.75rem;
+        }
+        .mobile-sr-text {
+            font-size: 0.65rem;
+        }
+        .extras-info-box {
+            font-size: 0.85rem;
+        }
+        
+        /* Utility class for Blade dynamic display conditions */
+        .d-none-dynamic {
+            display: none !important;
+        }
+        #scoreboard table tr td,
+        #scoreboard table tr th,
+        #players table tr td,
+        #players table tr th {
+            vertical-align: middle !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+        }
+
+        .table-responsive {
+            overflow-x: visible !important;
+        }
+
 /* ---------- Responsive Breakpoints ---------- */
 
 /* Laptop / Desktop Large */
@@ -901,7 +970,12 @@ li span .fa {
         width: 100%;
         min-width: 0;
     }
+    .scoreboard-main{
+        
+    padding-left: 0 !important;
+    padding-right: 0 !important;
 
+    }
     .scoreboard-card {
         width: 100%;
         margin: 0;
@@ -912,7 +986,7 @@ li span .fa {
     }
 
     .scoreboard-header {
-        flex-direction: column;
+        /* flex-direction: column; */
         align-items: flex-start;
         padding: 10px !important;
     }
@@ -924,8 +998,8 @@ li span .fa {
     .score-line {
         position: static;
         transform: none;
-        width: 100%;
-        margin-top: 1em;
+        /* width: 100%; */
+        /* margin-top: 1em; */
         background: rgba(13, 100, 181, 0.19);
         color: #093158;
         text-align: left;
