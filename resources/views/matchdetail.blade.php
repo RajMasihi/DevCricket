@@ -3,19 +3,19 @@
 @section('title', $scorecardDatainfo['appindex']['seotitle'] ?? '')
 
 @section('main-container')
-@php
-// update code
-$team1 = $scorecardDatainfo['team1']['teamname'] ?? '';
-$team1NameSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $team1), '0'));
-$team2 = $scorecardDatainfo['team2']['teamname'] ?? '';
-$team2NameSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $team2), '0'));
-$matchId = $scorecardDatainfo['matchid'] ?? $scorecardDatainfo['matchId'] ?? '';
-$seriesId = $scorecardDatainfo['seriesid'] ?? $scorecardDatainfo['seriesid'] ?? '';
-$seriesName = $scorecardDatainfo['seriesname'] ?? $scorecardDatainfo['seriesname'] ?? '';
-$seriesNameSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $seriesName), '0'));
-$activeTab = $tab ?? request()->get('tab', 'informe');
-$matchState = strtolower($scorecardDatainfo['state'] ?? '');
-@endphp
+    @php
+        // update code
+        $team1 = $scorecardDatainfo['team1']['teamname'] ?? '';
+        $team1NameSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $team1), '0'));
+        $team2 = $scorecardDatainfo['team2']['teamname'] ?? '';
+        $team2NameSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $team2), '0'));
+        $matchId = $scorecardDatainfo['matchid'] ?? $scorecardDatainfo['matchId'] ?? '';
+        $seriesId = $scorecardDatainfo['seriesid'] ?? $scorecardDatainfo['seriesid'] ?? '';
+        $seriesName = $scorecardDatainfo['seriesname'] ?? $scorecardDatainfo['seriesname'] ?? '';
+        $seriesNameSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $seriesName), '0'));
+        $activeTab = $tab ?? request()->get('tab', 'informe');
+        $matchState = strtolower($scorecardDatainfo['state'] ?? '');
+    @endphp
 <div class="container-fluid main-section" id="cricket-matchdetail-page" data-active-tab="{{ e($activeTab) }}"
     data-match-state="{{ e($matchState) }}" data-match-id="{{ e($matchId) }}">
 
@@ -40,12 +40,13 @@ $matchState = strtolower($scorecardDatainfo['state'] ?? '');
                 class="btn me-2 scoreboard-title{{ $activeTab == 'players' ? ' active-tab' : '' }}">
                 Players
             </a>
-
-            <a href="{{ url('/point-table/'.$seriesId.'/'.$seriesNameSlug) }}"
-                class="btn me-2 scoreboard-title point-table-nav">
-                Point Table
-            </a>
-
+            {{-- Show Point Table button only if seriesId and seriesNameSlug are set --}}
+            @if(!empty($seriesId) && !empty($seriesNameSlug))
+                <a href="{{ url('/point-table/' . $seriesId . '/' . $seriesNameSlug) }}"
+                    class="btn me-2 scoreboard-title point-table-nav">
+                    Point Table
+                </a>
+            @endif
             <a href="{{ url('/stats/'.$seriesId.'/'.$seriesNameSlug) }}" class="btn me-2 scoreboard-title">
                 Stats
             </a>
@@ -53,7 +54,9 @@ $matchState = strtolower($scorecardDatainfo['state'] ?? '');
 
     </div>
 
-
+        {{-- ========================================== --}}
+        {{-- TAB 1: INFORMATION       --}}
+        {{-- ========================================== --}}
     <!-- Informe Section (default shown) -->
     <section id="informe" style="display: {{ $activeTab === 'informe' ? 'block' : 'none' }};">
         <div class="container my-4">
@@ -432,7 +435,159 @@ $matchState = strtolower($scorecardDatainfo['state'] ?? '');
                         </div>
                     </div>
                     @endif
+                 @else
+
+                    <div class="col">
+
+                        <div class="not-started-box text-center">
+
+                            <h3>Match Start Date/Time!</h3>
+
+                            @php
+
+                                // Correction for upcoming match status and local time display
+
+                                $matchStatusShow = '';
+
+                                $localTime = '';
+
+
+
+                                // Try to get a match status from the most available source
+
+                                if (!empty($scorecardData['status'])) {
+
+                                    $matchStatusShow = $scorecardData['status'];
+
+                                } elseif (isset($scoreCards['status']) && !empty($scoreCards['status'])) {
+
+                                    $matchStatusShow = $scoreCards['status'];
+
+                                } elseif (isset($match) && !empty($match['status'] ?? null)) {
+
+                                    $matchStatusShow = $match['status'];
+
+                                }
+
+
+
+                                // For upcoming matches, show "Match Not Started" with local time from startDate if possible
+
+                                if (empty($matchStatusShow) || stripos($matchStatusShow, 'not started') !== false || stripos($matchStatusShow, 'upcoming') !== false) {
+
+                                    $matchStatusShow = 'Match Not Started';
+
+
+
+                                    // Try to get local time from a 'startdate' field (common for upcoming matches)
+
+                                    $rawStart = $scorecardData['startdate']
+
+                                        ?? $scorecardDatainfo['startdate']
+
+                                        ?? $scoreCards['startdate']
+
+                                        ?? $match['startdate']
+
+                                        ?? null;
+
+
+
+                                    if (!empty($rawStart)) {
+
+                                        // startdate is usually milliseconds, convert to int seconds if needed
+
+                                        if (is_numeric($rawStart) && $rawStart > 100000000000) {
+
+                                            $rawStart = intval($rawStart / 1000);
+
+                                        } elseif (is_numeric($rawStart)) {
+
+                                            $rawStart = intval($rawStart);
+
+                                        } else {
+
+                                            $rawStart = null;
+
+                                        }
+
+                                        if (!empty($rawStart)) {
+
+                                            try {
+
+                                                $dt = new DateTime("@$rawStart");
+
+                                                $dt->setTimezone(new DateTimeZone('Asia/Kolkata'));
+
+                                                $localTime = $dt->format('d M, Y h:i A');
+
+                                            } catch(Exception $e) {
+
+                                                $localTime = '';
+
+                                            }
+
+                                        }
+
+                                    }
+
+                                } else {
+
+                                    // Try to parse GMT datetime string in status if available
+
+                                    if (preg_match('/([A-Za-z]{3} \d{2}, \d{2}:\d{2} GMT)/', $matchStatusShow, $matches)) {
+
+                                        try {
+
+                                            $gmtDateTime = $matches[1];
+
+                                            $date = DateTime::createFromFormat('M d, H:i T Y', $gmtDateTime . ' ' . date('Y'), new DateTimeZone('GMT'));
+
+                                            if($date !== false) {
+
+                                                $date->setTimezone(new DateTimeZone('Asia/Kolkata'));
+
+                                                $localTime = $date->format('d M, Y h:i A');
+
+                                            }
+
+                                        } catch(Exception $e) {
+
+                                            $localTime = '';
+
+                                        }
+
+                                    }
+
+                                }
+
+         
+
+                            @endphp
+
+
+
+                            <div class="match-status-box text-center mb-2" style="font-size:1.13rem;">
+
+                                <span style="font-weight:600;color:#255;">
+
+                                    {{ $matchStatusShow }} <br>
+
+                                    Local Time : {{ $localTime }}
+
+                                </span>
+
+                            </div>
+
+                            <p>Stay tuned. Match details will appear here once available.</p>
+
+                        </div>
+
+                    </div>
+
+                
                 @endif
+
             </div>
         </section>
 
@@ -446,189 +601,207 @@ $matchState = strtolower($scorecardDatainfo['state'] ?? '');
 
             @if (!empty($teamsData['team1']['team']) || !empty($teamsData['team2']['team']))
             <!-- Team Toggle Buttons for Squad -->
-            <div class="row pt-2 mb-3">
-                <div class="col-12">
-                    <div class="btn-group shadow-sm" role="group" aria-label="Squad Team Selector">
-                        @if(!empty($teamsData['team1']['team']))
-                        <button type="button" class="btn btn-outline-primary fw-bold squad-team-btn active"
-                            onclick="showSquadTeam('team1', this)">
-                            {{ $teamsData['team1']['team']['teamname'] ?? 'Team 1' }}
-                        </button>
-                        @endif
-                        @if(!empty($teamsData['team2']['team']))
-                        <button type="button"
-                            class="btn btn-outline-primary fw-bold squad-team-btn {{ empty($teamsData['team1']['team']) ? 'active' : '' }}"
-                            onclick="showSquadTeam('team2', this)">
-                            {{ $teamsData['team2']['team']['teamname'] ?? 'Team 2' }}
-                        </button>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
-            <!-- Squad Content Container -->
-            <div class="row justify-content-center text-start mb-3">
-                @foreach (['team1', 'team2'] as $teamKey)
-                @if (!empty($teamsData[$teamKey]['team']))
-                <div class="col-12 squad-team-wrapper" id="squad_{{ $teamKey }}"
-                    style="{{ ($loop->first) ? 'display:block;' : 'display:none;' }}">
-                    <div class="p-3 rounded shadow-sm bg-white border h-100">
-                        <h5 class="mb-3 text-primary fw-bold border-bottom pb-2">
-                            {{ $teamsData[$teamKey]['team']['teamname'] ?? 'Unknown Team' }}
-                            @if(!empty($teamsData[$teamKey]['team']['teamsname']))
-                            <span class="text-secondary fw-normal fs-6">
-                                ({{ $teamsData[$teamKey]['team']['teamsname'] }})
-                            </span>
+                <div class="row pt-2 mb-3">
+                    <div class="col-12">
+                        <div class="btn-group shadow-sm" role="group" aria-label="Squad Team Selector">
+                            @if(!empty($teamsData['team1']['team']))
+                            <button type="button" class="btn btn-outline-primary fw-bold squad-team-btn active"
+                                onclick="showSquadTeam('team1', this)">
+                                {{ $teamsData['team1']['team']['teamname'] ?? 'Team 1' }}
+                            </button>
                             @endif
-                        </h5>
-
-                        @if (!empty($teamsData[$teamKey]['players']) && is_array($teamsData[$teamKey]['players']))
-                        @php
-                        $playingXI = null;
-                        foreach ($teamsData[$teamKey]['players'] as $group) {
-                        if (
-                        isset($group['category']) &&
-                        strtolower(trim($group['category'])) === 'playing xi' &&
-                        !empty($group['player']) &&
-                        is_array($group['player'])
-                        ) {
-                        $playingXI = $group['player'];
-                        break;
-                        }
-                        }
-                        @endphp
-
-                        <div class="mb-2">
-                            <span class="fw-semibold text-decoration-underline">Playing XI (After Toss)</span>
-
-                            @if ($playingXI && count($playingXI) > 0)
-                            <div class="w-100 mt-3">
-                                <table
-                                    class="table table-bordered table-hover align-middle table-sm bg-white mb-0 w-100">
-                                    <thead class="table-primary">
-                                        <tr>
-                                            <th style="width: 48px;"></th>
-                                            <th>Name</th>
-                                            <th>Role</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($playingXI as $p)
-                                        @php
-                                        $img = $p['faceimageid'] ?? null;
-                                        $pNameRaw = $p['name'] ?? '';
-                                        $playerSlug = !empty($pNameRaw)
-                                        ? strtolower(trim(preg_replace('/[^a-z0-9]+/i', '0', $pNameRaw), '0'))
-                                        : 'no-image';
-
-                                        $playerImg = $img
-                                        ? 'https://static.cricbuzz.com/a/img/v1/0x0/i1/c' . $img . '/' . $playerSlug .
-                                        '.jpg?d=low&p=gthumb'
-                                        : null;
-                                        @endphp
-                                        <tr>
-                                            <td class="text-center">
-                                                @if ($playerImg)
-                                                <img src="{{ $playerImg }}" alt="{{ $pNameRaw }}" class="rounded-circle"
-                                                    style="width: 40px; height: 40px; object-fit: cover; border: 1.5px solid #99c;">
-                                                @else
-                                                <span
-                                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary text-white"
-                                                    style="width: 40px; height: 40px;">
-                                                    <i class="bi bi-person-fill"></i>
-                                                </span>
-                                                @endif
-                                            </td>
-                                            <td class="text-break">
-                                                <span
-                                                    class="fw-semibold text-dark">{{ $pNameRaw ?: 'Unnamed player' }}</span>
-                                                @if (!empty($p['captain']))
-                                                <span class="badge bg-info text-dark ms-1"
-                                                    style="font-size: .8em;">C</span>
-                                                @endif
-                                                @if (!empty($p['keeper']))
-                                                <span class="badge bg-success ms-1" style="font-size: .8em;">WK</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                <span class="text-muted">{{ $p['role'] ?? 'N/A' }}</span>
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                            @else
-                            <div class="alert alert-warning py-2 px-3 my-2" style="font-size: .95em;">
-                                <em>No current playing XI players listed.</em>
-                            </div>
+                            @if(!empty($teamsData['team2']['team']))
+                            <button type="button"
+                                class="btn btn-outline-primary fw-bold squad-team-btn {{ empty($teamsData['team1']['team']) ? 'active' : '' }}"
+                                onclick="showSquadTeam('team2', this)">
+                                {{ $teamsData['team2']['team']['teamname'] ?? 'Team 2' }}
+                            </button>
                             @endif
                         </div>
-                        @else
-                        <div class="alert alert-warning py-2 px-3 my-2" style="font-size: .95em;">
-                            <em>No players listed.</em>
-                        </div>
-                        @endif
                     </div>
                 </div>
-                @endif
-                @endforeach
-            </div>
+
+                <!-- Squad Content Container -->
+                <div class="row justify-content-center text-start mb-3">
+                    @foreach (['team1', 'team2'] as $teamKey)
+                        @if (!empty($teamsData[$teamKey]['team']))
+                        <div class="col-12 squad-team-wrapper" id="squad_{{ $teamKey }}"
+                            style="{{ ($loop->first) ? 'display:block;' : 'display:none;' }}">
+                            <div class="p-3 rounded shadow-sm bg-white border h-100">
+                                <h5 class="mb-3 text-primary fw-bold border-bottom pb-2">
+                                    {{ $teamsData[$teamKey]['team']['teamname'] ?? 'Unknown Team' }}
+                                    @if(!empty($teamsData[$teamKey]['team']['teamsname']))
+                                    <span class="text-secondary fw-normal fs-6">
+                                        ({{ $teamsData[$teamKey]['team']['teamsname'] }})
+                                    </span>
+                                    @endif
+                                </h5>
+
+                                @if (!empty($teamsData[$teamKey]['players']) && is_array($teamsData[$teamKey]['players']))
+                                    @php
+                                        $playingXI = null;
+                                        $Squad =null;
+                                        foreach ($teamsData[$teamKey]['players'] as $group) {
+                                            if (
+                                            isset($group['category']) &&
+                                            strtolower(trim($group['category'])) === 'playing xi' &&
+                                            !empty($group['player']) &&
+                                            is_array($group['player'])
+                                            ) {
+                                            $playingXI = $group['player'];
+                                            break;
+                                            }elseif (
+                                               isset($group['category']) &&
+                                            strtolower(trim($group['category'])) === 'squad' &&
+                                            !empty($group['player']) &&
+                                            is_array($group['player'])
+                                            ) {
+                                            $Squad = $group['player'];
+                                            break;
+                                            } 
+                                            
+                                        }
+                                    @endphp
+
+                                <div class="mb-2">
+                                    @if ($Squad && count($Squad) > 0)
+                                    <span class="fw-semibold text-decoration-underline">Playing Teams</span>
+                                    <div class="w-100 mt-3">
+                                        <table
+                                            class="table table-bordered table-hover align-middle table-sm bg-white mb-0 w-100">
+                                            <thead class="table-primary">
+                                                <tr>
+                                                    <th style="width: 48px;"></th>
+                                                    <th>Name</th>
+                                                    <th>Role</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($Squad as $p)
+                                                @php
+                                                $img = $p['faceimageid'] ?? null;
+                                                $pNameRaw = $p['name'] ?? '';
+                                                $playerSlug = !empty($pNameRaw)
+                                                ? strtolower(trim(preg_replace('/[^a-z0-9]+/i', '0', $pNameRaw), '0'))
+                                                : 'no-image';
+
+                                                $Squad = $img
+                                                ? 'https://static.cricbuzz.com/a/img/v1/0x0/i1/c' . $img . '/' . $playerSlug .
+                                                '.jpg?d=low&p=gthumb'
+                                                : null;
+                                                @endphp
+                                                <tr>
+                                                    <td class="text-center">
+                                                        @if ($Squad)
+                                                        <img src="{{ $Squad }}" alt="{{ $pNameRaw }}" class="rounded-circle"
+                                                            style="width: 40px; height: 40px; object-fit: cover; border: 1.5px solid #99c;">
+                                                        @else
+                                                        <span
+                                                            class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary text-white"
+                                                            style="width: 40px; height: 40px;">
+                                                            <i class="bi bi-person-fill"></i>
+                                                        </span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-break">
+                                                        <span
+                                                            class="fw-semibold text-dark">{{ $pNameRaw ?: 'Unnamed player' }}</span>
+                                                        @if (!empty($p['captain']))
+                                                        <span class="badge bg-info text-dark ms-1"
+                                                            style="font-size: .8em;">C</span>
+                                                        @endif
+                                                        @if (!empty($p['keeper']))
+                                                        <span class="badge bg-success ms-1" style="font-size: .8em;">WK</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        <span class="text-muted">{{ $p['role'] ?? 'N/A' }}</span>
+                                                    </td>
+                                                </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    @elseif ($playingXI && count($playingXI) > 0)
+                                    <span class="fw-semibold text-decoration-underline">Playing Teams</span>
+                                    <div class="w-100 mt-3">
+                                        <table
+                                            class="table table-bordered table-hover align-middle table-sm bg-white mb-0 w-100">
+                                            <thead class="table-primary">
+                                                <tr>
+                                                    <th style="width: 48px;"></th>
+                                                    <th>Name</th>
+                                                    <th>Role</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($playingXI as $p)
+                                                @php
+                                                $img = $p['faceimageid'] ?? null;
+                                                $pNameRaw = $p['name'] ?? '';
+                                                $playerSlug = !empty($pNameRaw)
+                                                ? strtolower(trim(preg_replace('/[^a-z0-9]+/i', '0', $pNameRaw), '0'))
+                                                : 'no-image';
+
+                                                $playerImg = $img
+                                                ? 'https://static.cricbuzz.com/a/img/v1/0x0/i1/c' . $img . '/' . $playerSlug .
+                                                '.jpg?d=low&p=gthumb'
+                                                : null;
+                                                @endphp
+                                                <tr>
+                                                    <td class="text-center">
+                                                        @if ($playerImg)
+                                                        <img src="{{ $playerImg }}" alt="{{ $pNameRaw }}" class="rounded-circle"
+                                                            style="width: 40px; height: 40px; object-fit: cover; border: 1.5px solid #99c;">
+                                                        @else
+                                                        <span
+                                                            class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary text-white"
+                                                            style="width: 40px; height: 40px;">
+                                                            <i class="bi bi-person-fill"></i>
+                                                        </span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-break">
+                                                        <span
+                                                            class="fw-semibold text-dark">{{ $pNameRaw ?: 'Unnamed player' }}</span>
+                                                        @if (!empty($p['captain']))
+                                                        <span class="badge bg-info text-dark ms-1"
+                                                            style="font-size: .8em;">C</span>
+                                                        @endif
+                                                        @if (!empty($p['keeper']))
+                                                        <span class="badge bg-success ms-1" style="font-size: .8em;">WK</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        <span class="text-muted">{{ $p['role'] ?? 'N/A' }}</span>
+                                                    </td>
+                                                </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    @else
+                                    <div class="alert alert-warning py-2 px-3 my-2" style="font-size: .95em;">
+                                        <em>No current playing XI players listed.</em>
+                                    </div>
+                                    @endif
+                                </div>
+                                @else
+                                <div class="alert alert-warning py-2 px-3 my-2" style="font-size: .95em;">
+                                    <em>No players listed.</em>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
+                    @endforeach
+                </div>
             @else
-            <div class="alert alert-secondary text-center my-4">No team data found.</div>
+                <div class="alert alert-secondary text-center my-4">No team data found.</div>
             @endif
         </section>
 
     </div>
 
-    <style>
-        /* Custom Cricket Table Styling */
-.cricket-score-table {
-    table-layout: fixed;
-    font-size: 0.85rem;
-}
-
-.cricket-score-table th, 
-.cricket-score-table td {
-    vertical-align: top;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Dynamic Column Widths */
-.cricket-score-table .col-player {
-    width: 45%;
-    white-space: normal; /* Allows dismissal text to wrap nicely */
-}
-
-.cricket-score-table .col-stat {
-    width: 11%;
-}
-
-.player-name {
-    color: #1a73e8; /* Matches Cricbuzz blue */
-    font-size: 0.875rem;
-}
-
-.dismissal-text {
-    font-size: 0.75rem;
-    margin-top: 2px;
-}
-
-/* Responsive Overrides for Smaller Mobile Screens (< 576px) */
-@media (max-width: 575.98px) {
-    .cricket-score-table {
-        font-size: 0.78rem;
-    }
-    
-    .player-name {
-        font-size: 0.82rem;
-    }
-    
-    .dismissal-text {
-        font-size: 0.7rem;
-    }
-}
-    </style>
     @endsection

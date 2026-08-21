@@ -878,7 +878,56 @@ li span .fa {
         .table-responsive {
             overflow-x: visible !important;
         }
+         /* Responsive container wrapper */
+    .cb-responsive-table {
+        width: 100%;
+        min-width: 290px; /* Base constraint for container */
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
 
+    /* Force table layout to respect min-width */
+    .custom-cb-table {
+        font-size: 0.85rem;
+        min-width: 290px !important;
+        width: 100%;
+        table-layout: auto;
+    }
+    .active-tab {
+        border-bottom: 2px solid #053259 !important;
+    }
+    .cricket-score-table {
+    table-layout: fixed;
+    font-size: 0.85rem;
+    }
+
+    .cricket-score-table th, 
+    .cricket-score-table td {
+        vertical-align: top;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Dynamic Column Widths */
+    .cricket-score-table .col-player {
+        width: 45%;
+        white-space: normal; /* Allows dismissal text to wrap nicely */
+    }
+
+    .cricket-score-table .col-stat {
+        width: 11%;
+    }
+
+    .player-name {
+        color: #1a73e8; /* Matches Cricbuzz blue */
+        font-size: 0.875rem;
+    }
+
+    .dismissal-text {
+        font-size: 0.75rem;
+        margin-top: 2px;
+    }
 /* ---------- Responsive Breakpoints ---------- */
 
 /* Laptop / Desktop Large */
@@ -1180,6 +1229,33 @@ li span .fa {
         justify-content: center;
         gap: 8px;
     }
+      /* Ensure elements scale down on screens under 320px */
+        .custom-cb-table {
+            font-size: 0.75rem;padding-right:10px;
+        }
+
+        .custom-cb-table th,
+        .custom-cb-table td {
+            padding: 6px 4px !important;
+        }
+
+        .team-flag-img {
+            width: 18px !important;
+            height: 18px !important;
+        }
+   .cricket-score-table {
+        font-size: 0.78rem;
+    }
+    
+    .player-name {
+        font-size: 0.82rem;
+    }
+    
+    .dismissal-text {
+        font-size: 0.7rem;
+    }
+  
+    
 }
 
 /* Small Screens / Micro Display */

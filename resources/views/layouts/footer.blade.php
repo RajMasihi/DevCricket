@@ -9,12 +9,14 @@
 
         <nav class="nav">
             <ul>
-                <li>
+                <!-- <li>
                     <span><i class="fa fa-caret-right" aria-hidden="true"></i></span>
                     <a href="{{ url('/about') }}">About</a>
-                </li>
+                </li> -->
 
                 <li>
+                    <span><i class="fa fa-caret-right" aria-hidden="true"></i></span>
+                    <a href="{{ url('/about') }}">About</a>&nbsp;
                     <span><i class="fa fa-caret-right" aria-hidden="true"></i></span>
                     <a href="{{ url('/privacy') }}">Terms & Conditions | Privacy Policy</a>
                 </li>
