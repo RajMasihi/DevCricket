@@ -10,70 +10,70 @@ $(function () {
     });
 //    filter in t20, ODi, test, 
 
-$(document).on('click', '.second-header .nav-link', function (e) {
-    e.preventDefault();
+// $(document).on('click', '.second-header .nav-link', function (e) {
+//     e.preventDefault();
 
-    $('.second-header .nav-link')
-        .removeClass('active')
-        .css({
-            'background-color': '',
-            'color': ''
-        });
+//     $('.second-header .nav-link')
+//         .removeClass('active')
+//         .css({
+//             'background-color': '',
+//             'color': ''
+//         });
 
-    $(this)
-        .addClass('active')
-        .css({
-            'background-color': '#053259', // Bootstrap primary
-            'color': '#fff'
-        });
-});
+//     $(this)
+//         .addClass('active')
+//         .css({
+//             'background-color': '#053259', // Bootstrap primary
+//             'color': '#fff'
+//         });
+// });
 
 
 //  Searching nav working.........
 
-  // Ensure "Point Table" link ('.point-table-nav') works as a normal link and does not trigger this handler.
-  $('.second-header .nav-item .link').on('click', function (e) {
-    // Skip if this is the Point Table nav (identified by class or id)
-    if ($(this).hasClass('point-table-nav') || $(this).attr('id') === 'point-table') {
-      // Allow default navigation for Point Table
-      return;
-    }
+//   // Ensure "Point Table" link ('.point-table-nav') works as a normal link and does not trigger this handler.
+//   $('.second-header .nav-item .link').on('click', function (e) {
+//     // Skip if this is the Point Table nav (identified by class or id)
+//     if ($(this).hasClass('point-table-nav') || $(this).attr('id') === 'point-table') {
+//       // Allow default navigation for Point Table
+//       return;
+//     }
 
-    e.preventDefault();
+//     e.preventDefault();
 
-    let te = $(this).text().trim().toLowerCase();
-    $('#search').val(te);
+//     let te = $(this).text().trim().toLowerCase();
+//     $('#search').val(te);
 
-    if (te === 'all' || te ==='mens') {
-        $('.match-item').show();
-        return;
-    }
+//     if (te === 'all' || te ==='mens') {
+//         $('.match-item').show();
+//         return;
+//     }
 
-    $('.match-item').each(function () {
-        let text = $(this).text().toLowerCase();
+//     $('.match-item').each(function () {
+//         let text = $(this).text().toLowerCase();
 
-        if (text.indexOf(te) > -1) {
-            $(this).show();
-        } else {
-            $(this).hide();
-        }
-    });
-});
+//         if (text.indexOf(te) > -1) {
+//             $(this).show();
+//         } else {
+//             $(this).hide();
+//         }
+//     });
+// });
 
 
- $('#team1').click(function(){
-  $('#scorecard1').show();
-//   $('#scorecard2').hide();
-});
+//  $('#team1').click(function(){
+//   $('#scorecard1').show();
+// //   $('#scorecard2').hide();
+// });
 
-$('#team2').on('click', function(){
-      $('#scorecard1').hide();
-      $('#scorecard2').removeClass('d-block').show();
-  });
+// $('#team2').on('click', function(){
+//       $('#scorecard1').hide();
+//       $('#scorecard2').removeClass('d-block').show();
+//   });
 
-    initIndexLiveMatchesRefresh();
-    initMatchdetailScoreboardRefresh();
-});
+//     initIndexLiveMatchesRefresh();
+//     initMatchdetailScoreboardRefresh();
+// });
 
 // function initIndexLiveMatchesRefresh() {
 //     var root = document.getElementById('cricket-index-page');
