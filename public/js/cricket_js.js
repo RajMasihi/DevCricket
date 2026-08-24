@@ -29,7 +29,7 @@ $(document).on('click', '.second-header .nav-link', function (e) {
 });
 
 
- Searching nav working.........
+ //Searching nav working.........
 
   // Ensure "Point Table" link ('.point-table-nav') works as a normal link and does not trigger this handler.
   $('.second-header .nav-item .link').on('click', function (e) {
