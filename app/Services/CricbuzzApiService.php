@@ -78,17 +78,17 @@ class CricbuzzApiService
 
     public function liveMatchesRaw(): array
     {
-        return $this->get('matches/v1/live', 20);
+        return $this->get('matches/v1/live', 30);
     }
 
     public function recentMatchesRaw(): array
     {
-        return $this->get('matches/v1/recent', 60);
+        return $this->get('matches/v1/recent', 600);
     }
 
     public function upcomingMatchesRaw(): array
     {
-        return $this->get('matches/v1/upcoming', 120);
+        return $this->get('matches/v1/upcoming', 1200);
     }
 
     public function parseMatchesList(array $data): array
