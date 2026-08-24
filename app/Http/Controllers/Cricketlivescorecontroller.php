@@ -169,7 +169,7 @@ class Cricketlivescorecontroller extends Controller
             return view('index', [
                 'matches' => [],
 
-                'error' => 'Error fetching data: ' .'Yoy can Reload Page its Session time out.',
+                'error' => 'Error fetching data: ' .'You can Reload Page its Session time out.',
 
             ]);
         }
