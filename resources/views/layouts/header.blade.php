@@ -4,6 +4,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>Criclivem</title>
+    
+    {{-- Laravel Reverb Configuration --}}
+    <meta name="reverb-app-key" content="{{ env('REVERB_APP_KEY') }}">
+    <meta name="reverb-host" content="{{ env('REVERB_HOST', request()->getHost()) }}">
+    <meta name="reverb-port" content="{{ env('REVERB_PORT', 8080) }}">
+    <meta name="reverb-scheme" content="{{ env('REVERB_SCHEME', request()->secure() ? 'https' : 'http') }}">
+    
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
@@ -13,6 +20,7 @@
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="{{ asset('js/cricket_js.js') }}"></script>
+    <script src="{{ asset('js/over_threshold_handler.js') }}"></script>
  
 </head>
 

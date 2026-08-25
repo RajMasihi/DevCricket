@@ -49,16 +49,77 @@ class CricbuzzApiService
         }
 
         $data = $this->fetchFromApi($path);
-        $ttl = strtolower($data['state'] ?? '') === 'in progress' ? 10 : 120;
+        $ttl = $this->calculateTTLBasedOnOvers($data);
         Cache::put($cacheKey, $data, $ttl);
 
         return $data;
     }
 
+    private function calculateTTLBasedOnOvers(array $data): int
+    {
+        $state = strtolower($data['state'] ?? '');
+        
+        if ($state !== 'in progress') {
+            return 120;
+        }
+
+        $maxOvers = $this->getMaxOversFromMatch($data);
+        
+        // Thresholds based on decimal over values:
+        // 6.2 overs = 6.33 decimal, 6.3 overs = 6.5 decimal, 6.4 overs = 6.67 decimal
+        if ($maxOvers >= 6.67) {
+            return 3; // Very fast refresh for 6.4+ overs (6.67 decimal)
+        } elseif ($maxOvers >= 6.5) {
+            return 5; // Increased refresh rate for 6.3+ overs (6.5 decimal)
+        } elseif ($maxOvers >= 6.33) {
+            return 8; // Moderate refresh rate for 6.2+ overs (6.33 decimal)
+        }
+        
+        return 10; // Default live match refresh
+    }
+
+    private function getMaxOversFromMatch(array $data): float
+    {
+        $maxOvers = 0.0;
+        
+        if (isset($data['matchScore']) && is_array($data['matchScore'])) {
+            foreach ($data['matchScore'] as $teamScore) {
+                if (isset($teamScore['inngs1']['overs'])) {
+                    $overs = $this->parseOverValue($teamScore['inngs1']['overs']);
+                    $maxOvers = max($maxOvers, $overs);
+                }
+                if (isset($teamScore['inngs2']['overs'])) {
+                    $overs = $this->parseOverValue($teamScore['inngs2']['overs']);
+                    $maxOvers = max($maxOvers, $overs);
+                }
+            }
+        }
+        
+        return $maxOvers;
+    }
+
+    private function parseOverValue(string $overString): float
+    {
+        if (empty($overString) || $overString === '--') {
+            return 0.0;
+        }
+        
+        // Handle formats like "6.2", "6.3", "6.4", "15.1", etc.
+        $parts = explode('.', $overString);
+        if (count($parts) === 2) {
+            $overs = (float)$parts[0];
+            $balls = (float)$parts[1];
+            // Convert balls to decimal (e.g., 6.2 = 6.33, 6.3 = 6.5, 6.4 = 6.67)
+            return $overs + ($balls / 6);
+        }
+        
+        return (float)$overString;
+    }
+
     public function scorecard(int|string $matchId): array
     {
         $info = $this->matchInfo($matchId);
-        $ttl = strtolower($info['state'] ?? '') === 'in progress' ? 8 : 60;
+        $ttl = $this->calculateTTLBasedOnOvers($info);
 
         return $this->get("mcenter/v1/{$matchId}/scard", $ttl);
     }
@@ -71,7 +132,7 @@ class CricbuzzApiService
     public function commentary(int|string $matchId): array
     {
         $info = $this->matchInfo($matchId);
-        $ttl = strtolower($info['state'] ?? '') === 'in progress' ? 8 : 60;
+        $ttl = $this->calculateTTLBasedOnOvers($info);
 
         return $this->get("mcenter/v1/{$matchId}/hcomm", $ttl);
     }
@@ -158,5 +219,67 @@ class CricbuzzApiService
         }
 
         return $ids;
+    }
+
+    public function formatOverDisplay(string $overString): array
+    {
+        if (empty($overString) || $overString === '--') {
+            return [
+                'formatted' => $overString,
+                'overs' => 0,
+                'balls' => 0,
+                'decimal' => 0.0,
+                'show_ball_by_ball' => false
+            ];
+        }
+
+        $parts = explode('.', $overString);
+        $overs = 0;
+        $balls = 0;
+        $decimal = 0.0;
+
+        if (count($parts) === 2) {
+            $overs = (int)$parts[0];
+            $balls = (int)$parts[1];
+            $decimal = $overs + ($balls / 6);
+        } else {
+            $overs = (int)$overString;
+            $decimal = (float)$overString;
+        }
+
+        // Determine if ball-by-ball display should be shown (above 6.2 = >= 6.33 decimal)
+        $showBallByBall = $decimal >= 6.33;
+
+        return [
+            'formatted' => $overString,
+            'overs' => $overs,
+            'balls' => $balls,
+            'decimal' => $decimal,
+            'show_ball_by_ball' => $showBallByBall,
+            'breakdown' => $showBallByBall ? $this->getOverBreakdown($overs, $balls) : null
+        ];
+    }
+
+    private function getOverBreakdown(int $overs, int $balls): array
+    {
+        $breakdown = [];
+        
+        for ($i = 1; $i <= $overs; $i++) {
+            $breakdown[] = [
+                'over' => $i,
+                'complete' => true,
+                'balls' => 6
+            ];
+        }
+        
+        if ($balls > 0) {
+            $breakdown[] = [
+                'over' => $overs + 1,
+                'complete' => false,
+                'balls' => $balls
+            ];
+        }
+        
+        return $breakdown;
     }
 }

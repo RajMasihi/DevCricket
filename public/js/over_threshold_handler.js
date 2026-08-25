@@ -1,0 +1,365 @@
+/**
+ * Over Threshold Handler - WebSocket Version
+ * Handles dynamic UI updates based on over thresholds (6.2, 6.3, 6.4)
+ * Uses Laravel Reverb with WebSocket for real-time updates instead of polling
+ */
+
+class OverThresholdHandler {
+    constructor() {
+        this.matchId = null;
+        this.activeTab = null;
+        this.channel = null;
+        this.echo = null;
+        this.currentThreshold = null;
+    }
+
+    async init(matchId, activeTab = 'informe') {
+        this.matchId = matchId;
+        this.activeTab = activeTab;
+        
+        if (!this.matchId) {
+            console.warn('No match ID provided for over threshold handler');
+            return;
+        }
+
+        // Initialize Laravel Echo for WebSocket connection
+        await this.initializeEcho();
+        
+        // Subscribe to match-specific channel
+        this.subscribeToMatchChannel();
+        
+        // Get initial threshold data
+        await this.fetchInitialThreshold();
+    }
+
+    async initializeEcho() {
+        // Load Laravel Echo dynamically if not available
+        if (typeof Echo === 'undefined') {
+            await this.loadEchoScripts();
+        }
+
+        // Initialize Echo with Reverb configuration
+        this.echo = new Echo({
+            broadcaster: 'reverb',
+            key: window.__REVERB_APP_KEY__ || document.querySelector('meta[name="reverb-app-key"]')?.content,
+            wsHost: window.__REVERB_HOST__ || document.querySelector('meta[name="reverb-host"]')?.content || window.location.hostname,
+            wsPort: window.__REVERB_PORT__ || document.querySelector('meta[name="reverb-port"]')?.content || 8080,
+            wssPort: window.__REVERB_PORT__ || document.querySelector('meta[name="reverb-port"]')?.content || 8080,
+            forceTLS: window.__REVERB_SCHEME__ === 'https' || window.location.protocol === 'https:',
+            enabledTransports: ['ws', 'wss'],
+        });
+
+        console.log('Laravel Echo initialized with Reverb');
+    }
+
+    async loadEchoScripts() {
+        // Load Laravel Echo and Pusher JS (compatible with Reverb)
+        const scripts = [
+            'https://cdn.jsdelivr.net/npm/@pusher/pusher-js@8.4.0-rc.1/dist/pusher.min.js',
+            'https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.min.js'
+        ];
+
+        for (const script of scripts) {
+            await this.loadScript(script);
+        }
+    }
+
+    loadScript(src) {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+
+    subscribeToMatchChannel() {
+        if (!this.echo) {
+            console.error('Echo not initialized');
+            return;
+        }
+
+        // Subscribe to match-specific channel
+        this.channel = this.echo.channel(`match.${this.matchId}`);
+
+        // Listen for match score updates
+        this.channel.listen('.MatchScoreUpdated', (data) => {
+            this.handleMatchUpdate(data);
+        });
+
+        // Listen for connection events
+        this.channel.subscribed(() => {
+            console.log(`Subscribed to match.${this.matchId} channel`);
+        });
+
+        this.channel.error((error) => {
+            console.error('Channel error:', error);
+        });
+
+        console.log(`Subscribing to match.${this.matchId} channel`);
+    }
+
+    async fetchInitialThreshold() {
+        try {
+            const response = await fetch(`/api/match/${this.matchId}/info`, {
+                headers: { 
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const threshold = data.over_threshold || {};
+                this.currentThreshold = threshold;
+                this.updateUIBasedOnThreshold(threshold);
+            }
+        } catch (error) {
+            console.error('Error fetching initial threshold:', error);
+        }
+    }
+
+    handleMatchUpdate(data) {
+        console.log('Match update received:', data);
+        
+        // Calculate threshold from incoming data
+        const threshold = this.calculateThresholdFromData(data);
+        this.currentThreshold = threshold;
+        
+        // Update UI based on new threshold
+        this.updateUIBasedOnThreshold(threshold);
+        
+        // Update match-specific data based on active tab
+        this.updateMatchData(data);
+    }
+
+    calculateThresholdFromData(data) {
+        let maxOvers = 0.0;
+        let thresholdLevel = 'normal';
+
+        // Extract overs from match data
+        if (data.scorecard && data.scorecard.scorecard) {
+            data.scorecard.scorecard.forEach(scorecard => {
+                const overs = this.parseOverValue(scorecard.overs || '0');
+                maxOvers = Math.max(maxOvers, overs);
+            });
+        }
+
+        if (data.info && data.info.matchScore) {
+            Object.values(data.info.matchScore).forEach(teamScore => {
+                if (teamScore.inngs1) {
+                    const overs = this.parseOverValue(teamScore.inngs1.overs || '0');
+                    maxOvers = Math.max(maxOvers, overs);
+                }
+                if (teamScore.inngs2) {
+                    const overs = this.parseOverValue(teamScore.inngs2.overs || '0');
+                    maxOvers = Math.max(maxOvers, overs);
+                }
+            });
+        }
+
+        // Calculate threshold level based on decimal values
+        if (maxOvers >= 6.67) {
+            thresholdLevel = 'critical'; // 6.4+ overs
+        } else if (maxOvers >= 6.5) {
+            thresholdLevel = 'high';     // 6.3+ overs
+        } else if (maxOvers >= 6.33) {
+            thresholdLevel = 'medium';   // 6.2+ overs
+        }
+
+        return {
+            max_overs: maxOvers,
+            threshold_level: thresholdLevel,
+            show_ball_by_ball: maxOvers >= 6.33,
+            real_time_update: maxOvers >= 6.67,
+            increased_refresh: maxOvers >= 6.5
+        };
+    }
+
+    parseOverValue(overString) {
+        if (!overString || overString === '--' || overString === '') {
+            return 0.0;
+        }
+
+        const parts = overString.toString().split('.');
+        const overs = parts.length > 0 ? parseInt(parts[0]) : 0;
+        const balls = parts.length > 1 ? parseInt(parts[1]) : 0;
+        const decimal = overs + (balls / 6);
+
+        return decimal;
+    }
+
+    updateUIBasedOnThreshold(threshold) {
+        const matchContainer = document.getElementById('cricket-matchdetail-page');
+        if (!matchContainer) return;
+
+        // Remove existing threshold classes
+        matchContainer.classList.remove('threshold-medium', 'threshold-high', 'threshold-critical');
+
+        // Add appropriate threshold class
+        if (threshold.threshold_level === 'critical') {
+            matchContainer.classList.add('threshold-critical');
+            this.enableRealTimeUpdates();
+        } else if (threshold.threshold_level === 'high') {
+            matchContainer.classList.add('threshold-high');
+        } else if (threshold.threshold_level === 'medium') {
+            matchContainer.classList.add('threshold-medium');
+            this.enableBallByBallDisplay();
+        }
+
+        // Update over displays with breakdown if needed
+        if (threshold.show_ball_by_ball) {
+            this.updateOverDisplays();
+        }
+    }
+
+    enableRealTimeUpdates() {
+        console.log('Enabling real-time updates for critical over threshold');
+        
+        const statusIndicator = document.getElementById('real_time_indicator');
+        if (statusIndicator) {
+            statusIndicator.style.display = 'block';
+            statusIndicator.classList.add('active');
+        }
+    }
+
+    enableBallByBallDisplay() {
+        console.log('Enabling ball-by-ball display for medium over threshold');
+        
+        const overElements = document.querySelectorAll('.score-line-overs');
+        overElements.forEach(element => {
+            const overText = element.textContent.replace(/[()]/g, '').trim();
+            if (overText && overText !== '--') {
+                const breakdown = this.createOverBreakdown(overText);
+                if (breakdown) {
+                    element.innerHTML = `(${overText}) <span class="ball-breakdown">${breakdown}</span>`;
+                }
+            }
+        });
+    }
+
+    createOverBreakdown(overString) {
+        const parts = overString.split('.');
+        if (parts.length !== 2) return null;
+
+        const overs = parseInt(parts[0]);
+        const balls = parseInt(parts[1]);
+
+        let breakdown = '';
+        for (let i = 1; i <= overs; i++) {
+            breakdown += `<span class="over-complete">●</span>`;
+        }
+        
+        for (let i = 1; i <= balls; i++) {
+            breakdown += `<span class="over-partial">○</span>`;
+        }
+
+        return breakdown;
+    }
+
+    updateOverDisplays() {
+        const scoreElements = document.querySelectorAll('.score-span');
+        scoreElements.forEach(element => {
+            const overMatch = element.textContent.match(/\(([\d.]+)\s*ovs?\)/);
+            if (overMatch) {
+                const overValue = overMatch[1];
+                const overData = this.parseOverValue(overValue);
+                
+                if (overData >= 6.33) {
+                    element.classList.add('over-threshold-active');
+                }
+            }
+        });
+    }
+
+    updateMatchData(data) {
+        // Update match status
+        const statusElement = document.getElementById('match_status_text');
+        if (statusElement && data.info && data.info.status) {
+            statusElement.textContent = data.info.status;
+        }
+
+        const infoStatusElement = document.getElementById('informe_match_status');
+        if (infoStatusElement && data.info && data.info.status) {
+            infoStatusElement.textContent = data.info.status;
+        }
+
+        // Update scorecard if in scoreboard tab
+        if (this.activeTab === 'scoreboard' && data.scorecard) {
+            this.updateScorecardData(data.scorecard);
+        }
+
+        // Update commentary if available
+        if (data.commentary) {
+            this.updateCommentary(data.commentary);
+        }
+    }
+
+    updateScorecardData(scorecardData) {
+        // This would update the scoreboard UI with new data
+        // For now, just update the overs display
+        if (scorecardData.scorecard) {
+            scorecardData.scorecard.forEach((sc, index) => {
+                const totalOvers = sc.overs || '';
+                const oversElement = document.querySelector(`#sc_team_card_${index} .score-line-overs`);
+                if (oversElement && totalOvers) {
+                    const overData = this.parseOverValue(totalOvers);
+                    if (overData >= 6.33) {
+                        const breakdown = this.createOverBreakdown(totalOvers);
+                        oversElement.innerHTML = `(${totalOvers}) <span class="ball-breakdown">${breakdown}</span>`;
+                    }
+                }
+            });
+        }
+    }
+
+    updateCommentary(commentaryData) {
+        const commentaryList = document.getElementById('commentary_list');
+        if (!commentaryList) return;
+
+        const commList = commentaryData.commentaryList || commentaryData.commentary || [];
+        if (!Array.isArray(commList) || commList.length === 0) return;
+
+        let html = '';
+        commList.slice(0, 15).forEach(function (comm) {
+            const over = comm.over || '';
+            const text = comm.commText || comm.text || '';
+            html += '<div class="border-bottom py-1"><span class="text-muted">' + over + '</span> ' + text + '</div>';
+        });
+
+        commentaryList.innerHTML = html;
+    }
+
+    destroy() {
+        // Unsubscribe from channel
+        if (this.channel) {
+            this.echo.leaveChannel(`match.${this.matchId}`);
+            this.channel = null;
+        }
+
+        // Disconnect Echo
+        if (this.echo) {
+            this.echo.disconnect();
+            this.echo = null;
+        }
+
+        console.log('OverThresholdHandler destroyed');
+    }
+}
+
+// Global instance
+window.overThresholdHandler = new OverThresholdHandler();
+
+// Auto-initialize if match data is available
+document.addEventListener('DOMContentLoaded', () => {
+    const matchPage = document.getElementById('cricket-matchdetail-page');
+    if (matchPage) {
+        const matchId = matchPage.getAttribute('data-match-id');
+        const activeTab = matchPage.getAttribute('data-active-tab') || 'informe';
+        
+        if (matchId) {
+            window.overThresholdHandler.init(matchId, activeTab);
+        }
+    }
+});

@@ -16,6 +16,12 @@
         $activeTab = $tab ?? request()->get('tab', 'informe');
         $matchState = strtolower($scorecardDatainfo['state'] ?? '');
     @endphp
+
+<!-- Real-time update indicator -->
+<div id="real_time_indicator">
+    <i class="fas fa-sync-alt fa-spin"></i> Live Updates
+</div>
+
 <div class="container-fluid main-section" id="cricket-matchdetail-page" data-active-tab="{{ e($activeTab) }}"
     data-match-state="{{ e($matchState) }}" data-match-id="{{ e($matchId) }}">
 
