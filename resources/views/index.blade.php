@@ -16,13 +16,13 @@
     @endphp
     <div class="container-fluid main-section" id="cricket-index-page" data-active-tab="{{ e($activeTab) }}">
         <div id="live_section" style="display:{{ $activeTab == 'live' ? 'block' : 'none' }};">
-            <h4 class="text-center mb-3">Cricket Live Score</h4>
+            <h4 class="text-center mb-3">Live Score</h4>
         </div>
         <div id="result_section" style="display:{{ $activeTab == 'result' ? 'block' : 'none' }};">
-            <h4 class="text-center mb-3">Cricket Result Matches</h4>
+            <h4 class="text-center mb-3">Result Matches</h4>
         </div>
         <div id="upcoming_section" style="display:{{ $activeTab == 'upcoming' ? 'block' : 'none' }};">
-            <h4 class="text-center mb-3">Cricket Upcoming Matches</h4>
+            <h4 class="text-center mb-3">Upcoming Matches</h4>
         </div>
         <div class="d-flex pb-3">
             <a href="{{ url('/?tab=live') }}"

@@ -40,7 +40,7 @@ $schedulePayload = $sdulingwomen ?? [];
 @endphp
 
 <div class="container-fluid main-section">
-    <h3 class="text-center">Cricket Schedule - Upcoming Matches</h3>
+    <h3 class="text-center">Schedule - Upcoming Matches</h3>
 
     <div class="d-flex pb-3 flex-wrap">
         <a href="{{ url('/sduling/international?type=international') }}"
