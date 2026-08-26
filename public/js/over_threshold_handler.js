@@ -1,7 +1,7 @@
 /**
- * Over Threshold Handler - WebSocket Version
+ * Over Threshold Handler - WebSocket Version with Fallback
  * Handles dynamic UI updates based on over thresholds (6.2, 6.3, 6.4)
- * Uses Laravel Reverb with WebSocket for real-time updates instead of polling
+ * Uses Laravel Reverb with WebSocket for real-time updates with polling fallback
  * Implements over progression validation to prevent regression (6.0 → 5.4)
  */
 
@@ -14,6 +14,10 @@ class OverThresholdHandler {
         this.currentThreshold = null;
         this.lastKnownOvers = {}; // Track last known overs for each team/innings
         this.lastUpdateTime = null;
+        this.connectionAttempts = 0;
+        this.maxConnectionAttempts = 3;
+        this.fallbackToPolling = false;
+        this.pollingInterval = null;
     }
 
     async init(matchId, activeTab = 'informe') {
@@ -25,11 +29,17 @@ class OverThresholdHandler {
             return;
         }
 
-        // Initialize Laravel Echo for WebSocket connection
-        await this.initializeEcho();
+        // Try WebSocket connection first
+        const webSocketSuccess = await this.initializeEcho();
         
-        // Subscribe to match-specific channel
-        this.subscribeToMatchChannel();
+        if (webSocketSuccess) {
+            // Subscribe to match-specific channel
+            this.subscribeToMatchChannel();
+        } else {
+            console.warn('WebSocket connection failed, falling back to polling');
+            this.fallbackToPolling = true;
+            this.startPolling();
+        }
         
         // Get initial threshold data
         await this.fetchInitialThreshold();
@@ -38,32 +48,60 @@ class OverThresholdHandler {
     async initializeEcho() {
         // Load Laravel Echo dynamically if not available
         if (typeof Echo === 'undefined') {
-            await this.loadEchoScripts();
+            const scriptsLoaded = await this.loadEchoScripts();
+            if (!scriptsLoaded) {
+                return false;
+            }
         }
 
-        // Initialize Echo with Reverb configuration
-        this.echo = new Echo({
-            broadcaster: 'reverb',
-            key: window.__REVERB_APP_KEY__ || document.querySelector('meta[name="reverb-app-key"]')?.content,
-            wsHost: window.__REVERB_HOST__ || document.querySelector('meta[name="reverb-host"]')?.content || window.location.hostname,
-            wsPort: window.__REVERB_PORT__ || document.querySelector('meta[name="reverb-port"]')?.content || 8080,
-            wssPort: window.__REVERB_PORT__ || document.querySelector('meta[name="reverb-port"]')?.content || 8080,
-            forceTLS: window.__REVERB_SCHEME__ === 'https' || window.location.protocol === 'https:',
-            enabledTransports: ['ws', 'wss'],
-        });
+        // Get Reverb configuration from meta tags
+        const reverbKey = document.querySelector('meta[name="reverb-app-key"]')?.content;
+        const reverbHost = document.querySelector('meta[name="reverb-host"]')?.content;
+        const reverbPort = document.querySelector('meta[name="reverb-port"]')?.content;
+        const reverbScheme = document.querySelector('meta[name="reverb-scheme"]')?.content;
 
-        console.log('Laravel Echo initialized with Reverb');
+        if (!reverbKey) {
+            console.warn('Reverb app key not found in meta tags');
+            return false;
+        }
+
+        try {
+            // Initialize Echo with Reverb configuration
+            this.echo = new Echo({
+                broadcaster: 'reverb',
+                key: reverbKey,
+                wsHost: reverbHost || window.location.hostname,
+                wsPort: reverbPort || 8080,
+                wssPort: reverbPort || 8080,
+                forceTLS: reverbScheme === 'https' || window.location.protocol === 'https:',
+                enabledTransports: ['ws', 'wss'],
+                disableStats: true,
+                authEndpoint: '/broadcasting/auth',
+            });
+
+            console.log('Laravel Echo initialized with Reverb');
+            return true;
+        } catch (error) {
+            console.error('Failed to initialize Echo:', error);
+            return false;
+        }
     }
 
     async loadEchoScripts() {
-        // Load Laravel Echo and Pusher JS (compatible with Reverb)
-        const scripts = [
-            'https://cdn.jsdelivr.net/npm/@pusher/pusher-js@8.4.0-rc.1/dist/pusher.min.js',
-            'https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.min.js'
-        ];
+        try {
+            // Load Laravel Echo and Pusher JS (compatible with Reverb)
+            const scripts = [
+                'https://cdn.jsdelivr.net/npm/@pusher/pusher-js@8.4.0-rc.1/dist/pusher.min.js',
+                'https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.min.js'
+            ];
 
-        for (const script of scripts) {
-            await this.loadScript(script);
+            for (const script of scripts) {
+                await this.loadScript(script);
+            }
+            return true;
+        } catch (error) {
+            console.error('Failed to load Echo scripts:', error);
+            return false;
         }
     }
 
@@ -72,7 +110,7 @@ class OverThresholdHandler {
             const script = document.createElement('script');
             script.src = src;
             script.onload = resolve;
-            script.onerror = reject;
+            script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
             document.head.appendChild(script);
         });
     }
@@ -83,24 +121,79 @@ class OverThresholdHandler {
             return;
         }
 
-        // Subscribe to match-specific channel
-        this.channel = this.echo.channel(`match.${this.matchId}`);
+        try {
+            // Subscribe to match-specific channel
+            this.channel = this.echo.channel(`match.${this.matchId}`);
 
-        // Listen for match score updates
-        this.channel.listen('.MatchScoreUpdated', (data) => {
-            this.handleMatchUpdate(data);
-        });
+            // Listen for match score updates
+            this.channel.listen('.MatchScoreUpdated', (data) => {
+                console.log('WebSocket update received:', data);
+                this.handleMatchUpdate(data);
+            });
 
-        // Listen for connection events
-        this.channel.subscribed(() => {
-            console.log(`Subscribed to match.${this.matchId} channel`);
-        });
+            // Listen for connection events
+            this.channel.subscribed(() => {
+                console.log(`Successfully subscribed to match.${this.matchId} channel`);
+                this.connectionAttempts = 0; // Reset connection attempts on success
+            });
 
-        this.channel.error((error) => {
-            console.error('Channel error:', error);
-        });
+            this.channel.error((error) => {
+                console.error('Channel error:', error);
+                this.handleConnectionError();
+            });
 
-        console.log(`Subscribing to match.${this.matchId} channel`);
+            console.log(`Attempting to subscribe to match.${this.matchId} channel`);
+        } catch (error) {
+            console.error('Error subscribing to channel:', error);
+            this.handleConnectionError();
+        }
+    }
+
+    handleConnectionError() {
+        this.connectionAttempts++;
+        
+        if (this.connectionAttempts >= this.maxConnectionAttempts) {
+            console.warn('Max connection attempts reached, falling back to polling');
+            this.fallbackToPolling = true;
+            this.startPolling();
+        }
+    }
+
+    startPolling() {
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+        }
+
+        console.log('Starting polling fallback for match updates');
+        this.pollingInterval = setInterval(() => {
+            this.fetchMatchUpdates();
+        }, 10000); // Poll every 10 seconds
+
+        // Initial fetch
+        this.fetchMatchUpdates();
+    }
+
+    async fetchMatchUpdates() {
+        try {
+            const response = await fetch(`/api/match/${this.matchId}/info`, {
+                headers: { 
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.handleMatchUpdate({
+                    info: data.info,
+                    scorecard: {},
+                    commentary: {},
+                    threshold: data.over_threshold
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching match updates:', error);
+        }
     }
 
     async fetchInitialThreshold() {
@@ -143,7 +236,7 @@ class OverThresholdHandler {
     }
 
     handleMatchUpdate(data) {
-        console.log('Match update received:', data);
+        console.log('Processing match update:', data);
         
         // Validate over progression before processing
         if (!this.validateOverProgression(data)) {
@@ -247,6 +340,11 @@ class OverThresholdHandler {
             });
         }
 
+        // Use threshold from data if available
+        if (data.threshold) {
+            return data.threshold;
+        }
+
         // Calculate threshold level based on decimal values
         if (maxOvers >= 6.67) {
             thresholdLevel = 'critical'; // 6.4+ overs
@@ -257,11 +355,11 @@ class OverThresholdHandler {
         }
 
         return {
-            max_overs: maxOvers,
-            threshold_level: thresholdLevel,
-            show_ball_by_ball: maxOvers >= 6.33,
-            real_time_update: maxOvers >= 6.67,
-            increased_refresh: maxOvers >= 6.5
+            'max_overs': maxOvers,
+            'threshold_level': thresholdLevel,
+            'show_ball_by_ball': maxOvers >= 6.33,
+            'real_time_update': maxOvers >= 6.67,
+            'increased_refresh' => maxOvers >= 6.5
         };
     }
 
@@ -309,6 +407,9 @@ class OverThresholdHandler {
         if (statusIndicator) {
             statusIndicator.style.display = 'block';
             statusIndicator.classList.add('active');
+            statusIndicator.innerHTML = this.fallbackToPolling ? 
+                '<i class="fas fa-sync"></i> Live Updates (Polling)' : 
+                '<i class="fas fa-bolt"></i> Live Updates (WebSocket)';
         }
     }
 
@@ -420,6 +521,12 @@ class OverThresholdHandler {
     }
 
     destroy() {
+        // Stop polling if active
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+            this.pollingInterval = null;
+        }
+
         // Unsubscribe from channel
         if (this.channel) {
             this.echo.leaveChannel(`match.${this.matchId}`);
