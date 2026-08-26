@@ -2,6 +2,7 @@
  * Over Threshold Handler - WebSocket Version
  * Handles dynamic UI updates based on over thresholds (6.2, 6.3, 6.4)
  * Uses Laravel Reverb with WebSocket for real-time updates instead of polling
+ * Implements over progression validation to prevent regression (6.0 → 5.4)
  */
 
 class OverThresholdHandler {
@@ -11,6 +12,8 @@ class OverThresholdHandler {
         this.channel = null;
         this.echo = null;
         this.currentThreshold = null;
+        this.lastKnownOvers = {}; // Track last known overs for each team/innings
+        this.lastUpdateTime = null;
     }
 
     async init(matchId, activeTab = 'informe') {
@@ -113,6 +116,10 @@ class OverThresholdHandler {
                 const data = await response.json();
                 const threshold = data.over_threshold || {};
                 this.currentThreshold = threshold;
+                
+                // Initialize last known overs from initial data
+                this.initializeLastKnownOvers(data.info);
+                
                 this.updateUIBasedOnThreshold(threshold);
             }
         } catch (error) {
@@ -120,18 +127,99 @@ class OverThresholdHandler {
         }
     }
 
+    initializeLastKnownOvers(info) {
+        if (!info || !info.matchScore) return;
+
+        Object.keys(info.matchScore).forEach(teamKey => {
+            const teamScore = info.matchScore[teamKey];
+            
+            ['inngs1', 'inngs2'].forEach(innings => {
+                if (teamScore[innings] && teamScore[innings].overs) {
+                    const key = `${teamKey}_${innings}`;
+                    this.lastKnownOvers[key] = this.parseOverValue(teamScore[innings].overs);
+                }
+            });
+        });
+    }
+
     handleMatchUpdate(data) {
         console.log('Match update received:', data);
+        
+        // Validate over progression before processing
+        if (!this.validateOverProgression(data)) {
+            console.warn('Over progression validation failed - skipping update');
+            return;
+        }
         
         // Calculate threshold from incoming data
         const threshold = this.calculateThresholdFromData(data);
         this.currentThreshold = threshold;
+        
+        // Update last known overs
+        this.updateLastKnownOvers(data);
         
         // Update UI based on new threshold
         this.updateUIBasedOnThreshold(threshold);
         
         // Update match-specific data based on active tab
         this.updateMatchData(data);
+        
+        this.lastUpdateTime = new Date().toISOString();
+    }
+
+    validateOverProgression(data) {
+        if (!data || !data.info || !data.info.matchScore) {
+            return false;
+        }
+
+        let isValid = true;
+        let invalidReasons = [];
+
+        Object.keys(data.info.matchScore).forEach(teamKey => {
+            const teamScore = data.info.matchScore[teamKey];
+            
+            ['inngs1', 'inngs2'].forEach(innings => {
+                if (teamScore[innings] && teamScore[innings].overs) {
+                    const key = `${teamKey}_${innings}`;
+                    const currentOver = this.parseOverValue(teamScore[innings].overs);
+                    const lastOver = this.lastKnownOvers[key] || 0;
+                    
+                    // Allow updates if current over is greater than or equal to last known over
+                    // This prevents regression (e.g., 6.0 → 5.4)
+                    if (currentOver < lastOver - 0.1) { // Small tolerance for floating point errors
+                        isValid = false;
+                        invalidReasons.push(`${key}: ${currentOver} < ${lastOver}`);
+                    }
+                }
+            });
+        });
+
+        if (!isValid) {
+            console.warn('Invalid over progression:', invalidReasons);
+        }
+
+        return isValid;
+    }
+
+    updateLastKnownOvers(data) {
+        if (!data || !data.info || !data.info.matchScore) return;
+
+        Object.keys(data.info.matchScore).forEach(teamKey => {
+            const teamScore = data.info.matchScore[teamKey];
+            
+            ['inngs1', 'inngs2'].forEach(innings => {
+                if (teamScore[innings] && teamScore[innings].overs) {
+                    const key = `${teamKey}_${innings}`;
+                    const currentOver = this.parseOverValue(teamScore[innings].overs);
+                    const lastOver = this.lastKnownOvers[key] || 0;
+                    
+                    // Only update if current over is greater than last known over
+                    if (currentOver > lastOver) {
+                        this.lastKnownOvers[key] = currentOver;
+                    }
+                }
+            });
+        });
     }
 
     calculateThresholdFromData(data) {

@@ -7,6 +7,7 @@ use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 
 class MatchScoreUpdated implements ShouldBroadcastNow
 {
@@ -46,6 +47,8 @@ class MatchScoreUpdated implements ShouldBroadcastNow
             'scorecard' => $this->scorecard,
             'commentary' => $this->commentary,
             'threshold' => $this->thresholdData,
+            'timestamp' => now()->toISOString(),
+            'overs_validation' => $this->getOversValidationData(),
         ];
     }
 
@@ -91,6 +94,53 @@ class MatchScoreUpdated implements ShouldBroadcastNow
             'real_time_update' => $maxOvers >= 6.67,
             'increased_refresh' => $maxOvers >= 6.5
         ];
+    }
+
+    private function getOversValidationData(): array
+    {
+        $validationData = [];
+        
+        if (!empty($this->info['matchScore'])) {
+            foreach ($this->info['matchScore'] as $teamKey => $teamScore) {
+                $teamValidation = [];
+                
+                foreach (['inngs1', 'inngs2'] as $innings) {
+                    if (!empty($teamScore[$innings]['overs'])) {
+                        $key = "{$teamKey}_{$innings}";
+                        $currentOver = $this->parseOverValue($teamScore[$innings]['overs']);
+                        $lastOver = $this->getLastKnownOver($this->matchId, $key);
+                        
+                        $teamValidation[$innings] = [
+                            'current' => $currentOver,
+                            'previous' => $lastOver,
+                            'is_valid' => $currentOver >= $lastOver,
+                            'formatted' => $teamScore[$innings]['overs']
+                        ];
+                        
+                        // Update last known over if valid
+                        if ($currentOver >= $lastOver) {
+                            $this->setLastKnownOver($this->matchId, $key, $currentOver);
+                        }
+                    }
+                }
+                
+                $validationData[$teamKey] = $teamValidation;
+            }
+        }
+        
+        return $validationData;
+    }
+
+    private function getLastKnownOver(string $matchId, string $key): float
+    {
+        $cacheKey = "match_overs:{$matchId}:{$key}";
+        return (float) Cache::get($cacheKey, 0.0);
+    }
+
+    private function setLastKnownOver(string $matchId, string $key, float $over): void
+    {
+        $cacheKey = "match_overs:{$matchId}:{$key}";
+        Cache::put($cacheKey, $over, now()->addHours(2)); // Cache for 2 hours
     }
 
     private function parseOverValue(string $overString): float
