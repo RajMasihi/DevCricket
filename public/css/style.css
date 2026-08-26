@@ -507,6 +507,18 @@ body {
 }
 
 /* ---------- Format Badges ---------- */
+badge {
+    display: inline-block;
+    padding: .35em .65em;
+    font-size: .75em;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: .25rem;
+}
 .match-format-t20,
 .match-format-test {
     color: #fff;
@@ -520,7 +532,7 @@ body {
     padding: 1rem 1.5rem 0 0;
 }
 
-.match-formate span {
+/* .match-formate span {
     background-color: #1877ce;
     padding: .2rem .7rem;
     border-radius: 18px;
@@ -528,16 +540,23 @@ body {
     margin-left: 0.4rem;
     font-size: 0.95rem;
     font-weight: 500;
-}
+} */
 
 .match-formate .t20-series {
-    background-color: #b94b18;
+    background-color: #424242;
+    color:#ffff;
 }
 
 .match-formate .test-series {
-    background-color: #978787;
+    background-color:  #f8f9fa;
+    color:#212529;
+    border: 1px solid #dee2e6 !important
 }
-
+.match-formate .odi-series {
+    background-color:  #3d6286;
+    color:#212529;
+    border: 1px solid #dee2e6 !important
+}
 /* ---------- Header / Nav / Dropdown ---------- */
 .header-bar {
     position: sticky;

@@ -128,7 +128,7 @@
                                                         <div class="d-flex align-items-center gap-2 flex-shrink-0">
                                                             <div class="match-formate mb-0 {{ $matchFormatClass }}">
                                                                 @if($matchFormat === 'T20')
-                                                                    <span class="badge bg-light text-dark border t20-series">{{ $matchFormat }}</span>
+                                                                    <span class="badge  text-light border t20-series">{{ $matchFormat }}</span>
                                                                 @elseif($matchFormat === 'TEST')
                                                                     <span class="badge bg-light text-dark border test-series">{{ $matchFormat }}</span>
                                                                 @else
@@ -297,7 +297,7 @@
                                                             <div class="d-flex align-items-center gap-2 flex-shrink-0">
                                                                 <p class="match-formate mb-0 {{ $matchFormatClass }}">
                                                                     @if($matchFormat === 'T20')
-                                                                        <span class="t20-series badge bg-light text-dark border">{{ $matchFormat }}</span>
+                                                                        <span class="t20-series badge text-light border">{{ $matchFormat }}</span>
                                                                     @elseif($matchFormat === 'TEST')
                                                                         <span class="test-series badge bg-light text-dark border">{{ $matchFormat }}</span>
                                                                     @else
@@ -466,7 +466,7 @@
                                                             <div class="d-flex align-items-center gap-2 flex-shrink-0">
                                                                 <p class="match-formate mb-0 {{ $matchFormatClass }}">
                                                                     @if($matchFormat === 'T20')
-                                                                        <span class="t20-series badge bg-light text-dark border">{{ $matchFormat }}</span>
+                                                                        <span class="t20-series badge text-light border">{{ $matchFormat }}</span>
                                                                     @elseif($matchFormat === 'TEST')
                                                                         <span class="test-series badge bg-light text-dark border">{{ $matchFormat }}</span>
                                                                     @else
