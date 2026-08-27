@@ -70,66 +70,10 @@ class Cricketlivescorecontroller extends Controller
 
     public function CricketliveScores()
     {
-<<<<<<< HEAD
-        // $apiUrl = env('CriBase_Url').'recent';
-        $apiUrl = env('CriBase_Url').'matches/v1/live';
-        if($apiUrl) {
-            $response = Http::withOptions([
-                'verify' => false,
-            ])->withHeaders([
-                'Content-Type'    => 'application/json',
-                'x-rapidapi-host' => 'cricbuzz-cricket2.p.rapidapi.com',
-                'x-rapidapi-key'  => env('RAPIDAPI_KEY'),
-            ])->get($apiUrl);
-                // echo $response;
-            if ($response->failed()) {
-                return view('index', ['matches' => [], 'error' => 'No Match data!']);
-            }
-
-            $data = $response->json();
-            $matches = [];
-            if (isset($data['matches']) && is_array($data['matches'])) {
-                $matches = $data['matches'];
-            } elseif (isset($data['typeMatches']) && is_array($data['typeMatches'])) {
-                foreach ($data['typeMatches'] as $typeMatch) {
-                    if (isset($typeMatch['seriesMatches']) && is_array($typeMatch['seriesMatches'])) {
-                        foreach ($typeMatch['seriesMatches'] as $seriesObj) {
-                            if (
-                                isset($seriesObj['seriesAdWrapper'], $seriesObj['seriesAdWrapper']['matches']) &&
-                                is_array($seriesObj['seriesAdWrapper']['matches'])
-                            ) {
-                                foreach ($seriesObj['seriesAdWrapper']['matches'] as $m) {
-                                    // Get matchInfo and matchScore arrays if present
-                                    $matchInfo = isset($m['matchInfo']) && is_array($m['matchInfo']) ? $m['matchInfo'] : [];
-                                    $matchScore = isset($m['matchScore']) && is_array($m['matchScore']) ? $m['matchScore'] : [];
-
-                                    // Push match details as array: preserve both matchInfo and matchScore fully, top-level
-                                    $matches[] = [
-                                        'matchInfo'  => $matchInfo,
-                                        'matchScore' => $matchScore,
-                                    ];
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-                // echo "<pre>";print_r($matches);die;
-            return view('index', ['matches' => $matches, 'error' => null]);
-        } else {
-            return view('index', [
-                'matches' => [],
-
-                'error' => 'Error fetching data: ' .'You can Reload Page its Session time out.',
-
-            ]);
-        }
-=======
         return view('index', [
             'matches' => $this->cricbuzzApi->liveMatches(),
             'error' => null,
         ]);
->>>>>>> origin/dev
     }
 
     public function upcoming()

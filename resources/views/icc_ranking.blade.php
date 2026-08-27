@@ -51,7 +51,7 @@
     @endphp
 
     <div class="container-fluid main-section">
-        <h4 class="text-center mb-3">ICC {{ $activeGender === 'mens' ? "Men's" : "Women's" }} Cricket Rankings</h4>
+        <h4 class="text-center mb-3">ICC {{ $activeGender === 'mens' ? "Men's" : "Women's" }} Rankings</h4>
 
         <div class="d-flex flex-wrap pb-3 gap-2 d-none">
             @foreach($genderTabs as $genderKey => $genderLabel)

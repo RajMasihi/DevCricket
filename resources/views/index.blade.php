@@ -16,13 +16,13 @@
     @endphp
     <div class="container-fluid main-section" id="cricket-index-page" data-active-tab="{{ e($activeTab) }}">
         <div id="live_section" style="display:{{ $activeTab == 'live' ? 'block' : 'none' }};">
-            <h4 class="text-center mb-3">Cricket Live Score</h4>
+            <h4 class="text-center mb-3">Live Score</h4>
         </div>
         <div id="result_section" style="display:{{ $activeTab == 'result' ? 'block' : 'none' }};">
-            <h4 class="text-center mb-3">Cricket Result Matches</h4>
+            <h4 class="text-center mb-3">Result Matches</h4>
         </div>
         <div id="upcoming_section" style="display:{{ $activeTab == 'upcoming' ? 'block' : 'none' }};">
-            <h4 class="text-center mb-3">Cricket Upcoming Matches</h4>
+            <h4 class="text-center mb-3">Upcoming Matches</h4>
         </div>
         <div class="d-flex pb-3">
             <a href="{{ url('/?tab=live') }}"
@@ -107,92 +107,107 @@
                                 $team1CssClass = $team1Won ? 'winner-team' : 'loser-team';
                                 $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                             @endphp
-                            <div class="col match-item">
+                            <div class="col match-item" data-match-id="{{ $match_id }}">
                                 <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}" style="text-decoration: none; color:#141010;">
                                     <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
-                                        <div class="row card-body">
-                                            <div class="col-6">
-                                                <p class="card-text mb-0" style="color: #817373; font-size:14px">
-                                                    <strong>{{ $matchDesc }} - {{ $seriesName }}</strong>
-                                                </p>
-                                                @if(!empty($matchDateShort))
-                                                    <p class="card-text mb-0 mt-1" style="color: #5d6570; font-size:12px;">
-                                                        Match Date: {{ $matchDateShort }}
-                                                    </p>
-                                                @endif
-                                            </div>
-                                            <div class="col-3">
-                                                <p class="match-formate {{ $matchFormatClass }}">
-                                                    @if($matchFormat === 'T20')
-                                                        <span class="t20-series">{{ $matchFormat }}</span>
-                                                    @elseif($matchFormat === 'TEST')
-                                                        <span class="test-series">{{ $matchFormat }}</span>
-                                                    @else
-                                                        <span>{{ $matchFormat }}</span>
-                                                    @endif
-                                                </p>
-                                            </div>
-                                            <div class="col-3 mt-1">
-                                                @if($state === 'in progress')
-                                                    <span class="badge bg-success">Live<span class="animation"></span></span>
-                                                @elseif($state === 'complete')
-                                                    <span class="badge bg-danger">Result</span>
-                                                @elseif($state === 'upcoming')
-                                                    <span class="badge bg-secondary">Upcoming</span>
-                                                @else
-                                                    <span class="badge bg-info">{{ ucfirst($state) }}</span>
-                                                @endif
-                                            </div>
-                                            <div class="d-flex justify-content-between align-items-center" style="margin-top:10px;">
-                                                <div class="d-flex align-items-center">
-                                                    @if($team1Img)
-                                                        <img class="img" src="{{ $team1Img }}" alt="{{ $team1Name }}" />
-                                                    @endif
-                                                    <span class="{{ $team1CssClass }}" style="margin-left:6px;">{{ $team1Name }}</span>
+                                        <div class="card shadow-sm w-100">
+                                            <div class="card-body p-3">
+                                                    <!-- Top Row: Match Info, Format, & State -->
+                                                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                                        <div class="overflow-hidden">
+                                                            <p class="card-text text-truncate mb-0" style="color: #817373; font-size: 14px;">
+                                                                <strong>{{ $matchDesc }} - {{ $seriesName }}</strong>
+                                                            </p>
+                                                            @if(!empty($matchDateShort))
+                                                                <p class="card-text mb-0 mt-1" style="color: #5d6570; font-size: 12px;">
+                                                                    Match Date: {{ $matchDateShort }}
+                                                                </p>
+                                                            @endif
+                                                        </div>
+
+                                                        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                                            <div class="match-formate mb-0 {{ $matchFormatClass }}">
+                                                                @if($matchFormat === 'T20')
+                                                                    <span class="badge  text-light border t20-series">{{ $matchFormat }}</span>
+                                                                @elseif($matchFormat === 'TEST')
+                                                                    <span class="badge bg-light text-dark border test-series">{{ $matchFormat }}</span>
+                                                                @else
+                                                                    <span class="badge bg-light text-dark border">{{ $matchFormat }}</span>
+                                                                @endif
+                                                            </div>
+
+                                                            <div>
+                                                                @if($state === 'in progress')
+                                                                    <span class="badge bg-success">Live<span class="animation"></span></span>
+                                                                @elseif($state === 'complete')
+                                                                    <span class="badge bg-danger">Result</span>
+                                                                @elseif($state === 'upcoming')
+                                                                    <span class="badge bg-secondary">Upcoming</span>
+                                                                @else
+                                                                    <span class="badge bg-info">{{ ucfirst($state) }}</span>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <hr class="my-2 opacity-25">
+
+                                                    <!-- Team 1 Row -->
+                                                    <div class="d-flex justify-content-between align-items-center my-2">
+                                                        <div class="d-flex align-items-center overflow-hidden me-2">
+                                                            @if($team1Img)
+                                                                <img class="img flex-shrink-0 me-2" src="{{ $team1Img }}" alt="{{ $team1Name }}" style="width:24px; height:24px; object-fit:contain;" />
+                                                            @endif
+                                                            <span class="{{ $team1CssClass }} text-truncate" style="font-size: 14px; font-weight: 600;">{{ $team1Name }}</span>
+                                                        </div>
+                                                        <div class="text-end flex-shrink-0">
+                                                            @if(!empty($t1Score))
+                                                                <span class="score-span {{ $team1CssClass }}" style="font-size: 13px; font-weight: 600;">
+                                                                    {{ $t1Score['runs'] ?? '-' }}/{{ $t1Score['wickets'] ?? '0' }} ({{ $t1Score['overs'] ?? '-' }} ovs)
+                                                                </span>
+                                                            @endif
+                                                            @if($matchFormat === 'TEST' && !empty($t1Score2))
+                                                                <br>
+                                                                <span class="score-span {{ $team1CssClass }}" style="font-size: 13px; font-weight: 600;">
+                                                                    {{ $t1Score2['runs'] ?? '-' }}/{{ $t1Score2['wickets'] ?? '0' }} ({{ $t1Score2['overs'] ?? '-' }} ovs)
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Team 2 Row -->
+                                                    <div class="d-flex justify-content-between align-items-center my-2">
+                                                        <div class="d-flex align-items-center overflow-hidden me-2">
+                                                            @if($team2Img)
+                                                                <img class="img flex-shrink-0 me-2" src="{{ $team2Img }}" alt="{{ $team2Name }}" style="width:24px; height:24px; object-fit:contain;" />
+                                                            @endif
+                                                            <span class="{{ $team2CssClass }} text-truncate" style="font-size: 14px; font-weight: 600;">{{ $team2Name }}</span>
+                                                        </div>
+                                                        <div class="text-end flex-shrink-0">
+                                                            @if(!empty($t2Score))
+                                                                <span class="score-span {{ $team2CssClass }}" style="font-size: 13px; font-weight: 600;">
+                                                                    {{ $t2Score['runs'] ?? '-' }}/{{ $t2Score['wickets'] ?? '0' }} ({{ $t2Score['overs'] ?? '-' }} ovs)
+                                                                </span>
+                                                            @endif
+                                                            @if($matchFormat === 'TEST' && !empty($t2Score2))
+                                                                <br>
+                                                                <span class="score-span {{ $team2CssClass }}" style="font-size: 13px; font-weight: 600;">
+                                                                    {{ $t2Score2['runs'] ?? '-' }}/{{ $t2Score2['wickets'] ?? '0' }} ({{ $t2Score2['overs'] ?? '-' }} ovs)
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Match Status Message -->
+                                                    <div class="mt-2 pt-1 border-top">
+                                                        @if($state === 'complete')
+                                                            <p class="card-text status-complete text-danger mb-0" style="font-size: 12px; font-weight: 500;">{{ $status }}</p>
+                                                        @else
+                                                            <p class="card-text status-else text-muted mb-0" style="font-size: 12px; font-weight: 500;">{{ $status }}</p>
+                                                        @endif
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    @if(!empty($t1Score))
-                                                        <span class="score-span {{ $team1CssClass }}">
-                                                            {{ $t1Score['runs'] ?? '-' }}/{{ $t1Score['wickets'] ?? '0' }} ({{ $t1Score['overs'] ?? '-' }} ovs)
-                                                        </span>
-                                                    @endif
-                                                    @if($matchFormat === 'TEST' && !empty($t1Score2))
-                                                        <br>
-                                                        <span class="score-span {{ $team1CssClass }}">
-                                                            {{ $t1Score2['runs'] ?? '-' }}/{{ $t1Score2['wickets'] ?? '0' }} ({{ $t1Score2['overs'] ?? '-' }} ovs)
-                                                        </span>
-                                                    @endif
-                                                </div>
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-center" style="margin-top:5px;">
-                                                <div class="d-flex align-items-center">
-                                                    @if($team2Img)
-                                                        <img class="img" src="{{ $team2Img }}" alt="{{ $team2Name }}" />
-                                                    @endif
-                                                    <span class="{{ $team2CssClass }}" style="margin-left:6px;">{{ $team2Name }}</span>
-                                                </div>
-                                                <div>
-                                                    @if(!empty($t2Score))
-                                                        <span class="score-span {{ $team2CssClass }}">
-                                                            {{ $t2Score['runs'] ?? '-' }}/{{ $t2Score['wickets'] ?? '0' }} ({{ $t2Score['overs'] ?? '-' }} ovs)
-                                                        </span>
-                                                    @endif
-                                                    @if($matchFormat === 'TEST' && !empty($t2Score2))
-                                                        <br>
-                                                        <span class="score-span {{ $team2CssClass }}">
-                                                            {{ $t2Score2['runs'] ?? '-' }}/{{ $t2Score2['wickets'] ?? '0' }} ({{ $t2Score2['overs'] ?? '-' }} ovs)
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                            <div>
-                                                @if($state === 'complete')
-                                                    <p class="card-text status-complete">{{ $status }}</p>
-                                                @else
-                                                    <p class="card-text status-else">{{ $status }}</p>
-                                                @endif
-                                            </div>
-                                        </div>
                                     </div>
                                 </a>
                             </div>
@@ -261,90 +276,107 @@
                                     $team1CssClass = $team1Won ? 'winner-team' : 'loser-team';
                                     $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                                 @endphp
-                                <div class="col match-item">
+                                <div class="col match-item" data-match-id="{{ $match_id }}">
                                     <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}" style="text-decoration: none; color:#141010;">
                                         <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
-                                            <div class="row card-body">
-                                                <div class="col-7">
-                                                    <p class="card-text mb-0" style="color: #817373; font-size:14px">
-                                                        <strong>{{ $matchDesc }} - {{ $seriesName }}</strong>
-                                                    </p>
-                                                    @if(!empty($matchDateShort))
-                                                        <p class="card-text mb-0 mt-1" style="color: #5d6570; font-size:12px;">
-                                                            Match Date: {{ $matchDateShort }}
-                                                        </p>
-                                                    @endif
-                                                </div>
-                                                <p class="col-2 match-formate {{ $matchFormatClass }}">
-                                                    @if($matchFormat === 'T20')
-                                                        <span class="t20-series">{{ $matchFormat }}</span>
-                                                    @elseif($matchFormat === 'TEST')
-                                                        <span class="test-series">{{ $matchFormat }}</span>
-                                                    @else
-                                                        <span>{{ $matchFormat }}</span>
-                                                    @endif
-                                                </p>
-                                                <div class="col-3 mt-1">
-                                                    @if($state === 'in progress')
-                                                        <span class="badge bg-success">Live<span class="animation"></span></span>
-                                                    @elseif($state === 'complete')
-                                                        <span class="badge bg-danger">Result</span>
-                                                    @elseif($state === 'upcoming')
-                                                        <span class="badge bg-secondary">Upcoming</span>
-                                                    @else
-                                                        <span class="badge bg-info">{{ ucfirst($state) }}</span>
-                                                    @endif
-                                                </div>
-                                                <div class="d-flex justify-content-between align-items-center" style="margin-top:10px;">
-                                                    <div class="d-flex align-items-center">
-                                                        @if($team1Img)
-                                                            <img class="img" src="{{ $team1Img }}" alt="{{ $team1Name }}" />
-                                                        @endif
-                                                        <span class="{{ $team1CssClass }}" style="margin-left:6px;">{{ $team1Name }}</span>
+                                            <div class="card shadow-sm w-100">
+                                                <div class="card-body p-3">
+                                                        <!-- Header Row: Match Info, Format & State -->
+                                                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                                            <div class="overflow-hidden flex-grow-1">
+                                                                <p class="card-text text-truncate mb-0" style="color: #817373; font-size: 14px;">
+                                                                    <strong>{{ $matchDesc }} - {{ $seriesName }}</strong>
+                                                                </p>
+                                                                @if(!empty($matchDateShort))
+                                                                    <p class="card-text mb-0 mt-1" style="color: #5d6570; font-size: 12px;">
+                                                                        Match Date: {{ $matchDateShort }}
+                                                                    </p>
+                                                                @endif
+                                                            </div>
+
+                                                            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                                                <p class="match-formate mb-0 {{ $matchFormatClass }}">
+                                                                    @if($matchFormat === 'T20')
+                                                                        <span class="t20-series badge text-light border">{{ $matchFormat }}</span>
+                                                                    @elseif($matchFormat === 'TEST')
+                                                                        <span class="test-series badge bg-light text-dark border">{{ $matchFormat }}</span>
+                                                                    @else
+                                                                        <span class="badge bg-light text-dark border">{{ $matchFormat }}</span>
+                                                                    @endif
+                                                                </p>
+
+                                                                <div>
+                                                                    @if($state === 'in progress')
+                                                                        <span class="badge bg-success">Live<span class="animation"></span></span>
+                                                                    @elseif($state === 'complete')
+                                                                        <span class="badge bg-danger">Result</span>
+                                                                    @elseif($state === 'upcoming')
+                                                                        <span class="badge bg-secondary">Upcoming</span>
+                                                                    @else
+                                                                        <span class="badge bg-info">{{ ucfirst($state) }}</span>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <hr class="my-2 opacity-25">
+
+                                                        <!-- Team 1 Row -->
+                                                        <div class="d-flex justify-content-between align-items-center my-2">
+                                                            <div class="d-flex align-items-center overflow-hidden me-2">
+                                                                @if($team1Img)
+                                                                    <img class="img flex-shrink-0 me-2" src="{{ $team1Img }}" alt="{{ $team1Name }}" style="width:24px; height:24px; object-fit:contain;" />
+                                                                @endif
+                                                                <span class="{{ $team1CssClass }} text-truncate" style="font-size: 14px; font-weight: 600;">{{ $team1Name }}</span>
+                                                            </div>
+                                                            <div class="text-end flex-shrink-0">
+                                                                @if(!empty($t1Score))
+                                                                    <span class="score-span {{ $team1CssClass }}" style="font-size: 13px; font-weight: 600;">
+                                                                        {{ $t1Score['runs'] ?? '-' }}/{{ $t1Score['wickets'] ?? '0' }} ({{ $t1Score['overs'] ?? '-' }} ovs)
+                                                                    </span>
+                                                                @endif
+                                                                @if($matchFormat === 'TEST' && !empty($t1Score2))
+                                                                    <br>
+                                                                    <span class="score-span {{ $team1CssClass }}" style="font-size: 13px; font-weight: 600;">
+                                                                        {{ $t1Score2['runs'] ?? '-' }}/{{ $t1Score2['wickets'] ?? '0' }} ({{ $t1Score2['overs'] ?? '-' }} ovs)
+                                                                    </span>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Team 2 Row -->
+                                                        <div class="d-flex justify-content-between align-items-center my-2">
+                                                            <div class="d-flex align-items-center overflow-hidden me-2">
+                                                                @if($team2Img)
+                                                                    <img class="img flex-shrink-0 me-2" src="{{ $team2Img }}" alt="{{ $team2Name }}" style="width:24px; height:24px; object-fit:contain;" />
+                                                                @endif
+                                                                <span class="{{ $team2CssClass }} text-truncate" style="font-size: 14px; font-weight: 600;">{{ $team2Name }}</span>
+                                                            </div>
+                                                            <div class="text-end flex-shrink-0">
+                                                                @if(!empty($t2Score))
+                                                                    <span class="score-span {{ $team2CssClass }}" style="font-size: 13px; font-weight: 600;">
+                                                                        {{ $t2Score['runs'] ?? '-' }}/{{ $t2Score['wickets'] ?? '0' }} ({{ $t2Score['overs'] ?? '-' }} ovs)
+                                                                    </span>
+                                                                @endif
+                                                                @if($matchFormat === 'TEST' && !empty($t2Score2))
+                                                                    <br>
+                                                                    <span class="score-span {{ $team2CssClass }}" style="font-size: 13px; font-weight: 600;">
+                                                                        {{ $t2Score2['runs'] ?? '-' }}/{{ $t2Score2['wickets'] ?? '0' }} ({{ $t2Score2['overs'] ?? '-' }} ovs)
+                                                                    </span>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Match Status Footer -->
+                                                        <div class="mt-2 pt-1 border-top">
+                                                            @if($state === 'complete')
+                                                                <p class="card-text status-complete text-danger mb-0" style="font-size: 12px; font-weight: 500;">{{ $status }}</p>
+                                                            @else
+                                                                <p class="card-text status-else text-muted mb-0" style="font-size: 12px; font-weight: 500;">{{ $status }}</p>
+                                                            @endif
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        @if(!empty($t1Score))
-                                                            <span class="score-span {{ $team1CssClass }}">
-                                                                {{ $t1Score['runs'] ?? '-' }}/{{ $t1Score['wickets'] ?? '0' }} ({{ $t1Score['overs'] ?? '-' }} ovs)
-                                                            </span>
-                                                        @endif
-                                                        @if($matchFormat === 'TEST' && !empty($t1Score2))
-                                                            <br>
-                                                            <span class="score-span {{ $team1CssClass }}">
-                                                                {{ $t1Score2['runs'] ?? '-' }}/{{ $t1Score2['wickets'] ?? '0' }} ({{ $t1Score2['overs'] ?? '-' }} ovs)
-                                                            </span>
-                                                        @endif
-                                                    </div>
                                                 </div>
-                                                <div class="d-flex justify-content-between align-items-center" style="margin-top:5px;">
-                                                    <div class="d-flex align-items-center">
-                                                        @if($team2Img)
-                                                            <img class="img" src="{{ $team2Img }}" alt="{{ $team2Name }}" />
-                                                        @endif
-                                                        <span class="{{ $team2CssClass }}" style="margin-left:6px;">{{ $team2Name }}</span>
-                                                    </div>
-                                                    <div>
-                                                        @if(!empty($t2Score))
-                                                            <span class="score-span {{ $team2CssClass }}">
-                                                                {{ $t2Score['runs'] ?? '-' }}/{{ $t2Score['wickets'] ?? '0' }} ({{ $t2Score['overs'] ?? '-' }} ovs)
-                                                            </span>
-                                                        @endif
-                                                        @if($matchFormat === 'TEST' && !empty($t2Score2))
-                                                            <br>
-                                                            <span class="score-span {{ $team2CssClass }}">
-                                                                {{ $t2Score2['runs'] ?? '-' }}/{{ $t2Score2['wickets'] ?? '0' }} ({{ $t2Score2['overs'] ?? '-' }} ovs)
-                                                            </span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    @if($state === 'complete')
-                                                        <p class="card-text status-complete">{{ $status }}</p>
-                                                    @else
-                                                        <p class="card-text status-else">{{ $status }}</p>
-                                                    @endif
-                                                </div>
-                                            </div>
                                         </div>
                                     </a>
                                 </div>
@@ -413,90 +445,107 @@
                                     $team1CssClass = $team1Won ? 'winner-team' : 'loser-team';
                                     $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                                 @endphp
-                                <div class="col match-item">
+                                <div class="col match-item" data-match-id="{{ $match_id }}">
                                     <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}" style="text-decoration: none; color:#141010;">
                                         <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
-                                            <div class="row card-body">
-                                                <div class="col-7">
-                                                    <p class="card-text mb-0" style="color: #817373; font-size:14px">
-                                                        <strong>{{ $matchDesc }} - {{ $seriesName }}</strong>
-                                                    </p>
-                                                    @if(!empty($matchDateShort))
-                                                        <p class="card-text mb-0 mt-1" style="color: #5d6570; font-size:12px;">
-                                                            Match Date: {{ $matchDateShort }}
-                                                        </p>
-                                                    @endif
-                                                </div>
-                                                <p class="col-2 match-formate {{ $matchFormatClass }}">
-                                                    @if($matchFormat === 'T20')
-                                                        <span class="t20-series">{{ $matchFormat }}</span>
-                                                    @elseif($matchFormat === 'TEST')
-                                                        <span class="test-series">{{ $matchFormat }}</span>
-                                                    @else
-                                                        <span>{{ $matchFormat }}</span>
-                                                    @endif
-                                                </p>
-                                                <div class="col-3 mt-1">
-                                                    @if($state === 'in progress')
-                                                        <span class="badge bg-success">Live<span class="animation"></span></span>
-                                                    @elseif($state === 'complete')
-                                                        <span class="badge bg-danger">Result</span>
-                                                    @elseif($state === 'upcoming' || $state === 'preview')
-                                                        <span class="badge bg-secondary">Upcoming</span>
-                                                    @else
-                                                        <span class="badge bg-info">{{ ucfirst($state) }}</span>
-                                                    @endif
-                                                </div>
-                                                <div class="d-flex justify-content-between align-items-center" style="margin-top:10px;">
-                                                    <div class="d-flex align-items-center">
-                                                        @if($team1Img)
-                                                            <img class="img" src="{{ $team1Img }}" alt="{{ $team1Name }}" />
-                                                        @endif
-                                                        <span class="{{ $team1CssClass }}" style="margin-left:6px;">{{ $team1Name }}</span>
+                                            <div class="card shadow-sm w-100">
+                                                <div class="card-body p-3">
+                                                        <!-- Header Row: Match Info, Format & State -->
+                                                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                                            <div class="overflow-hidden flex-grow-1">
+                                                                <p class="card-text text-truncate mb-0" style="color: #817373; font-size: 14px;">
+                                                                    <strong>{{ $matchDesc }} - {{ $seriesName }}</strong>
+                                                                </p>
+                                                                @if(!empty($matchDateShort))
+                                                                    <p class="card-text mb-0 mt-1" style="color: #5d6570; font-size: 12px;">
+                                                                        Match Date: {{ $matchDateShort }}
+                                                                    </p>
+                                                                @endif
+                                                            </div>
+
+                                                            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                                                <p class="match-formate mb-0 {{ $matchFormatClass }}">
+                                                                    @if($matchFormat === 'T20')
+                                                                        <span class="t20-series badge text-light border">{{ $matchFormat }}</span>
+                                                                    @elseif($matchFormat === 'TEST')
+                                                                        <span class="test-series badge bg-light text-dark border">{{ $matchFormat }}</span>
+                                                                    @else
+                                                                        <span class="badge bg-light text-dark border">{{ $matchFormat }}</span>
+                                                                    @endif
+                                                                </p>
+
+                                                                <div>
+                                                                    @if($state === 'in progress')
+                                                                        <span class="badge bg-success">Live<span class="animation"></span></span>
+                                                                    @elseif($state === 'complete')
+                                                                        <span class="badge bg-danger">Result</span>
+                                                                    @elseif($state === 'upcoming' || $state === 'preview')
+                                                                        <span class="badge bg-secondary">Upcoming</span>
+                                                                    @else
+                                                                        <span class="badge bg-info">{{ ucfirst($state) }}</span>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <hr class="my-2 opacity-25">
+
+                                                        <!-- Team 1 Row -->
+                                                        <div class="d-flex justify-content-between align-items-center my-2">
+                                                            <div class="d-flex align-items-center overflow-hidden me-2">
+                                                                @if($team1Img)
+                                                                    <img class="img flex-shrink-0 me-2" src="{{ $team1Img }}" alt="{{ $team1Name }}" style="width:24px; height:24px; object-fit:contain;" />
+                                                                @endif
+                                                                <span class="{{ $team1CssClass }} text-truncate" style="font-size: 14px; font-weight: 600;">{{ $team1Name }}</span>
+                                                            </div>
+                                                            <div class="text-end flex-shrink-0">
+                                                                @if(!empty($t1Score))
+                                                                    <span class="score-span {{ $team1CssClass }}" style="font-size: 13px; font-weight: 600;">
+                                                                        {{ $t1Score['runs'] ?? '-' }}/{{ $t1Score['wickets'] ?? '0' }} ({{ $t1Score['overs'] ?? '-' }} ovs)
+                                                                    </span>
+                                                                @endif
+                                                                @if($matchFormat === 'TEST' && !empty($t1Score2))
+                                                                    <br>
+                                                                    <span class="score-span {{ $team1CssClass }}" style="font-size: 13px; font-weight: 600;">
+                                                                        {{ $t1Score2['runs'] ?? '-' }}/{{ $t1Score2['wickets'] ?? '0' }} ({{ $t1Score2['overs'] ?? '-' }} ovs)
+                                                                    </span>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Team 2 Row -->
+                                                        <div class="d-flex justify-content-between align-items-center my-2">
+                                                            <div class="d-flex align-items-center overflow-hidden me-2">
+                                                                @if($team2Img)
+                                                                    <img class="img flex-shrink-0 me-2" src="{{ $team2Img }}" alt="{{ $team2Name }}" style="width:24px; height:24px; object-fit:contain;" />
+                                                                @endif
+                                                                <span class="{{ $team2CssClass }} text-truncate" style="font-size: 14px; font-weight: 600;">{{ $team2Name }}</span>
+                                                            </div>
+                                                            <div class="text-end flex-shrink-0">
+                                                                @if(!empty($t2Score))
+                                                                    <span class="score-span {{ $team2CssClass }}" style="font-size: 13px; font-weight: 600;">
+                                                                        {{ $t2Score['runs'] ?? '-' }}/{{ $t2Score['wickets'] ?? '0' }} ({{ $t2Score['overs'] ?? '-' }} ovs)
+                                                                    </span>
+                                                                @endif
+                                                                @if($matchFormat === 'TEST' && !empty($t2Score2))
+                                                                    <br>
+                                                                    <span class="score-span {{ $team2CssClass }}" style="font-size: 13px; font-weight: 600;">
+                                                                        {{ $t2Score2['runs'] ?? '-' }}/{{ $t2Score2['wickets'] ?? '0' }} ({{ $t2Score2['overs'] ?? '-' }} ovs)
+                                                                    </span>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Match Status Footer -->
+                                                        <div class="mt-2 pt-1 border-top">
+                                                            @if($state === 'complete')
+                                                                <p class="card-text status-complete text-danger mb-0" style="font-size: 12px; font-weight: 500;">{{ $status }}</p>
+                                                            @else
+                                                                <p class="card-text status-else text-muted mb-0" style="font-size: 12px; font-weight: 500;">{{ $status }}</p>
+                                                            @endif
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        @if(!empty($t1Score))
-                                                            <span class="score-span {{ $team1CssClass }}">
-                                                                {{ $t1Score['runs'] ?? '-' }}/{{ $t1Score['wickets'] ?? '0' }} ({{ $t1Score['overs'] ?? '-' }} ovs)
-                                                            </span>
-                                                        @endif
-                                                        @if($matchFormat === 'TEST' && !empty($t1Score2))
-                                                            <br>
-                                                            <span class="score-span {{ $team1CssClass }}">
-                                                                {{ $t1Score2['runs'] ?? '-' }}/{{ $t1Score2['wickets'] ?? '0' }} ({{ $t1Score2['overs'] ?? '-' }} ovs)
-                                                            </span>
-                                                        @endif
-                                                    </div>
                                                 </div>
-                                                <div class="d-flex justify-content-between align-items-center" style="margin-top:5px;">
-                                                    <div class="d-flex align-items-center">
-                                                        @if($team2Img)
-                                                            <img class="img" src="{{ $team2Img }}" alt="{{ $team2Name }}" />
-                                                        @endif
-                                                        <span class="{{ $team2CssClass }}" style="margin-left:6px;">{{ $team2Name }}</span>
-                                                    </div>
-                                                    <div>
-                                                        @if(!empty($t2Score))
-                                                            <span class="score-span {{ $team2CssClass }}">
-                                                                {{ $t2Score['runs'] ?? '-' }}/{{ $t2Score['wickets'] ?? '0' }} ({{ $t2Score['overs'] ?? '-' }} ovs)
-                                                            </span>
-                                                        @endif
-                                                        @if($matchFormat === 'TEST' && !empty($t2Score2))
-                                                            <br>
-                                                            <span class="score-span {{ $team2CssClass }}">
-                                                                {{ $t2Score2['runs'] ?? '-' }}/{{ $t2Score2['wickets'] ?? '0' }} ({{ $t2Score2['overs'] ?? '-' }} ovs)
-                                                            </span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    @if($state === 'complete')
-                                                        <p class="card-text status-complete">{{ $status }}</p>
-                                                    @else
-                                                        <p class="card-text status-else">{{ $status }}</p>
-                                                    @endif
-                                                </div>
-                                            </div>
                                         </div>
                                     </a>
                                 </div>

@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Cricket News')
+@section('title', 'News')
 
 @section('main-container')
     <style>
@@ -10,7 +10,7 @@
     </style>
 
     <div class="container-fluid main-section">
-        <h4 class="text-center mb-3">Latest Cricket News</h4>
+        <h4 class="text-center mb-3">Latest News</h4>
 
         <div class="d-flex flex-wrap pb-3 gap-2">
             @if(isset($categories) && count($categories) > 0)

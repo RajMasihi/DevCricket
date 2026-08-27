@@ -48,9 +48,13 @@ Route::get('/teams/league',[Cricketlivescorecontroller::class,'teamsleague']);
 Route::get('/series',[Cricketlivescorecontroller::class,'series']);
 Route::get('/serieslist/{id}/{seriesname}', [Cricketlivescorecontroller::class, 'serieslist']);
 // scoreboard 
-Route::get('/score/{id}/{name}', [Cricketlivescorecontroller::class, 'matchdetailinforme']);
-Route::get('/score-scoreboard/{id}/{name}', [Cricketlivescorecontroller::class, 'matchdetailscore']);
-Route::get('/score-player/{id}/{name}', [Cricketlivescorecontroller::class, 'matchdetailplayer']);
+Route::get('/score/{id}/{name}', [Cricketlivescorecontroller::class, 'matchDetail']);
+Route::get('/score-scoreboard/{id}/{name}', function (string $id, string $name) {
+    return redirect("/score/{$id}/{$name}?tab=scoreboard");
+});
+Route::get('/score-player/{id}/{name}', function (string $id, string $name) {
+    return redirect("/score/{$id}/{$name}?tab=players");
+});
 // point table
 Route::get('/point-table/{id}/{seriesname}',[Cricketlivescorecontroller::class,'showSeriesPoints']);
 Route::get('/stats/{id}/{seriesname}',[Cricketlivescorecontroller::class,'stats']);

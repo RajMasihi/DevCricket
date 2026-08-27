@@ -2,7 +2,7 @@
 <title>@yield('title', 'Result Matchs')</title>
 @section('main-container')
     <div class="container-fluit main-section">
-    <h3 class="text-center">Cricket Live Scores Data Matchs result Matchs</h3> 
+    <h3 class="text-center">Live Scores Data Matchs result Matchs</h3> 
         <div class="row row-cols-1 row-cols-md-2 g-4 pt-3">
         @if($error)
             <span style="color:red;">{{ $error }}</span>
