@@ -1,5 +1,5 @@
 
-<<<<<<< HEAD
+
 $(function () {
 // navebar active class 
     let currentUrl = window.location.href;
@@ -76,7 +76,7 @@ $('#team2').on('click', function(){
     // initMatchdetailScoreboardRefresh();
 });
 
-=======
+
 // $(function () {
 //     let currentUrl = window.location.href;
 //     $('.first-header .nav-item a').each(function () {
@@ -332,7 +332,7 @@ $('#team2').on('click', function(){
 //         }
 //     });
 // }
->>>>>>> origin/dev
+
 
 //   JavaScript Team Switcher Script 
  
