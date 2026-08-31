@@ -41,6 +41,8 @@ class MatchScoreUpdated implements ShouldBroadcastNow
 
     public function broadcastWith(): array
     {
+        $validationData = $this->getOversValidationData();
+        
         return [
             'matchId' => $this->matchId,
             'info' => $this->info,
@@ -48,8 +50,40 @@ class MatchScoreUpdated implements ShouldBroadcastNow
             'commentary' => $this->commentary,
             'threshold' => $this->thresholdData,
             'timestamp' => now()->toISOString(),
-            'overs_validation' => $this->getOversValidationData(),
+            'overs_validation' => $validationData,
+            'validation_summary' => [
+                'all_valid' => $this->allOversValid($validationData),
+                'invalid_count' => $this->countInvalidOvers($validationData)
+            ]
         ];
+    }
+
+    private function allOversValid(array $validationData): bool
+    {
+        foreach ($validationData as $teamValidation) {
+            foreach ($teamValidation as $inningsValidation) {
+                if (!$inningsValidation['is_valid']) {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
+    }
+
+    private function countInvalidOvers(array $validationData): int
+    {
+        $invalidCount = 0;
+        
+        foreach ($validationData as $teamValidation) {
+            foreach ($teamValidation as $inningsValidation) {
+                if (!$inningsValidation['is_valid']) {
+                    $invalidCount++;
+                }
+            }
+        }
+        
+        return $invalidCount;
     }
 
     private function calculateThresholdData(): array
@@ -110,15 +144,19 @@ class MatchScoreUpdated implements ShouldBroadcastNow
                         $currentOver = $this->parseOverValue($teamScore[$innings]['overs']);
                         $lastOver = $this->getLastKnownOver($this->matchId, $key);
                         
+                        // Validate ball-by-ball progression
+                        $isValid = $this->validateBallByBallProgression($currentOver, $lastOver, $teamScore[$innings]['overs']);
+                        
                         $teamValidation[$innings] = [
                             'current' => $currentOver,
                             'previous' => $lastOver,
-                            'is_valid' => $currentOver >= $lastOver,
-                            'formatted' => $teamScore[$innings]['overs']
+                            'is_valid' => $isValid,
+                            'formatted' => $teamScore[$innings]['overs'],
+                            'validation_reason' => $isValid ? 'Valid progression' : 'Invalid over progression'
                         ];
                         
-                        // Update last known over if valid
-                        if ($currentOver >= $lastOver) {
+                        // Update last known over only if valid
+                        if ($isValid) {
                             $this->setLastKnownOver($this->matchId, $key, $currentOver);
                         }
                     }
@@ -129,6 +167,54 @@ class MatchScoreUpdated implements ShouldBroadcastNow
         }
         
         return $validationData;
+    }
+
+    private function validateBallByBallProgression(float $currentOver, float $lastOver, string $currentOverStr): bool
+    {
+        // If no previous data, accept current value
+        if ($lastOver === 0.0) {
+            return true;
+        }
+
+        // Check for regression (decrease in over value) - this is the only strict validation
+        if ($currentOver < $lastOver - 0.01) {
+            return false;
+        }
+
+        // Allow any forward progression - handles missing intermediate values
+        // This ensures we don't miss updates like 0.6 → 1.0 if 0.6 wasn't displayed
+        if ($currentOver > $lastOver) {
+            $currentOvers = (int) floor($currentOver);
+            $currentBalls = round(($currentOver - $currentOvers) * 6) / 6;
+            $lastOvers = (int) floor($lastOver);
+            $lastBalls = round(($lastOver - $lastOvers) * 6) / 6;
+
+            // Handle over completion scenarios
+            if ($currentOvers > $lastOvers) {
+                // Proper over completion (e.g., 0.6 → 1.0) or jump with missing data
+                if ($currentBalls === 0.0) {
+                    return true;
+                }
+                // Jump within same over (e.g., 0.2 → 0.5 due to missing data)
+                if ($currentOvers === $lastOvers) {
+                    return true;
+                }
+                // Jump to different over (e.g., 0.3 → 1.2 due to missing data)
+                return true;
+            }
+
+            // Normal ball progression within same over
+            if ($currentOvers === $lastOvers && $currentBalls > $lastBalls) {
+                return true;
+            }
+        }
+
+        // Same over value - no change
+        if (abs($currentOver - $lastOver) < 0.01) {
+            return true;
+        }
+
+        return true;
     }
 
     private function getLastKnownOver(string $matchId, string $key): float

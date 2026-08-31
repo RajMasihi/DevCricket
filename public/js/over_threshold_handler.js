@@ -167,7 +167,7 @@ class OverThresholdHandler {
         console.log('Starting polling fallback for match updates');
         this.pollingInterval = setInterval(() => {
             this.fetchMatchUpdates();
-        }, 10000); // Poll every 10 seconds
+        }, 20000); // Poll every 20 seconds
 
         // Initial fetch
         this.fetchMatchUpdates();
@@ -274,14 +274,16 @@ class OverThresholdHandler {
             ['inngs1', 'inngs2'].forEach(innings => {
                 if (teamScore[innings] && teamScore[innings].overs) {
                     const key = `${teamKey}_${innings}`;
-                    const currentOver = this.parseOverValue(teamScore[innings].overs);
+                    const currentOverStr = teamScore[innings].overs;
+                    const currentOver = this.parseOverValue(currentOverStr);
                     const lastOver = this.lastKnownOvers[key] || 0;
                     
-                    // Allow updates if current over is greater than or equal to last known over
-                    // This prevents regression (e.g., 6.0 → 5.4)
-                    if (currentOver < lastOver - 0.1) { // Small tolerance for floating point errors
+                    // Validate ball-by-ball progression
+                    const progressionValid = this.validateBallByBallProgression(currentOver, lastOver, currentOverStr);
+                    
+                    if (!progressionValid.valid) {
                         isValid = false;
-                        invalidReasons.push(`${key}: ${currentOver} < ${lastOver}`);
+                        invalidReasons.push(`${key}: ${progressionValid.reason}`);
                     }
                 }
             });
@@ -294,6 +296,62 @@ class OverThresholdHandler {
         return isValid;
     }
 
+    validateBallByBallProgression(currentOver, lastOver, currentOverStr) {
+        // If no previous data, accept current value
+        if (lastOver === 0) {
+            return { valid: true, reason: 'Initial value' };
+        }
+
+        // Check for regression (decrease in over value) - this is the only strict validation
+        if (currentOver < lastOver - 0.01) { // Small tolerance for floating point errors
+            return { 
+                valid: false, 
+                reason: `Over regression: ${this.formatOverDisplay(lastOver)} → ${currentOverStr}` 
+            };
+        }
+
+        // Allow any forward progression - handles missing intermediate values
+        // This ensures we don't miss updates like 0.6 → 1.0 if 0.6 wasn't displayed
+        if (currentOver > lastOver) {
+            const currentOvers = Math.floor(currentOver);
+            const currentBalls = Math.round((currentOver - currentOvers) * 6) / 6;
+            const lastOvers = Math.floor(lastOver);
+            const lastBalls = Math.round((lastOver - lastOvers) * 6) / 6;
+
+            // Handle over completion scenarios
+            if (currentOvers > lastOvers) {
+                // Proper over completion (e.g., 0.6 → 1.0) or jump with missing data
+                if (currentBalls === 0.0) {
+                    return { valid: true, reason: 'Valid over completion or jump' };
+                }
+                // Jump within same over (e.g., 0.2 → 0.5 due to missing data)
+                if (currentOvers === lastOvers) {
+                    return { valid: true, reason: 'Forward progression with missing balls' };
+                }
+                // Jump to different over (e.g., 0.3 → 1.2 due to missing data)
+                return { valid: true, reason: 'Over jump with missing data' };
+            }
+
+            // Normal ball progression within same over
+            if (currentOvers === lastOvers && currentBalls > lastBalls) {
+                return { valid: true, reason: 'Valid ball progression' };
+            }
+        }
+
+        // Same over value - no change
+        if (Math.abs(currentOver - lastOver) < 0.01) {
+            return { valid: true, reason: 'Same over value' };
+        }
+
+        return { valid: true, reason: 'Accepted forward progression' };
+    }
+
+    formatOverDisplay(decimalOver) {
+        const overs = Math.floor(decimalOver);
+        const balls = Math.round((decimalOver - overs) * 6) / 6;
+        return `${overs}.${balls}`;
+    }
+
     updateLastKnownOvers(data) {
         if (!data || !data.info || !data.info.matchScore) return;
 
@@ -303,12 +361,19 @@ class OverThresholdHandler {
             ['inngs1', 'inngs2'].forEach(innings => {
                 if (teamScore[innings] && teamScore[innings].overs) {
                     const key = `${teamKey}_${innings}`;
-                    const currentOver = this.parseOverValue(teamScore[innings].overs);
+                    const currentOverStr = teamScore[innings].overs;
+                    const currentOver = this.parseOverValue(currentOverStr);
                     const lastOver = this.lastKnownOvers[key] || 0;
                     
-                    // Only update if current over is greater than last known over
-                    if (currentOver > lastOver) {
+                    // Validate progression before updating
+                    const progressionValid = this.validateBallByBallProgression(currentOver, lastOver, currentOverStr);
+                    
+                    // Only update if progression is valid and current over is greater than or equal to last known
+                    if (progressionValid.valid && currentOver >= lastOver) {
                         this.lastKnownOvers[key] = currentOver;
+                        console.log(`Updated ${key}: ${this.formatOverDisplay(lastOver)} → ${currentOverStr}`);
+                    } else if (!progressionValid.valid) {
+                        console.warn(`Skipping invalid over update for ${key}: ${progressionValid.reason}`);
                     }
                 }
             });
@@ -483,6 +548,47 @@ class OverThresholdHandler {
         if (data.commentary) {
             this.updateCommentary(data.commentary);
         }
+
+        // Update team scores with validated over values
+        this.updateTeamScoresWithValidation(data);
+    }
+
+    updateTeamScoresWithValidation(data) {
+        if (!data || !data.info || !data.info.matchScore) return;
+
+        Object.keys(data.info.matchScore).forEach(teamKey => {
+            const teamScore = data.info.matchScore[teamKey];
+            
+            ['inngs1', 'inngs2'].forEach(innings => {
+                if (teamScore[innings] && teamScore[innings].overs) {
+                    const key = `${teamKey}_${innings}`;
+                    const currentOverStr = teamScore[innings].overs;
+                    const currentOver = this.parseOverValue(currentOverStr);
+                    const lastOver = this.lastKnownOvers[key] || 0;
+                    
+                    // Only update UI if we have a valid over progression
+                    const progressionValid = this.validateBallByBallProgression(currentOver, lastOver, currentOverStr);
+                    
+                    if (progressionValid.valid) {
+                        this.updateTeamScoreUI(teamKey, innings, teamScore[innings]);
+                    } else {
+                        console.log(`Skipping UI update for ${key}: ${progressionValid.reason}`);
+                    }
+                }
+            });
+        });
+    }
+
+    updateTeamScoreUI(teamKey, innings, inningsData) {
+        // Find the score elements for this team/innings and update them
+        // This would need to be implemented based on the actual DOM structure
+        const scoreElements = document.querySelectorAll(`[data-team="${teamKey}"][data-innings="${innings}"] .score-span`);
+        scoreElements.forEach(element => {
+            const runs = inningsData.runs ?? '-';
+            const wickets = inningsData.wickets ?? '0';
+            const overs = inningsData.overs ?? '-';
+            element.textContent = `${runs}/${wickets} (${overs} ovs)`;
+        });
     }
 
     updateScorecardData(scorecardData) {
@@ -541,20 +647,76 @@ class OverThresholdHandler {
 
         console.log('OverThresholdHandler destroyed');
     }
+
+    testOverValidation() {
+        console.log('=== Testing Over Validation Logic (OverThresholdHandler) ===');
+        
+        const testCases = [
+            { current: 0.1, last: 0.0, currentStr: '0.1', expected: true, desc: 'Initial value' },
+            { current: 0.2, last: 0.1, currentStr: '0.2', expected: true, desc: 'Valid progression 0.1 → 0.2' },
+            { current: 0.3, last: 0.2, currentStr: '0.3', expected: true, desc: 'Valid progression 0.2 → 0.3' },
+            { current: 0.4, last: 0.3, currentStr: '0.4', expected: true, desc: 'Valid progression 0.3 → 0.4' },
+            { current: 0.5, last: 0.4, currentStr: '0.5', expected: true, desc: 'Valid progression 0.4 → 0.5' },
+            { current: 0.6, last: 0.5, currentStr: '0.6', expected: true, desc: 'Valid progression 0.5 → 0.6' },
+            { current: 1.0, last: 0.6, currentStr: '1.0', expected: true, desc: 'Valid over completion 0.6 → 1.0' },
+            { current: 1.1, last: 1.0, currentStr: '1.1', expected: true, desc: 'Valid progression 1.0 → 1.1' },
+            // New flexible tests for missing data handling
+            { current: 1.0, last: 0.3, currentStr: '1.0', expected: true, desc: 'Over jump with missing data 0.3 → 1.0' },
+            { current: 0.5, last: 0.2, currentStr: '0.5', expected: true, desc: 'Forward progression with missing balls 0.2 → 0.5' },
+            { current: 2.0, last: 1.2, currentStr: '2.0', expected: true, desc: 'Over jump across multiple overs 1.2 → 2.0' },
+            { current: 1.0, last: 0.5, currentStr: '1.0', expected: true, desc: 'Over completion from incomplete over 0.5 → 1.0' },
+            // Still reject actual regressions
+            { current: 0.1, last: 0.3, currentStr: '0.1', expected: false, desc: 'Invalid regression 0.3 → 0.1' },
+            { current: 0.2, last: 0.5, currentStr: '0.2', expected: false, desc: 'Invalid regression 0.5 → 0.2' },
+            { current: 0.5, last: 0.6, currentStr: '0.5', expected: false, desc: 'Invalid regression 0.6 → 0.5' },
+            { current: 1.5, last: 1.6, currentStr: '1.5', expected: false, desc: 'Invalid regression 1.6 → 1.5' },
+        ];
+        
+        let passed = 0;
+        let failed = 0;
+        
+        for (let i = 0; i < testCases.length; i++) {
+            const test = testCases[i];
+            const result = this.validateBallByBallProgression(test.current, test.last, test.currentStr);
+            const status = result.valid === test.expected ? 'PASS' : 'FAIL';
+            
+            if (result.valid === test.expected) {
+                passed++;
+            } else {
+                failed++;
+            }
+            
+            console.log(`${status}: ${test.desc} (Expected: ${test.expected}, Got: ${result.valid})`);
+            if (!result.valid) {
+                console.log(`  Reason: ${result.reason}`);
+            }
+        }
+        
+        console.log(`=== Test Results: ${passed} passed, ${failed} failed ===`);
+    }
 }
 
 // Global instance
 window.overThresholdHandler = new OverThresholdHandler();
 
 // Auto-initialize if match data is available
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     const matchPage = document.getElementById('cricket-matchdetail-page');
     if (matchPage) {
         const matchId = matchPage.getAttribute('data-match-id');
         const activeTab = matchPage.getAttribute('data-active-tab') || 'informe';
+        const matchState = matchPage.getAttribute('data-match-state') || '';
         
-        if (matchId) {
+        console.log('Over threshold handler auto-init - Match ID:', matchId, 'Tab:', activeTab, 'State:', matchState);
+        
+        // Only initialize for live matches to avoid unnecessary connections
+        if (matchId && matchState === 'in progress') {
             window.overThresholdHandler.init(matchId, activeTab);
+        }
+        
+        // Test over validation logic
+        if (window.location.search.includes('test=true')) {
+            window.overThresholdHandler.testOverValidation();
         }
     }
 });

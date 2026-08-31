@@ -24,6 +24,9 @@ class MatchApiController extends Controller
         $overThreshold = $this->calculateOverThreshold($info);
         $oversValidation = $this->getOversValidationData($id, $info);
         
+        // Format overs with prediction for display
+        $info = $this->formatOversWithPrediction($info);
+        
         return response()->json([
             'matchId' => $id,
             'info' => $info,
@@ -35,6 +38,23 @@ class MatchApiController extends Controller
                 'reverb_configured' => !empty(env('REVERB_APP_KEY'))
             ]
         ]);
+    }
+
+    private function formatOversWithPrediction(array $matchData): array
+    {
+        if (isset($matchData['matchScore']) && is_array($matchData['matchScore'])) {
+            foreach ($matchData['matchScore'] as $teamKey => $teamScore) {
+                foreach (['inngs1', 'inngs2'] as $innings) {
+                    if (isset($teamScore[$innings]['overs'])) {
+                        $originalOver = $teamScore[$innings]['overs'];
+                        $matchData['matchScore'][$teamKey][$innings]['overs_display'] = $this->api->formatOverWithPrediction($originalOver);
+                        $matchData['matchScore'][$teamKey][$innings]['overs_original'] = $originalOver;
+                    }
+                }
+            }
+        }
+        
+        return $matchData;
     }
 
     private function calculateOverThreshold(array $matchData): array
@@ -89,15 +109,19 @@ class MatchApiController extends Controller
                         $currentOver = $this->api->formatOverDisplay($teamScore[$innings]['overs'])['decimal'];
                         $lastOver = $this->getLastKnownOver($key);
                         
+                        // Validate ball-by-ball progression
+                        $isValid = $this->validateBallByBallProgression($currentOver, $lastOver, $teamScore[$innings]['overs']);
+                        
                         $teamValidation[$innings] = [
                             'current' => $currentOver,
                             'previous' => $lastOver,
-                            'is_valid' => $currentOver >= $lastOver,
-                            'formatted' => $teamScore[$innings]['overs']
+                            'is_valid' => $isValid,
+                            'formatted' => $teamScore[$innings]['overs'],
+                            'validation_reason' => $isValid ? 'Valid progression' : 'Invalid over progression'
                         ];
                         
-                        // Update last known over if valid
-                        if ($currentOver >= $lastOver) {
+                        // Update last known over only if valid
+                        if ($isValid) {
                             $this->setLastKnownOver($key, $currentOver);
                         }
                     }
@@ -108,6 +132,54 @@ class MatchApiController extends Controller
         }
         
         return $validationData;
+    }
+
+    private function validateBallByBallProgression(float $currentOver, float $lastOver, string $currentOverStr): bool
+    {
+        // If no previous data, accept current value
+        if ($lastOver === 0.0) {
+            return true;
+        }
+
+        // Check for regression (decrease in over value) - this is the only strict validation
+        if ($currentOver < $lastOver - 0.01) {
+            return false;
+        }
+
+        // Allow any forward progression - handles missing intermediate values
+        // This ensures we don't miss updates like 0.6 → 1.0 if 0.6 wasn't displayed
+        if ($currentOver > $lastOver) {
+            $currentOvers = (int) floor($currentOver);
+            $currentBalls = round(($currentOver - $currentOvers) * 6) / 6;
+            $lastOvers = (int) floor($lastOver);
+            $lastBalls = round(($lastOver - $lastOvers) * 6) / 6;
+
+            // Handle over completion scenarios
+            if ($currentOvers > $lastOvers) {
+                // Proper over completion (e.g., 0.6 → 1.0) or jump with missing data
+                if ($currentBalls === 0.0) {
+                    return true;
+                }
+                // Jump within same over (e.g., 0.2 → 0.5 due to missing data)
+                if ($currentOvers === $lastOvers) {
+                    return true;
+                }
+                // Jump to different over (e.g., 0.3 → 1.2 due to missing data)
+                return true;
+            }
+
+            // Normal ball progression within same over
+            if ($currentOvers === $lastOvers && $currentBalls > $lastBalls) {
+                return true;
+            }
+        }
+
+        // Same over value - no change
+        if (abs($currentOver - $lastOver) < 0.01) {
+            return true;
+        }
+
+        return true;
     }
 
     private function getLastKnownOver(string $key): float
@@ -122,11 +194,33 @@ class MatchApiController extends Controller
 
     public function scoreboard(int|string $id): JsonResponse
     {
+        $info = $this->api->matchInfo($id);
+        $scorecard = $this->api->scorecard($id);
+        
+        // Format overs with prediction for display
+        $info = $this->formatOversWithPrediction($info);
+        $scorecard = $this->formatScorecardOversWithPrediction($scorecard);
+        
         return response()->json([
             'matchId' => $id,
-            'info' => $this->api->matchInfo($id),
-            'scorecard' => $this->api->scorecard($id),
+            'info' => $info,
+            'scorecard' => $scorecard,
         ]);
+    }
+
+    private function formatScorecardOversWithPrediction(array $scorecardData): array
+    {
+        if (isset($scorecardData['scorecard']) && is_array($scorecardData['scorecard'])) {
+            foreach ($scorecardData['scorecard'] as $index => $scorecard) {
+                if (isset($scorecard['overs'])) {
+                    $originalOver = $scorecard['overs'];
+                    $scorecardData['scorecard'][$index]['overs_display'] = $this->api->formatOverWithPrediction($originalOver);
+                    $scorecardData['scorecard'][$index]['overs_original'] = $originalOver;
+                }
+            }
+        }
+        
+        return $scorecardData;
     }
 
     public function commentary(int|string $id): JsonResponse

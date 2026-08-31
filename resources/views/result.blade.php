@@ -124,13 +124,28 @@
                                     <div>
                                         @if(!empty($t1Score))
                                             <span class="score-span {{ $team1CssClass }}">
-                                                {{ $t1Score['runs'] ?? '-' }}/{{ $t1Score['wickets'] ?? '-' }} ({{ $t1Score['overs'] ?? '-' }} ovs)
+                                                {{ $t1Score['runs'] ?? '-' }}/{{ $t1Score['wickets'] ?? '-' }} ({{ {{ 
+    isset($t1Score['overs']) ? 
+    (
+        explode('.', (string)$t1Score['overs'])[1] ?? 0 == 6 ? 
+        (int)$t1Score['overs'] + 1 : 
+        $t1Score['overs']
+    ) : '-' 
+}} ovs
                                             </span>
                                         @endif
                                         @if($matchFormat === 'TEST' && !empty($t1Score2))
                                             <br>
                                             <span class="score-span {{ $team1CssClass }}">
-                                                {{ $t1Score2['runs'] ?? '-' }}/{{ $t1Score2['wickets'] ?? '-' }} ({{ $t1Score2['overs'] ?? '-' }} ovs)
+                                                {{ $t1Score2['runs'] ?? '-' }}/{{ $t1Score2['wickets'] ?? '-' }} ({{ 
+{{ 
+    isset($t1Score2['overs']) ? 
+    (
+        explode('.', (string)$t1Score2['overs'])[1] ?? 0 == 6 ? 
+        (int)$t1Score2['overs'] + 1 : 
+        $t1Score2['overs']
+    ) : '-' 
+}} ovs
                                             </span>
                                         @endif
                                     </div>
@@ -148,13 +163,27 @@
                                     <div>
                                         @if(!empty($t2Score))
                                             <span class="score-span {{ $team2CssClass }}">
-                                                {{ $t2Score['runs'] ?? '-' }}/{{ $t2Score['wickets'] ?? '-' }} ({{ $t2Score['overs'] ?? '-' }} ovs)
+                                                {{ $t2Score['runs'] ?? '-' }}/{{ $t2Score['wickets'] ?? '-' }} ({{ {{ 
+    isset($t2Score['overs']) ? 
+    (
+        explode('.', (string)$t2Score['overs'])[1] ?? 0 == 6 ? 
+        (int)$t2Score['overs'] + 1 : 
+        $t2Score['overs']
+    ) : '-' 
+}} ovs
                                             </span>
                                         @endif
                                         @if($matchFormat === 'TEST' && !empty($t2Score2))
                                             <br>
                                             <span class="score-span {{ $team2CssClass }}">
-                                                {{ $t2Score2['runs'] ?? '-' }}/{{ $t2Score2['wickets'] ?? '-' }} ({{ $t2Score2['overs'] ?? '-' }} ovs)
+                                                {{ $t2Score2['runs'] ?? '-' }}/{{ $t2Score2['wickets'] ?? '-' }} ({{ {{ 
+    isset($t2Score2['overs']) ? 
+    (
+        explode('.', (string)$t2Score2['overs'])[1] ?? 0 == 6 ? 
+        (int)$t2Score2['overs'] + 1 : 
+        $t2Score2['overs']
+    ) : '-' 
+}} ovs
                                             </span>
                                         @endif
                                     </div>

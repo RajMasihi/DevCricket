@@ -673,7 +673,65 @@
                                     @endphp
 
                                 <div class="mb-2">
-                                    @if ($Squad && count($Squad) > 0)
+                                    @if ($playingXI && count($playingXI) > 0)
+                                    <span class="fw-semibold text-decoration-underline">Playing Teams</span>
+                                    <div class="w-100 mt-3">
+                                        <table
+                                            class="table table-bordered table-hover align-middle table-sm bg-white mb-0 w-100">
+                                            <thead class="table-primary">
+                                                <tr>
+                                                    <th style="width: 48px;"></th>
+                                                    <th>Name</th>
+                                                    <th>Role</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($playingXI as $p)
+                                                @php
+                                                $img = $p['faceimageid'] ?? null;
+                                                $pNameRaw = $p['name'] ?? '';
+                                                $playerSlug = !empty($pNameRaw)
+                                                ? strtolower(trim(preg_replace('/[^a-z0-9]+/i', '0', $pNameRaw), '0'))
+                                                : 'no-image';
+
+                                                $playerImg = $img
+                                                ? 'https://static.cricbuzz.com/a/img/v1/0x0/i1/c' . $img . '/' . $playerSlug .
+                                                '.jpg?d=low&p=gthumb'
+                                                : null;
+                                                @endphp
+                                                <tr>
+                                                    <td class="text-center">
+                                                        @if ($playerImg)
+                                                        <img src="{{ $playerImg }}" alt="{{ $pNameRaw }}" class="rounded-circle"
+                                                            style="width: 40px; height: 40px; object-fit: cover; border: 1.5px solid #99c;">
+                                                        @else
+                                                        <span
+                                                            class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary text-white"
+                                                            style="width: 40px; height: 40px;">
+                                                            <i class="bi bi-person-fill"></i>
+                                                        </span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-break">
+                                                        <span
+                                                            class="fw-semibold text-dark">{{ $pNameRaw ?: 'Unnamed player' }}</span>
+                                                        @if (!empty($p['captain']))
+                                                        <span class="badge bg-info text-dark ms-1"
+                                                            style="font-size: .8em;">C</span>
+                                                        @endif
+                                                        @if (!empty($p['keeper']))
+                                                        <span class="badge bg-success ms-1" style="font-size: .8em;">WK</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        <span class="text-muted">{{ $p['role'] ?? 'N/A' }}</span>
+                                                    </td>
+                                                </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    @elseif ($Squad && count($Squad) > 0)
                                     <span class="fw-semibold text-decoration-underline">Playing Teams</span>
                                     <div class="w-100 mt-3">
                                         <table
@@ -732,64 +790,7 @@
                                         </table>
                                     </div>
 
-                                    @elseif ($playingXI && count($playingXI) > 0)
-                                    <span class="fw-semibold text-decoration-underline">Playing Teams</span>
-                                    <div class="w-100 mt-3">
-                                        <table
-                                            class="table table-bordered table-hover align-middle table-sm bg-white mb-0 w-100">
-                                            <thead class="table-primary">
-                                                <tr>
-                                                    <th style="width: 48px;"></th>
-                                                    <th>Name</th>
-                                                    <th>Role</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($playingXI as $p)
-                                                @php
-                                                $img = $p['faceimageid'] ?? null;
-                                                $pNameRaw = $p['name'] ?? '';
-                                                $playerSlug = !empty($pNameRaw)
-                                                ? strtolower(trim(preg_replace('/[^a-z0-9]+/i', '0', $pNameRaw), '0'))
-                                                : 'no-image';
-
-                                                $playerImg = $img
-                                                ? 'https://static.cricbuzz.com/a/img/v1/0x0/i1/c' . $img . '/' . $playerSlug .
-                                                '.jpg?d=low&p=gthumb'
-                                                : null;
-                                                @endphp
-                                                <tr>
-                                                    <td class="text-center">
-                                                        @if ($playerImg)
-                                                        <img src="{{ $playerImg }}" alt="{{ $pNameRaw }}" class="rounded-circle"
-                                                            style="width: 40px; height: 40px; object-fit: cover; border: 1.5px solid #99c;">
-                                                        @else
-                                                        <span
-                                                            class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary text-white"
-                                                            style="width: 40px; height: 40px;">
-                                                            <i class="bi bi-person-fill"></i>
-                                                        </span>
-                                                        @endif
-                                                    </td>
-                                                    <td class="text-break">
-                                                        <span
-                                                            class="fw-semibold text-dark">{{ $pNameRaw ?: 'Unnamed player' }}</span>
-                                                        @if (!empty($p['captain']))
-                                                        <span class="badge bg-info text-dark ms-1"
-                                                            style="font-size: .8em;">C</span>
-                                                        @endif
-                                                        @if (!empty($p['keeper']))
-                                                        <span class="badge bg-success ms-1" style="font-size: .8em;">WK</span>
-                                                        @endif
-                                                    </td>
-                                                    <td>
-                                                        <span class="text-muted">{{ $p['role'] ?? 'N/A' }}</span>
-                                                    </td>
-                                                </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                    
                                     @else
                                     <div class="alert alert-warning py-2 px-3 my-2" style="font-size: .95em;">
                                         <em>No current playing XI players listed.</em>
@@ -813,41 +814,64 @@
 
     </div>
 <script>
-      function showScorecardTeam(index, btnObj) {
-            document.querySelectorAll('.sc-team-card-wrapper').forEach(function(card) {
-                card.style.display = 'none';
-            });
+    // Team switcher functions - these are also defined in cricket_js.js
+    // This ensures they work even if cricket_js.js hasn't loaded yet
+    function showScorecardTeam(index, btnObj) {
+        document.querySelectorAll('.sc-team-card-wrapper').forEach(function(card) {
+            card.style.display = 'none';
+        });
 
-            var targetCard = document.getElementById('sc_team_card_' + index);
-            if (targetCard) {
-                targetCard.style.display = 'block';
-            }
-
-            document.querySelectorAll('.sc-team-btn').forEach(function(btn) {
-                btn.classList.remove('active');
-            });
-            if (btnObj) {
-                btnObj.classList.add('active');
-            }
+        var targetCard = document.getElementById('sc_team_card_' + index);
+        if (targetCard) {
+            targetCard.style.display = 'block';
         }
 
-        function showSquadTeam(teamKey, btnObj) {
-            document.querySelectorAll('.squad-team-wrapper').forEach(function(card) {
-                card.style.display = 'none';
-            });
+        document.querySelectorAll('.sc-team-btn').forEach(function(btn) {
+            btn.classList.remove('active');
+        });
+        if (btnObj) {
+            btnObj.classList.add('active');
+        }
+    }
 
-            var targetCard = document.getElementById('squad_' + teamKey);
-            if (targetCard) {
-                targetCard.style.display = 'block';
-            }
+    function showSquadTeam(teamKey, btnObj) {
+        document.querySelectorAll('.squad-team-wrapper').forEach(function(card) {
+            card.style.display = 'none';
+        });
 
-            document.querySelectorAll('.squad-team-btn').forEach(function(btn) {
-                btn.classList.remove('active');
-            });
-            if (btnObj) {
-                btnObj.classList.add('active');
-            }
+        var targetCard = document.getElementById('squad_' + teamKey);
+        if (targetCard) {
+            targetCard.style.display = 'block';
         }
 
+        document.querySelectorAll('.squad-team-btn').forEach(function(btn) {
+            btn.classList.remove('active');
+        });
+        if (btnObj) {
+            btnObj.classList.add('active');
+        }
+    }
+
+    // Initialize over threshold handler for real-time updates
+    document.addEventListener('DOMContentLoaded', function() {
+        var matchPage = document.getElementById('cricket-matchdetail-page');
+        if (matchPage) {
+            var matchId = matchPage.getAttribute('data-match-id');
+            var activeTab = matchPage.getAttribute('data-active-tab') || 'informe';
+            var matchState = matchPage.getAttribute('data-match-state') || '';
+            
+            console.log('Match detail page loaded - Match ID:', matchId, 'Tab:', activeTab, 'State:', matchState);
+            
+            // Only initialize real-time updates for live matches
+            if (matchId && matchState === 'in progress') {
+                if (typeof window.overThresholdHandler !== 'undefined') {
+                    console.log('Initializing over threshold handler for live match');
+                    window.overThresholdHandler.init(matchId, activeTab);
+                } else {
+                    console.warn('Over threshold handler not available, real-time updates may not work');
+                }
+            }
+        }
+    });
 </script>
     @endsection
