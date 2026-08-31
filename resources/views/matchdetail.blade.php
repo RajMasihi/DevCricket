@@ -195,9 +195,10 @@
                     @endif
 
                     <!-- Innings Scorecards -->
+                    @if(!empty($scoreCards) && is_array($scoreCards))
                     @foreach ($scoreCards as $scIdx => $sc)
                         @php
-                            $batTeam = $sc['batteamname'] ?? 'Team';
+                            $batTeam = $sc['batteamname'] ?? 'Innings '.($scIdx + 1);
                             $totalRuns = $sc['score'] ?? '';
                             $totalWickets = $sc['wickets'] ?? '';
                             $totalOvers = $sc['overs'] ?? '';
@@ -415,16 +416,16 @@
                             </div>
                         </div>
                     @endforeach
+                    @endif
 
                     <!-- Live Commentary Container -->
-                     @if(!empty($commentary))
                     <div class="col-12 mb-3 {{ $matchState === 'in progress' ? '' : 'd-none-dynamic' }}" id="commentary_live_container">
                         <div class="card shadow-sm border">
                             <div class="card-header text-white bg-custom-navy">
                                 <strong>Ball-by-Ball Commentary</strong>
                             </div>
                             <div class="card-body p-2 commentary-scroll-box" id="commentary_list">
-                                @if(!empty($commentary))
+                                @if(!empty($commentary) && !empty($commentary['commentaryList'] ?? $commentary['commentary'] ?? []))
                                     @php
                                         $commList = $commentary['commentaryList'] ?? $commentary['commentary'] ?? [];
                                     @endphp
@@ -434,14 +435,16 @@
                                             {{ $comm['commText'] ?? $comm['text'] ?? '' }}
                                         </div>
                                     @endforeach
+                                @elseif($matchState === 'in progress')
+                                    <div class="text-muted p-2">Loading commentary...</div>
                                 @else
                                     <div class="text-muted p-2">Commentary will appear when the match is live.</div>
                                 @endif
                             </div>
                         </div>
                     </div>
-                    @endif
-                 @else
+                    
+                @else
 
                     <div class="col">
 
@@ -809,5 +812,42 @@
         </section>
 
     </div>
+<script>
+      function showScorecardTeam(index, btnObj) {
+            document.querySelectorAll('.sc-team-card-wrapper').forEach(function(card) {
+                card.style.display = 'none';
+            });
 
+            var targetCard = document.getElementById('sc_team_card_' + index);
+            if (targetCard) {
+                targetCard.style.display = 'block';
+            }
+
+            document.querySelectorAll('.sc-team-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            if (btnObj) {
+                btnObj.classList.add('active');
+            }
+        }
+
+        function showSquadTeam(teamKey, btnObj) {
+            document.querySelectorAll('.squad-team-wrapper').forEach(function(card) {
+                card.style.display = 'none';
+            });
+
+            var targetCard = document.getElementById('squad_' + teamKey);
+            if (targetCard) {
+                targetCard.style.display = 'block';
+            }
+
+            document.querySelectorAll('.squad-team-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            if (btnObj) {
+                btnObj.classList.add('active');
+            }
+        }
+
+</script>
     @endsection

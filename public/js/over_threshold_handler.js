@@ -353,13 +353,13 @@ class OverThresholdHandler {
         } else if (maxOvers >= 6.33) {
             thresholdLevel = 'medium';   // 6.2+ overs
         }
-
+        
         return {
             'max_overs': maxOvers,
             'threshold_level': thresholdLevel,
             'show_ball_by_ball': maxOvers >= 6.33,
             'real_time_update': maxOvers >= 6.67,
-            'increased_refresh' => maxOvers >= 6.5
+            'increased_refresh': maxOvers >= 6.5,
         };
     }
 

@@ -94,9 +94,15 @@ class Cricketlivescorecontroller extends Controller
 
         try {
             $scorecardDatainfo = $this->cricbuzzApi->matchInfo($id);
-            $scorecardData = $tab === 'scoreboard' ? $this->cricbuzzApi->scorecard($id) : [];
-            $teamsData = $tab === 'players' ? $this->cricbuzzApi->teams($id) : [];
-            $commentary = ($tab === 'scoreboard' && strtolower($scorecardDatainfo['state'] ?? '') === 'in progress')
+            
+            // Always fetch scorecard data for both innings display
+            $scorecardData = $this->cricbuzzApi->scorecard($id);
+            
+            // Always fetch teams data for player information
+            $teamsData = $this->cricbuzzApi->teams($id);
+            
+            // Fetch commentary if match is in progress, regardless of tab
+            $commentary = (strtolower($scorecardDatainfo['state'] ?? '') === 'in progress')
                 ? $this->cricbuzzApi->commentary($id)
                 : [];
         } catch (\Exception $e) {

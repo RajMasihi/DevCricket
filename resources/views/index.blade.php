@@ -132,7 +132,7 @@
                                                                 @elseif($matchFormat === 'TEST')
                                                                     <span class="badge bg-light text-dark border test-series">{{ $matchFormat }}</span>
                                                                 @else
-                                                                    <span class="badge bg-light text-dark border">{{ $matchFormat }}</span>
+                                                                    <span class="badge text-dark border odi-series">{{ $matchFormat }}</span>
                                                                 @endif
                                                             </div>
 
