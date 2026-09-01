@@ -201,7 +201,7 @@
                             $batTeam = $sc['batteamname'] ?? 'Innings '.($scIdx + 1);
                             $totalRuns = $sc['score'] ?? '';
                             $totalWickets = $sc['wickets'] ?? '';
-                            $totalOvers = $sc['overs'] ?? '';
+                            $totalOvers = $sc['overs_display'] ?? $sc['overs'] ?? '';
                             $batsmen = $sc['batsman'] ?? [];
                             $bowlers = $sc['bowler'] ?? [];
                             $didNotBatRaw = $sc['didnotbat'] ?? $sc['didNotBat'] ?? $sc['yettobat'] ?? $sc['yetToBat'] ?? $sc['dnb'] ?? [];

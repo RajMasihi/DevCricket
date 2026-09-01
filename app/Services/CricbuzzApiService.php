@@ -87,7 +87,7 @@ class CricbuzzApiService
     }
 
     public function upcomingMatchesRaw(): array
-    {
+    {   
         return $this->get('matches/v1/upcoming', 1200);
     }
 
@@ -143,6 +143,7 @@ class CricbuzzApiService
 
     public function upcomingMatches(): array
     {
+        // dd($this->parseMatchesList($this->upcomingMatchesRaw()));
         return $this->parseMatchesList($this->upcomingMatchesRaw());
     }
 
@@ -169,14 +170,73 @@ class CricbuzzApiService
         $decimalOver = $this->parseOverValue($overString);
         $currentOvers = (int) floor($decimalOver);
         $currentBalls = round(($decimalOver - $currentOvers) * 6) / 6;
-        
+
+        // If current balls is 0, it means we just completed an over (was N.6, now N+1.0)
+        // In this case, show the completed over without prediction
+        if ($currentBalls === 0) {
+            return (string)$currentOvers;
+        }
+
         // Calculate the predicted completion
-        $nextCompletedOver = ($currentOvers + 1) . '.0';
+        $nextCompletedOver = (string)($currentOvers + 1);
         $ballsRemaining = 0.6 - $currentBalls;
         $predictedCompletion = $currentOvers . '.' . ($currentBalls + $ballsRemaining);
-        
+
         // Format: nextCompletedOver(predictedCompletion)
-        // Example: 2.5 → 3.0(2.6)
+        // Example: 2.5 → 3(2.6)
         return $nextCompletedOver . '(' . $predictedCompletion . ')';
+    }
+
+    public function formatOverDisplay(string $overString): array
+    {
+        if (empty($overString) || $overString === '--' || $overString === '-') {
+            return [
+                'display' => $overString,
+                'decimal' => 0.0
+            ];
+        }
+
+        $parts = explode('.', $overString);
+        $overs = (float)($parts[0] ?? 0);
+        $balls = isset($parts[1]) ? (float)$parts[1] : 0;
+
+        // Handle over-end conversion: N.6 → (N+1).0
+        if ($balls == 6) {
+            $overs += 1;
+            $balls = 0;
+        }
+
+        $decimal = $overs + ($balls / 6);
+
+        // Display format: if balls is 0, show as whole number (e.g., "3" instead of "3.0")
+        if ($balls == 0) {
+            $display = (string)$overs;
+        } else {
+            $display = $overs . '.' . $balls;
+        }
+
+        return [
+            'display' => $display,
+            'decimal' => $decimal
+        ];
+    }
+
+    private function parseOverValue(string $overString): float
+    {
+        if (empty($overString) || $overString === '--' || $overString === '-') {
+            return 0.0;
+        }
+
+        $parts = explode('.', $overString);
+        $overs = (float)($parts[0] ?? 0);
+        $balls = isset($parts[1]) ? (float)$parts[1] : 0;
+
+        // Handle over-end conversion: N.6 → (N+1).0
+        if ($balls == 6) {
+            $overs += 1;
+            $balls = 0;
+        }
+
+        return $overs + ($balls / 6);
     }
 }

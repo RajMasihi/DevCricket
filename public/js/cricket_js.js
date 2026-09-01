@@ -297,6 +297,13 @@ function parseOverValue(overString) {
     var parts = overString.toString().split('.');
     var overs = parts.length > 0 ? parseInt(parts[0]) : 0;
     var balls = parts.length > 1 ? parseInt(parts[1]) : 0;
+
+    // Handle over-end conversion: N.6 → (N+1).0
+    if (balls == 6) {
+        overs += 1;
+        balls = 0;
+    }
+
     var decimal = overs + (balls / 6);
 
     return decimal;
@@ -355,7 +362,19 @@ function validateBallByBallProgression(currentOver, lastOver, currentOverStr) {
 function formatOverDisplay(decimalOver) {
     var overs = Math.floor(decimalOver);
     var balls = Math.round((decimalOver - overs) * 6) / 6;
-    return overs + '.' + balls;
+
+    // Handle over-end conversion: N.6 → (N+1).0
+    if (balls == 0.6) {
+        overs += 1;
+        balls = 0;
+    }
+
+    // Display format: if balls is 0, show as whole number (e.g., "3" instead of "3.0")
+    if (balls == 0) {
+        return overs.toString();
+    } else {
+        return overs + '.' + balls;
+    }
 }
 
 //   JavaScript Team Switcher Script 

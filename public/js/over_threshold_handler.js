@@ -349,7 +349,19 @@ class OverThresholdHandler {
     formatOverDisplay(decimalOver) {
         const overs = Math.floor(decimalOver);
         const balls = Math.round((decimalOver - overs) * 6) / 6;
-        return `${overs}.${balls}`;
+
+        // Handle over-end conversion: N.6 → (N+1).0
+        if (balls == 0.6) {
+            overs += 1;
+            balls = 0;
+        }
+
+        // Display format: if balls is 0, show as whole number (e.g., "3" instead of "3.0")
+        if (balls == 0) {
+            return overs.toString();
+        } else {
+            return `${overs}.${balls}`;
+        }
     }
 
     updateLastKnownOvers(data) {
@@ -436,6 +448,13 @@ class OverThresholdHandler {
         const parts = overString.toString().split('.');
         const overs = parts.length > 0 ? parseInt(parts[0]) : 0;
         const balls = parts.length > 1 ? parseInt(parts[1]) : 0;
+
+        // Handle over-end conversion: N.6 → (N+1).0
+        if (balls == 6) {
+            overs += 1;
+            balls = 0;
+        }
+
         const decimal = overs + (balls / 6);
 
         return decimal;
