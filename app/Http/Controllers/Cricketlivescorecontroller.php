@@ -87,7 +87,7 @@ class Cricketlivescorecontroller extends Controller
 
     public function CricketliveScores()
     {
-        $matches = $this->cricbuzzApi->recentMatches();
+        $matches = $this->cricbuzzApi->liveMatches();
         foreach ($matches as &$match) {
             if (isset($match['matchScore']) && is_array($match['matchScore'])) {
                 foreach ($match['matchScore'] as $teamKey => $teamScore) {
