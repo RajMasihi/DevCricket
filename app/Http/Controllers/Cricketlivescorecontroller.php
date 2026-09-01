@@ -87,26 +87,7 @@ class Cricketlivescorecontroller extends Controller
 
     public function CricketliveScores()
     {
-<<<<<<< HEAD
-=======
-        $matches = $this->cricbuzzApi->liveMatches();
-
-        // Format overs with conversion for all matches
-        foreach ($matches as &$match) {
-            if (isset($match['matchScore']) && is_array($match['matchScore'])) {
-                foreach ($match['matchScore'] as $teamKey => $teamScore) {
-                    foreach (['inngs1', 'inngs2'] as $innings) {
-                        if (isset($teamScore[$innings]['overs'])) {
-                            $originalOver = $teamScore[$innings]['overs'];
-                            $match['matchScore'][$teamKey][$innings]['overs_display'] = $this->cricbuzzApi->formatOverDisplay($originalOver)['display'];
-                            $match['matchScore'][$teamKey][$innings]['overs_original'] = $originalOver;
-                        }
-                    }
-                }
-            }
-        }
->>>>>>> origin/dev
-
+        $matches = $this->cricbuzzApi->recentMatches();
         return view('index', [
             'matches' => $matches,
             'error' => null,

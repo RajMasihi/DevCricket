@@ -1,19 +1,9 @@
 
-<<<<<<< HEAD
+
 
 $(function () {
 // navebar active class 
-=======
-$(function () {
->>>>>>> origin/dev
-    let currentUrl = window.location.href;
-    $('.first-header .nav-item a').each(function () {
-        if (this.href === currentUrl) {
-            $('.first-header .nav-item a').removeClass('active');
-            $(this).addClass('active');
-        }
-    });
-<<<<<<< HEAD
+
 //    filter in t20, ODi, test, 
 
 $(document).on('click', '.second-header .nav-link', function (e) {
@@ -90,13 +80,6 @@ $('#team2').on('click', function(){
 //             $(this).addClass('active');
 //         }
 //     });
-=======
->>>>>>> origin/dev
-
-    initIndexLiveMatchesRefresh();
-    initMatchdetailLiveRefresh();
-});
-
 function initMatchdetailLiveRefresh() {
     // This functionality is now handled by over_threshold_handler.js
     // which uses WebSocket with polling fallback
