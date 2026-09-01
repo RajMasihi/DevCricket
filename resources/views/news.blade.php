@@ -3,30 +3,34 @@
 @section('title', 'News')
 
 @section('main-container')
-    <style>
-        .active-news-tab {
-            border-bottom: 2px solid #053259 !important;
-        }
-    </style>
+    
 
     <div class="container-fluid main-section">
         <h4 class="text-center mb-3">Latest News</h4>
 
-        <div class="d-flex flex-wrap pb-3 gap-2">
-            @if(isset($categories) && count($categories) > 0)
-                @foreach($categories as $category)
-                    @php
-                        $catId = $category['id'] ?? '';
-                        $catName = $category['name'] ?? 'News';
-                    @endphp
-                    <a href="{{ url('/news?cat=' . $catId) }}"
-                       class="btn scoreboard-title {{ (string)$activeCategoryId === (string)$catId ? 'active-news-tab' : '' }}">
-                        {{ $catName }}
-                    </a>
-                @endforeach
-            @else
-                <span>No categories available.</span>
-            @endif
+        <!-- Category Horizontal Scroll Container -->
+        <div class="category-scroll-wrapper mb-3">
+            <div class="category-nav-container pb-2 gap-3">
+                @if(isset($categories) && count($categories) > 0)
+                    @foreach($categories as $category)
+                        @php
+                            $catId = $category['id'] ?? '';
+                            $catName = $category['name'] ?? 'News';
+                            $hiddenCatIds = [2, 3, 5, 8, 13, 20];
+                        @endphp
+
+                        {{-- Skip hidden category IDs --}}
+                        @continue(in_array((int)$catId, $hiddenCatIds))
+
+                        <a href="{{ url('/news?cat=' . $catId) }}"
+                           class="btn scoreboard-title {{ (string)$activeCategoryId === (string)$catId ? 'active-news-tab' : '' }}">
+                            {{ $catName }}
+                        </a>
+                    @endforeach
+                @else
+                    <span>No categories available.</span>
+                @endif
+            </div>
         </div>
 
         @if(isset($errorMsg))
@@ -52,7 +56,6 @@
                         <div class="col">
                             <a href="{{ url('/news/' . $storyId . '/' . $slug) }}" style="text-decoration:none; color:#141010;">
                                 <div class="card h-80" style="box-shadow: 2px 2px 6px 1px #053259;">
-                                    {{-- show image only when image exists --}}
                                     @if(!empty($imageUrl))
                                         <img src="{{ $imageUrl }}" class="card-img-top" alt="{{ $headline }}">
                                     @endif
@@ -63,7 +66,6 @@
                                         @endif
                                     </div>
                                     <div class="card-footer d-flex justify-content-between">
-                                        <!-- <small class="text-muted">{{ $source }}</small> -->
                                         <small class="text-muted">{{ $publishedTime }}</small>
                                     </div>
                                 </div>
