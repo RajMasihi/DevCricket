@@ -541,7 +541,45 @@ badge {
     font-size: 0.95rem;
     font-weight: 500;
 } */
+   .active-news-tab {
+            border-bottom: 2px solid #053259 !important;
+            font-weight: 600;
+        }
 
+        /* 1. Force the parent container to strictly respect device width */
+        .category-scroll-wrapper {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0; /* Prevents Flexbox child expansion bug */
+            overflow: hidden;
+        }
+
+        /* 2. Configure horizontal scrolling */
+        .category-nav-container {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            overflow-y: hidden;
+            width: 100%;
+            max-width: 100%;
+            -webkit-overflow-scrolling: touch; /* Native momentum scrolling on iOS */
+            touch-action: pan-x;
+            scrollbar-width: none; /* Hide scrollbar Firefox */
+            -ms-overflow-style: none; /* Hide scrollbar IE/Edge */
+        }
+
+        /* Hide scrollbar for WebKit (Chrome/Safari) */
+        .category-nav-container::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+        /* 3. Ensure items retain full width without shrinking or breaking lines */
+        .category-nav-container .btn {
+            flex: 0 0 auto !important; /* Force explicit non-shrinking flex items */
+            white-space: nowrap !important;
+        }
 .match-formate .t20-series {
     background-color: #424242;
     color:#ffff;
