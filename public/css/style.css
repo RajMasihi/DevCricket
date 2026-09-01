@@ -553,9 +553,9 @@ badge {
     border: 1px solid #dee2e6 !important
 }
 .match-formate .odi-series {
-    background-color:  #3d6286;
-    color:#212529;
-    border: 1px solid #dee2e6 !important
+    background-color:  #3D62BC;
+    color:#ffff !important;
+    /* border: 1px solid #dee2e6 !important */
 }
 /* ---------- Header / Nav / Dropdown ---------- */
 .header-bar {

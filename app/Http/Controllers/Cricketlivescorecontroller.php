@@ -62,17 +62,53 @@ class Cricketlivescorecontroller extends Controller
 
     public function result()
     {
+        $matches = $this->cricbuzzApi->recentMatches();
+
+        // Format overs with conversion for all matches
+        foreach ($matches as &$match) {
+            if (isset($match['matchScore']) && is_array($match['matchScore'])) {
+                foreach ($match['matchScore'] as $teamKey => $teamScore) {
+                    foreach (['inngs1', 'inngs2'] as $innings) {
+                        if (isset($teamScore[$innings]['overs'])) {
+                            $originalOver = $teamScore[$innings]['overs'];
+                            $match['matchScore'][$teamKey][$innings]['overs_display'] = $this->cricbuzzApi->formatOverDisplay($originalOver)['display'];
+                            $match['matchScore'][$teamKey][$innings]['overs_original'] = $originalOver;
+                        }
+                    }
+                }
+            }
+        }
+
         return view('index', [
-            'result' => $this->cricbuzzApi->recentMatches(),
+            'result' => $matches,
             'error' => null,
         ]);
     }
 
     public function CricketliveScores()
     {
+<<<<<<< HEAD
+=======
+        $matches = $this->cricbuzzApi->liveMatches();
+
+        // Format overs with conversion for all matches
+        foreach ($matches as &$match) {
+            if (isset($match['matchScore']) && is_array($match['matchScore'])) {
+                foreach ($match['matchScore'] as $teamKey => $teamScore) {
+                    foreach (['inngs1', 'inngs2'] as $innings) {
+                        if (isset($teamScore[$innings]['overs'])) {
+                            $originalOver = $teamScore[$innings]['overs'];
+                            $match['matchScore'][$teamKey][$innings]['overs_display'] = $this->cricbuzzApi->formatOverDisplay($originalOver)['display'];
+                            $match['matchScore'][$teamKey][$innings]['overs_original'] = $originalOver;
+                        }
+                    }
+                }
+            }
+        }
+>>>>>>> origin/dev
 
         return view('index', [
-            'matches' => $this->cricbuzzApi->liveMatches(),
+            'matches' => $matches,
             'error' => null,
         ]);
 
@@ -80,8 +116,25 @@ class Cricketlivescorecontroller extends Controller
 
     public function upcoming()
     {
+        $matches = $this->cricbuzzApi->upcomingMatches();
+
+        // Format overs with conversion for all matches
+        foreach ($matches as &$match) {
+            if (isset($match['matchScore']) && is_array($match['matchScore'])) {
+                foreach ($match['matchScore'] as $teamKey => $teamScore) {
+                    foreach (['inngs1', 'inngs2'] as $innings) {
+                        if (isset($teamScore[$innings]['overs'])) {
+                            $originalOver = $teamScore[$innings]['overs'];
+                            $match['matchScore'][$teamKey][$innings]['overs_display'] = $this->cricbuzzApi->formatOverDisplay($originalOver)['display'];
+                            $match['matchScore'][$teamKey][$innings]['overs_original'] = $originalOver;
+                        }
+                    }
+                }
+            }
+        }
+
         return view('index', [
-            'sduling' => $this->cricbuzzApi->upcomingMatches(),
+            'sduling' => $matches,
             'error' => null,
         ]);
     }
@@ -96,11 +149,41 @@ class Cricketlivescorecontroller extends Controller
 
         try {
             $scorecardDatainfo = $this->cricbuzzApi->matchInfo($id);
-            $scorecardData = $tab === 'scoreboard' ? $this->cricbuzzApi->scorecard($id) : [];
-            $teamsData = $tab === 'players' ? $this->cricbuzzApi->teams($id) : [];
-            $commentary = ($tab === 'scoreboard' && strtolower($scorecardDatainfo['state'] ?? '') === 'in progress')
+
+            // Always fetch scorecard data for both innings display
+            $scorecardData = $this->cricbuzzApi->scorecard($id);
+
+            // Always fetch teams data for player information
+            $teamsData = $this->cricbuzzApi->teams($id);
+
+            // Fetch commentary if match is in progress, regardless of tab
+            $commentary = (strtolower($scorecardDatainfo['state'] ?? '') === 'in progress')
                 ? $this->cricbuzzApi->commentary($id)
                 : [];
+
+            // Format overs with conversion for match info
+            if (isset($scorecardDatainfo['matchScore']) && is_array($scorecardDatainfo['matchScore'])) {
+                foreach ($scorecardDatainfo['matchScore'] as $teamKey => $teamScore) {
+                    foreach (['inngs1', 'inngs2'] as $innings) {
+                        if (isset($teamScore[$innings]['overs'])) {
+                            $originalOver = $teamScore[$innings]['overs'];
+                            $scorecardDatainfo['matchScore'][$teamKey][$innings]['overs_display'] = $this->cricbuzzApi->formatOverDisplay($originalOver)['display'];
+                            $scorecardDatainfo['matchScore'][$teamKey][$innings]['overs_original'] = $originalOver;
+                        }
+                    }
+                }
+            }
+
+            // Format overs with conversion for scorecard
+            if (isset($scorecardData['scorecard']) && is_array($scorecardData['scorecard'])) {
+                foreach ($scorecardData['scorecard'] as $index => $scorecard) {
+                    if (isset($scorecard['overs'])) {
+                        $originalOver = $scorecard['overs'];
+                        $scorecardData['scorecard'][$index]['overs_display'] = $this->cricbuzzApi->formatOverDisplay($originalOver)['display'];
+                        $scorecardData['scorecard'][$index]['overs_original'] = $originalOver;
+                    }
+                }
+            }
         } catch (\Exception $e) {
             $scorecardDatainfo = [];
             $scorecardData = [];

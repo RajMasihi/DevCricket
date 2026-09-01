@@ -186,16 +186,17 @@
                                     $format = $match['matchFormat'] ?? $match['matchType'] ?? '';
                                     @endphp
                                     @if ($format)
-                                    <span class="badge bg-light text-dark border match-formate"
-                                        style="font-size: 11px;">
                                         @if (strtolower($format) === 't20')
-                                        <span class="t20-series">T20</span>
-                                        @elseif (strtolower($format) === 'test')
-                                        <span class="test-series">Test</span>
+                                            <span class="badge border match-formate" style="font-size: 11px; background-color: #424242; color:#ffff;">
+                                            <span class="t20-series">T20</span>
+                                        @elseif (strtolower($format) === 'odi')
+                                            <span class="badge border match-formate" style="font-size: 11px; background-color:  #3D62BC; color:#ffff;">
+                                            <span class="odi-series">ODI</span>
                                         @else
-                                        {{ strtoupper($format) }}
+                                            <span class="badge text-dark border match-formate" style="font-size: 11px;">
+                                            {{ strtoupper($format) }}
+                                            </span>
                                         @endif
-                                    </span>
                                     @endif
                                 </div>
                             </div>

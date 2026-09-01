@@ -88,12 +88,15 @@ class PollLiveMatchesJob implements ShouldQueue
         }
 
         $parts = explode('.', $overString);
-        if (count($parts) === 2) {
-            $overs = (float)$parts[0];
-            $balls = (float)$parts[1];
-            return $overs + ($balls / 6);
+        $overs = (float)($parts[0] ?? 0);
+        $balls = isset($parts[1]) ? (float)$parts[1] : 0;
+
+        // Handle over-end conversion: N.6 → (N+1).0
+        if ($balls == 6) {
+            $overs += 1;
+            $balls = 0;
         }
 
-        return (float)$overString;
+        return $overs + ($balls / 6);
     }
 }
