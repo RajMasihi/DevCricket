@@ -4,16 +4,9 @@ name: Deploy CricketApp
 #   push:
 #     branches:
 #       - main
+
 on:
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.gitignore'
-# on:
-#   workflow_dispatch:
+  workflow_dispatch:
 jobs:
   deploy:
     runs-on: ubuntu-latest
