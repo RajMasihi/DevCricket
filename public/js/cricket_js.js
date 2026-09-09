@@ -4,7 +4,7 @@
 $(function () {
 // navebar active class 
 
-//    filter in t20, ODi, test,
+//    filter in t20, ODi, test, Other
 
 $(document).on('click', '.second-header .nav-link', function (e) {
     e.preventDefault();
