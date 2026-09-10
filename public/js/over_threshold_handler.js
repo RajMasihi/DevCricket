@@ -12,17 +12,23 @@ class OverThresholdHandler {
         this.channel = null;
         this.echo = null;
         this.currentThreshold = null;
-        this.lastKnownOvers = {}; // Track last known overs for each team/innings
+        this.lastKnownOvers = {};
         this.lastUpdateTime = null;
         this.connectionAttempts = 0;
         this.maxConnectionAttempts = 3;
         this.fallbackToPolling = false;
         this.pollingInterval = null;
+        this._initialized = false;
     }
 
     async init(matchId, activeTab = 'informe') {
+        if (this._initialized && this.matchId === matchId) {
+            return;
+        }
+
         this.matchId = matchId;
         this.activeTab = activeTab;
+        this._initialized = true;
         
         if (!this.matchId) {
             console.warn('No match ID provided for over threshold handler');
@@ -43,6 +49,11 @@ class OverThresholdHandler {
         
         // Get initial threshold data
         await this.fetchInitialThreshold();
+
+        // Load ball-by-ball commentary immediately on scoreboard tab
+        if (this.activeTab === 'scoreboard') {
+            await this.fetchScoreboardAndCommentary();
+        }
     }
 
     async initializeEcho() {
@@ -164,33 +175,89 @@ class OverThresholdHandler {
             clearInterval(this.pollingInterval);
         }
 
-        console.log('Starting polling fallback for match updates');
+        const intervalMs = this.activeTab === 'scoreboard' ? 8000 : 20000;
+        console.log('Starting polling fallback for match updates every ' + (intervalMs / 1000) + 's');
+
         this.pollingInterval = setInterval(() => {
             this.fetchMatchUpdates();
-        }, 20000); // Poll every 20 seconds
+        }, intervalMs);
 
-        // Initial fetch
         this.fetchMatchUpdates();
     }
 
-    async fetchMatchUpdates() {
+    async fetchScoreboardAndCommentary() {
         try {
-            const response = await fetch(`/api/match/${this.matchId}/info`, {
-                headers: { 
+            const response = await fetch(`/api/match/${this.matchId}/scoreboard`, {
+                headers: {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                this.handleMatchUpdate({
-                    info: data.info,
-                    scorecard: {},
-                    commentary: {},
-                    threshold: data.over_threshold
-                });
+            if (!response.ok) {
+                return;
             }
+
+            const data = await response.json();
+            this.handleMatchUpdate({
+                info: data.info || {},
+                scorecard: data.scorecard || {},
+                commentary: data.commentary || {},
+                commentaryItems: data.commentaryItems || [],
+                threshold: this.currentThreshold
+            });
+        } catch (error) {
+            console.error('Error fetching scoreboard/commentary:', error);
+        }
+    }
+
+    async fetchCommentaryOnly() {
+        try {
+            const response = await fetch(`/api/match/${this.matchId}/commentary`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) {
+                return;
+            }
+
+            const data = await response.json();
+            this.updateCommentary(data.commentaryItems || data.commentary || {});
+        } catch (error) {
+            console.error('Error fetching commentary:', error);
+        }
+    }
+
+    async fetchMatchUpdates() {
+        try {
+            const infoResponse = await fetch(`/api/match/${this.matchId}/info`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!infoResponse.ok) {
+                return;
+            }
+
+            const infoData = await infoResponse.json();
+
+            if (this.activeTab === 'scoreboard') {
+                await this.fetchScoreboardAndCommentary();
+                return;
+            }
+
+            this.handleMatchUpdate({
+                info: infoData.info,
+                scorecard: {},
+                commentary: {},
+                commentaryItems: [],
+                threshold: infoData.over_threshold
+            });
         } catch (error) {
             console.error('Error fetching match updates:', error);
         }
@@ -348,19 +415,23 @@ class OverThresholdHandler {
 
     formatOverDisplay(decimalOver) {
         const overs = Math.floor(decimalOver);
-        const balls = Math.round((decimalOver - overs) * 6) / 6;
+        const ballsDecimal = (decimalOver - overs) * 6;
+        const balls = Math.round(ballsDecimal) / 6;
 
         // Handle over-end conversion: N.6 → (N+1).0
+        // When balls is 0.6 (6 balls), it means the over is complete
         if (balls == 0.6) {
-            overs += 1;
-            balls = 0;
+            const completedOvers = overs + 1;
+            return completedOvers.toString();
         }
 
         // Display format: if balls is 0, show as whole number (e.g., "3" instead of "3.0")
         if (balls == 0) {
             return overs.toString();
         } else {
-            return `${overs}.${balls}`;
+            // Display the balls as an integer (e.g., 0.5 instead of 0.833...)
+            const ballsInt = Math.round(ballsDecimal);
+            return `${overs}.${ballsInt}`;
         }
     }
 
@@ -446,10 +517,11 @@ class OverThresholdHandler {
         }
 
         const parts = overString.toString().split('.');
-        const overs = parts.length > 0 ? parseInt(parts[0]) : 0;
-        const balls = parts.length > 1 ? parseInt(parts[1]) : 0;
+        let overs = parts.length > 0 ? parseInt(parts[0]) : 0;
+        let balls = parts.length > 1 ? parseInt(parts[1]) : 0;
 
         // Handle over-end conversion: N.6 → (N+1).0
+        // When balls is 6, it means the over is complete
         if (balls == 6) {
             overs += 1;
             balls = 0;
@@ -563,8 +635,14 @@ class OverThresholdHandler {
             this.updateScorecardData(data.scorecard);
         }
 
-        // Update commentary if available
-        if (data.commentary) {
+        // Update commentary on scoreboard tab
+        if (this.activeTab === 'scoreboard') {
+            if (Array.isArray(data.commentaryItems) && data.commentaryItems.length > 0) {
+                this.updateCommentary(data.commentaryItems);
+            } else if (data.commentary) {
+                this.updateCommentary(data.commentary);
+            }
+        } else if (data.commentary) {
             this.updateCommentary(data.commentary);
         }
 
@@ -630,19 +708,72 @@ class OverThresholdHandler {
 
     updateCommentary(commentaryData) {
         const commentaryList = document.getElementById('commentary_list');
-        if (!commentaryList) return;
+        if (!commentaryList) {
+            return;
+        }
 
-        const commList = commentaryData.commentaryList || commentaryData.commentary || [];
-        if (!Array.isArray(commList) || commList.length === 0) return;
+        let items = [];
+
+        if (Array.isArray(commentaryData)) {
+            items = commentaryData;
+        } else {
+            const commList = commentaryData.commentaryList || commentaryData.commentary || [];
+            if (Array.isArray(commList)) {
+                items = commList.map(function (comm) {
+                    return {
+                        over: comm.overNumber || comm.over || '',
+                        text: comm.commText || comm.text || comm.commentaryText || '',
+                        isWicket: !!comm.isWicket || (comm.event || '') === 'wicket',
+                        isFour: !!comm.isFour || (comm.event || '') === 'four',
+                        isSix: !!comm.isSix || (comm.event || '') === 'six',
+                    };
+                }).filter(function (item) {
+                    return item.text !== '';
+                });
+            }
+        }
+
+        if (!items.length) {
+            return;
+        }
 
         let html = '';
-        commList.slice(0, 15).forEach(function (comm) {
+        items.slice(0, 30).forEach(function (comm) {
             const over = comm.over || '';
-            const text = comm.commText || comm.text || '';
-            html += '<div class="border-bottom py-1"><span class="text-muted">' + over + '</span> ' + text + '</div>';
+            const text = comm.text || '';
+            let badge = '';
+
+            if (comm.isWicket) {
+                badge = '<span class="badge bg-danger me-1">W</span>';
+            } else if (comm.isSix) {
+                badge = '<span class="badge bg-warning text-dark me-1">6</span>';
+            } else if (comm.isFour) {
+                badge = '<span class="badge bg-info text-dark me-1">4</span>';
+            }
+
+            html += '<div class="commentary-item border-bottom py-2">';
+            html += '<div class="d-flex align-items-start gap-2">';
+            if (over) {
+                html += '<span class="commentary-over-badge">' + over + '</span>';
+            }
+            html += '<div class="flex-grow-1">' + badge + '<span class="commentary-text">' + text + '</span></div>';
+            html += '</div></div>';
         });
 
         commentaryList.innerHTML = html;
+
+        const loadingText = document.getElementById('commentary_loading_text');
+        if (loadingText) {
+            loadingText.remove();
+        }
+
+        const liveBadge = document.getElementById('commentary_live_badge');
+        if (liveBadge) {
+            liveBadge.textContent = 'Updated';
+            setTimeout(function () {
+                liveBadge.textContent = 'Live';
+            }, 2000);
+        }
     }
 
     destroy() {

@@ -363,10 +363,11 @@ function parseOverValue(overString) {
     }
 
     var parts = overString.toString().split('.');
-    var overs = parts.length > 0 ? parseInt(parts[0]) : 0;
-    var balls = parts.length > 1 ? parseInt(parts[1]) : 0;
+    let overs = parts.length > 0 ? parseInt(parts[0]) : 0;
+    let balls = parts.length > 1 ? parseInt(parts[1]) : 0;
 
     // Handle over-end conversion: N.6 → (N+1).0
+    // When balls is 6, it means the over is complete
     if (balls == 6) {
         overs += 1;
         balls = 0;
@@ -429,19 +430,23 @@ function validateBallByBallProgression(currentOver, lastOver, currentOverStr) {
 
 function formatOverDisplay(decimalOver) {
     var overs = Math.floor(decimalOver);
-    var balls = Math.round((decimalOver - overs) * 6) / 6;
+    var ballsDecimal = (decimalOver - overs) * 6;
+    var balls = Math.round(ballsDecimal) / 6;
 
     // Handle over-end conversion: N.6 → (N+1).0
+    // When balls is 0.6 (6 balls), it means the over is complete
     if (balls == 0.6) {
-        overs += 1;
-        balls = 0;
+        var completedOvers = overs + 1;
+        return completedOvers.toString();
     }
 
     // Display format: if balls is 0, show as whole number (e.g., "3" instead of "3.0")
     if (balls == 0) {
         return overs.toString();
     } else {
-        return overs + '.' + balls;
+        // Display the balls as an integer (e.g., 0.5 instead of 0.833...)
+        var ballsInt = Math.round(ballsDecimal);
+        return overs + '.' + ballsInt;
     }
 }
 

@@ -978,9 +978,28 @@ li span .fa {
             background-color: #053259 !important;
         }
         .commentary-scroll-box {
-            max-height: 220px;
+            max-height: 320px;
             overflow-y: auto;
             font-size: 0.92rem;
+        }
+        .commentary-over-badge {
+            display: inline-block;
+            min-width: 42px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #eef3f8;
+            color: #053259;
+            font-weight: 700;
+            font-size: 0.78rem;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .commentary-item:last-child {
+            border-bottom: none !important;
+        }
+        .commentary-text {
+            color: #1f2937;
+            line-height: 1.45;
         }
         .btn-team-sc {
             max-width: 100%;

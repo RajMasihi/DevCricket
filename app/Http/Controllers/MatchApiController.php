@@ -213,6 +213,9 @@ class MatchApiController extends Controller
     {
         $info = $this->api->matchInfo($id);
         $scorecard = $this->api->scorecard($id);
+        $commentaryRaw = strtolower($info['state'] ?? '') === 'in progress'
+            ? $this->api->commentary($id)
+            : [];
         
         // Format overs with prediction for display
         $info = $this->formatOversWithPrediction($info);
@@ -222,6 +225,8 @@ class MatchApiController extends Controller
             'matchId' => $id,
             'info' => $info,
             'scorecard' => $scorecard,
+            'commentary' => $commentaryRaw,
+            'commentaryItems' => $this->api->normalizeCommentaryList($commentaryRaw),
         ]);
     }
 
@@ -242,9 +247,12 @@ class MatchApiController extends Controller
 
     public function commentary(int|string $id): JsonResponse
     {
+        $commentary = $this->api->commentary($id);
+
         return response()->json([
             'matchId' => $id,
-            'commentary' => $this->api->commentary($id),
+            'commentary' => $commentary,
+            'commentaryItems' => $this->api->normalizeCommentaryList($commentary),
         ]);
     }
 }
