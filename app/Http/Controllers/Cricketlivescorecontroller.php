@@ -89,8 +89,11 @@ class Cricketlivescorecontroller extends Controller
 
     public function CricketliveScores()
     {
-        $matches = $this->cricbuzzApi->liveMatches();
-        foreach ($matches as &$match) {
+        $liveMatches = $this->cricbuzzApi->liveMatches();
+        $recentMatches = $this->cricbuzzApi->recentMatches();
+        
+        // Format overs with conversion for live matches
+        foreach ($liveMatches as &$match) {
             if (isset($match['matchScore']) && is_array($match['matchScore'])) {
                 foreach ($match['matchScore'] as $teamKey => $teamScore) {
                     foreach (['inngs1', 'inngs2'] as $innings) {
@@ -103,8 +106,39 @@ class Cricketlivescorecontroller extends Controller
                 }
             }
         }
+        
+        // Format overs with conversion for recent matches
+        foreach ($recentMatches as &$match) {
+            if (isset($match['matchScore']) && is_array($match['matchScore'])) {
+                foreach ($match['matchScore'] as $teamKey => $teamScore) {
+                    foreach (['inngs1', 'inngs2'] as $innings) {
+                        if (isset($teamScore[$innings]['overs'])) {
+                            $originalOver = $teamScore[$innings]['overs'];
+                            $match['matchScore'][$teamKey][$innings]['overs_display'] = $this->cricbuzzApi->formatOverDisplay($originalOver)['display'];
+                            $match['matchScore'][$teamKey][$innings]['overs_original'] = $originalOver;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Determine which matches to display
+        $matchesToDisplay = [];
+        $hasLiveMatches = count($liveMatches) > 0;
+        
+        if ($hasLiveMatches) {
+            // Display live matches and some recent matches
+            $matchesToDisplay = array_merge($liveMatches, array_slice($recentMatches, 0, 3));
+        } else {
+            // Display 3 recent matches when no live matches
+            $matchesToDisplay = array_slice($recentMatches, 0, 4);
+        }
+        
         return view('index', [
-            'matches' => $matches,
+            'matches' => $matchesToDisplay,
+            'liveMatches' => $liveMatches,
+            'recentMatches' => $recentMatches,
+            'hasLiveMatches' => $hasLiveMatches,
             'error' => null,
         ]);
 
