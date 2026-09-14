@@ -818,12 +818,12 @@
     // This ensures they work even if cricket_js.js hasn't loaded yet
     function showScorecardTeam(index, btnObj) {
         document.querySelectorAll('.sc-team-card-wrapper').forEach(function(card) {
-            card.style.display = 'none';
+            card.classList.add('d-none-dynamic');
         });
 
         var targetCard = document.getElementById('sc_team_card_' + index);
         if (targetCard) {
-            targetCard.style.display = 'block';
+            targetCard.classList.remove('d-none-dynamic');
         }
 
         document.querySelectorAll('.sc-team-btn').forEach(function(btn) {

@@ -19,12 +19,28 @@ class CricbuzzApiService
     }
 
     private function fetchFromApi(string $path): array
-    {
-        $response = Http::withOptions(['verify' => false])
-            ->withHeaders($this->headers())
-            ->get(env('CriBase_Url') . $path);
+    {   
+        try {
+            $response = Http::withOptions(['verify' => false])
+                ->withHeaders($this->headers())
+                ->timeout(20)
+                ->get(env('CriBase_Url') . $path);
 
-        return $response->successful() ? $response->json() : [];
+            if (!$response->successful()) {
+                return [];
+            }
+
+            $data = $response->json();
+
+            return is_array($data) ? $data : [];
+        } catch (\Throwable) {
+            return [];
+        }
+        // $response = Http::withOptions(['verify' => false])
+        //     ->withHeaders($this->headers())
+        //     ->get(env('CriBase_Url') . $path);
+
+        // return $response->successful() ? $response->json() : [];
     }
 
     public function get(string $path, int $ttlSeconds = 60): array
