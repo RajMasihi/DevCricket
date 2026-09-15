@@ -46,10 +46,12 @@
            class="btn me-2 scoreboard-title{{ $activeTab === 'stats' ? ' active-tab' : '' }}">
             Stats
         </a>
+        @if(!empty($pointsGroups) && is_array($pointsGroups))
         <a href="{{ url('/point-table/' . $seriesId . '/' . $seriesNameSlug . '?tab=points') }}"
            class="btn me-2 scoreboard-title{{ $activeTab === 'points' ? ' active-tab' : '' }}">
             Point Table
         </a>
+        @endif
     </div>
 
     <section id="stats_section" style="display:{{ $activeTab === 'stats' ? 'block' : 'none' }};">

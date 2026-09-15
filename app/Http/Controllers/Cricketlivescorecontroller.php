@@ -47,14 +47,16 @@ class Cricketlivescorecontroller extends Controller
             ])->get($apiUrl);
 
             $serieslists = $response->json();
+            $hasPointTable = $this->cricbuzzApi->hasPointsTable($this->cricbuzzApi->pointsTable($id));
         } else {
             // Pass error msg to view or fallback mode
             $serieslists = [];
+            $hasPointTable = false;
             $errorMsg = $e->getMessage();
-            return view('serieslist', compact('serieslists', 'errorMsg'));
+            return view('serieslist', compact('serieslists', 'hasPointTable', 'errorMsg'));
         }
             // echo "<pre>";print_r($serieslists);die;
-        return view('serieslist', compact('serieslists'));
+        return view('serieslist', compact('serieslists', 'hasPointTable'));
     }
     // serires match function end
 
@@ -79,18 +81,19 @@ class Cricketlivescorecontroller extends Controller
             }
         }
 
-        return view('index', [
-            'result' => $matches,
+        return view('result', [
+            'matches' => $matches,
             'error' => null,
         ]);
     }
 
     public function CricketliveScores()
     {
-        $matches = $this->cricbuzzApi->liveMatches();
-
-        // Format overs with conversion for all matches
-        foreach ($matches as &$match) {
+        $liveMatches = $this->cricbuzzApi->liveMatches();
+        $recentMatches = $this->cricbuzzApi->recentMatches();
+        
+        // Format overs with conversion for live matches
+        foreach ($liveMatches as &$match) {
             if (isset($match['matchScore']) && is_array($match['matchScore'])) {
                 foreach ($match['matchScore'] as $teamKey => $teamScore) {
                     foreach (['inngs1', 'inngs2'] as $innings) {
@@ -103,11 +106,42 @@ class Cricketlivescorecontroller extends Controller
                 }
             }
         }
-
+        
+        // Format overs with conversion for recent matches
+        foreach ($recentMatches as &$match) {
+            if (isset($match['matchScore']) && is_array($match['matchScore'])) {
+                foreach ($match['matchScore'] as $teamKey => $teamScore) {
+                    foreach (['inngs1', 'inngs2'] as $innings) {
+                        if (isset($teamScore[$innings]['overs'])) {
+                            $originalOver = $teamScore[$innings]['overs'];
+                            $match['matchScore'][$teamKey][$innings]['overs_display'] = $this->cricbuzzApi->formatOverDisplay($originalOver)['display'];
+                            $match['matchScore'][$teamKey][$innings]['overs_original'] = $originalOver;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Determine which matches to display
+        $matchesToDisplay = [];
+        $hasLiveMatches = count($liveMatches) > 0;
+        
+        if ($hasLiveMatches) {
+            // Display live matches and some recent matches
+            $matchesToDisplay = array_merge($liveMatches, array_slice($recentMatches, 0, 3));
+        } else {
+            // Display 3 recent matches when no live matches
+            $matchesToDisplay = array_slice($recentMatches, 0, 4);
+        }
+        
         return view('index', [
-            'matches' => $matches,
+            'matches' => $matchesToDisplay,
+            'liveMatches' => $liveMatches,
+            'recentMatches' => $recentMatches,
+            'hasLiveMatches' => $hasLiveMatches,
             'error' => null,
         ]);
+
     }
 
     public function upcoming()
@@ -146,15 +180,31 @@ class Cricketlivescorecontroller extends Controller
         try {
             $scorecardDatainfo = $this->cricbuzzApi->matchInfo($id);
 
-            // Always fetch scorecard data for both innings display
-            $scorecardData = $this->cricbuzzApi->scorecard($id);
+            if (empty($scorecardDatainfo)) {
+                return view('matchdetail', [
+                    'scorecardDatainfo' => [],
+                    'scorecardData' => [],
+                    'teamsData' => [],
+                    'commentary' => [],
+                    'commentaryItems' => [],
+                    'hasPointTable' => false,
+                    'tab' => $tab,
+                    'errorMsg' => 'Match details are not available for this match.',
+                ]);
+            }
 
-            // Always fetch teams data for player information
+            $scorecardData = $this->cricbuzzApi->scorecard($id);
+            $scorecardData = $this->cricbuzzApi->enrichScorecardFromMatchInfo($scorecardDatainfo, $scorecardData);
+
             $teamsData = $this->cricbuzzApi->teams($id);
 
-            // Fetch commentary if match is in progress, regardless of tab
-            $commentary = (strtolower($scorecardDatainfo['state'] ?? '') === 'in progress')
+            $matchState = $this->cricbuzzApi->normalizeMatchState($scorecardDatainfo);
+
+            $commentary = $this->cricbuzzApi->isLiveMatch($scorecardDatainfo)
                 ? $this->cricbuzzApi->commentary($id)
+                : [];
+            $commentaryItems = !empty($commentary)
+                ? $this->cricbuzzApi->normalizeCommentaryList($commentary)
                 : [];
 
             // Format overs with conversion for match info
@@ -180,17 +230,46 @@ class Cricketlivescorecontroller extends Controller
                     }
                 }
             }
+
+            $seriesId = $scorecardDatainfo['seriesid'] ?? $scorecardDatainfo['seriesId'] ?? '';
+            $hasPointTable = false;
+            if (!empty($seriesId)) {
+                $hasPointTable = $this->cricbuzzApi->hasPointsTable(
+                    $this->cricbuzzApi->pointsTable($seriesId)
+                );
+            }
         } catch (\Exception $e) {
             $scorecardDatainfo = [];
             $scorecardData = [];
             $teamsData = [];
             $commentary = [];
+            $commentaryItems = [];
+            $hasPointTable = false;
             $errorMsg = $e->getMessage();
 
-            return view('matchdetail', compact('scorecardDatainfo', 'scorecardData', 'teamsData', 'commentary', 'tab', 'errorMsg'));
+            return view('matchdetail', compact(
+                'scorecardDatainfo',
+                'scorecardData',
+                'teamsData',
+                'commentary',
+                'commentaryItems',
+                'hasPointTable',
+                'matchState',
+                'tab',
+                'errorMsg'
+            ));
         }
 
-        return view('matchdetail', compact('scorecardDatainfo', 'scorecardData', 'teamsData', 'commentary', 'tab'));
+        return view('matchdetail', compact(
+            'scorecardDatainfo',
+            'scorecardData',
+            'teamsData',
+            'commentary',
+            'commentaryItems',
+            'hasPointTable',
+            'matchState',
+            'tab'
+        ));
     }
 
     public function showSeriesPoints($id)

@@ -1,24 +1,34 @@
 @extends('layouts.main')
 
-@section('title', $scorecardDatainfo['appindex']['seotitle'] ?? '')
+@section('title', $scorecardDatainfo['appindex']['seotitle'] ?? ($scorecardDatainfo['seriesname'] ?? 'Match Details'))
 
 @section('main-container')
     @php
-        // update code
         $team1 = $scorecardDatainfo['team1']['teamname'] ?? '';
         $team1NameSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $team1), '0'));
         $team2 = $scorecardDatainfo['team2']['teamname'] ?? '';
         $team2NameSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $team2), '0'));
         $matchId = $scorecardDatainfo['matchid'] ?? $scorecardDatainfo['matchId'] ?? '';
-        $seriesId = $scorecardDatainfo['seriesid'] ?? $scorecardDatainfo['seriesid'] ?? '';
-        $seriesName = $scorecardDatainfo['seriesname'] ?? $scorecardDatainfo['seriesname'] ?? '';
+        $seriesId = $scorecardDatainfo['seriesid'] ?? $scorecardDatainfo['seriesId'] ?? '';
+        $seriesName = $scorecardDatainfo['seriesname'] ?? $scorecardDatainfo['seriesName'] ?? '';
         $seriesNameSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $seriesName), '0'));
         $activeTab = $tab ?? request()->get('tab', 'informe');
-        $matchState = strtolower($scorecardDatainfo['state'] ?? '');
+        $matchState = $matchState ?? strtolower($scorecardDatainfo['state'] ?? '');
+        $matchScore = $scorecardDatainfo['matchScore'] ?? [];
+        $t1Score = $matchScore['team1Score']['inngs1'] ?? [];
+        $t1Score2 = $matchScore['team1Score']['inngs2'] ?? [];
+        $t2Score = $matchScore['team2Score']['inngs1'] ?? [];
+        $t2Score2 = $matchScore['team2Score']['inngs2'] ?? [];
     @endphp
 
+@if(!empty($errorMsg))
+<div class="container-fluid mt-3">
+    <div class="alert alert-danger text-center mb-0">{{ $errorMsg }}</div>
+</div>
+@endif
+
 <!-- Real-time update indicator -->
-<div id="real_time_indicator">
+<div id="real_time_indicator" style="{{ $matchState === 'in progress' ? '' : 'display:none;' }}">
     <i class="fas fa-sync-alt fa-spin"></i> Live Updates
 </div>
 
@@ -46,8 +56,8 @@
                 class="btn me-2 scoreboard-title{{ $activeTab == 'players' ? ' active-tab' : '' }}">
                 Players
             </a>
-            {{-- Show Point Table button only if seriesId and seriesNameSlug are set --}}
-            @if(!empty($seriesId) && !empty($seriesNameSlug))
+            {{-- Show Point Table button only when API has points table data --}}
+            @if(!empty($hasPointTable))
                 <a href="{{ url('/point-table/' . $seriesId . '/' . $seriesNameSlug) }}"
                     class="btn me-2 scoreboard-title point-table-nav">
                     Point Table
@@ -100,6 +110,37 @@
                             <small class="text-muted">({{ $scorecardDatainfo['team2']['teamsname'] ?? 'T2' }})</small>
                         </div>
                     </div>
+
+                    @if(!empty($t1Score) || !empty($t2Score) || !empty($t1Score2) || !empty($t2Score2))
+                    <div class="row g-2 mb-3 p-3 bg-light border rounded">
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-semibold">{{ $scorecardDatainfo['team1']['teamname'] ?? 'Team 1' }}</span>
+                                <span>
+                                    @if(!empty($t1Score))
+                                        <span class="score-span">{{ ($t1Score['runs'] ?? '-') }}/{{ ($t1Score['wickets'] ?? '0') }} ({{ ($t1Score['overs_display'] ?? $t1Score['overs'] ?? '-') }} ovs)</span>
+                                    @endif
+                                    @if(!empty($t1Score2))
+                                        <br><span class="score-span">{{ ($t1Score2['runs'] ?? '-') }}/{{ ($t1Score2['wickets'] ?? '0') }} ({{ ($t1Score2['overs_display'] ?? $t1Score2['overs'] ?? '-') }} ovs)</span>
+                                    @endif
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-semibold">{{ $scorecardDatainfo['team2']['teamname'] ?? 'Team 2' }}</span>
+                                <span>
+                                    @if(!empty($t2Score))
+                                        <span class="score-span">{{ ($t2Score['runs'] ?? '-') }}/{{ ($t2Score['wickets'] ?? '0') }} ({{ ($t2Score['overs_display'] ?? $t2Score['overs'] ?? '-') }} ovs)</span>
+                                    @endif
+                                    @if(!empty($t2Score2))
+                                        <br><span class="score-span">{{ ($t2Score2['runs'] ?? '-') }}/{{ ($t2Score2['wickets'] ?? '0') }} ({{ ($t2Score2['overs_display'] ?? $t2Score2['overs'] ?? '-') }} ovs)</span>
+                                    @endif
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
 
                     {{-- DETAILS GRID --}}
                     <div class="row g-3">
@@ -162,13 +203,13 @@
         <section id="scoreboard" class="{{ $activeTab == 'scoreboard' ? '' : 'd-none-dynamic' }}">
             <div class="row pt-2" id="scoreboard_live_container">
                 @php
-                    $matchStatus = $scorecardData['status'] ?? '';
+                    $matchStatus = $scorecardData['status'] ?? ($scorecardDatainfo['status'] ?? '');
                     $scoreCards = $scorecardData['scorecard'] ?? [];
-                    $seriesName = $scorecardData['appindex']['seotitle'] ?? ($scorecardData['status'] ?? '');
-                    $matchState = $matchState ?? '';
+                    $seriesName = $scorecardData['appindex']['seotitle']
+                        ?? ($scorecardDatainfo['seriesname'] ?? ($scorecardDatainfo['seriesName'] ?? ''));
                 @endphp
 
-                @if (!empty($seriesName) && !empty($scoreCards) && is_array($scoreCards))
+                @if (!empty($scoreCards) && is_array($scoreCards))
                     <!-- Match Status Banner -->
                     <div class="col-12 match-result-row mb-3 border shadow-sm rounded bg-white py-3 px-3" id="match_status_row">
                         <div class="text-center">
@@ -421,22 +462,35 @@
                     <!-- Live Commentary Container -->
                     <div class="col-12 mb-3 {{ $matchState === 'in progress' ? '' : 'd-none-dynamic' }}" id="commentary_live_container">
                         <div class="card shadow-sm border">
-                            <div class="card-header text-white bg-custom-navy">
+                            <div class="card-header text-white bg-custom-navy d-flex justify-content-between align-items-center">
                                 <strong>Ball-by-Ball Commentary</strong>
+                                @if($matchState === 'in progress')
+                                    <span class="badge bg-success" id="commentary_live_badge">Live</span>
+                                @endif
                             </div>
                             <div class="card-body p-2 commentary-scroll-box" id="commentary_list">
-                                @if(!empty($commentary) && !empty($commentary['commentaryList'] ?? $commentary['commentary'] ?? []))
-                                    @php
-                                        $commList = $commentary['commentaryList'] ?? $commentary['commentary'] ?? [];
-                                    @endphp
-                                    @foreach(array_slice(is_array($commList) ? $commList : [], 0, 15) as $comm)
-                                        <div class="border-bottom py-1">
-                                            <span class="text-muted fw-bold">{{ $comm['over'] ?? '' }}</span>
-                                            {{ $comm['commText'] ?? $comm['text'] ?? '' }}
+                                @if(!empty($commentaryItems ?? []))
+                                    @foreach($commentaryItems as $comm)
+                                        <div class="commentary-item border-bottom py-2">
+                                            <div class="d-flex align-items-start gap-2">
+                                                @if(!empty($comm['over']))
+                                                    <span class="commentary-over-badge">{{ $comm['over'] }}</span>
+                                                @endif
+                                                <div class="flex-grow-1">
+                                                    @if(!empty($comm['isWicket']))
+                                                        <span class="badge bg-danger me-1">W</span>
+                                                    @elseif(!empty($comm['isSix']))
+                                                        <span class="badge bg-warning text-dark me-1">6</span>
+                                                    @elseif(!empty($comm['isFour']))
+                                                        <span class="badge bg-info text-dark me-1">4</span>
+                                                    @endif
+                                                    <span class="commentary-text">{{ $comm['text'] }}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     @endforeach
                                 @elseif($matchState === 'in progress')
-                                    <div class="text-muted p-2">Loading commentary...</div>
+                                    <div class="text-muted p-2" id="commentary_loading_text">Loading ball-by-ball commentary...</div>
                                 @else
                                     <div class="text-muted p-2">Commentary will appear when the match is live.</div>
                                 @endif
@@ -445,156 +499,61 @@
                     </div>
                     
                 @else
-
-                    <div class="col">
-
-                        <div class="not-started-box text-center">
-
-                            <h3>Match Start Date/Time!</h3>
-
+                    <div class="col-12">
+                        <div class="not-started-box text-center border rounded bg-white p-4 shadow-sm">
                             @php
-
-                                // Correction for upcoming match status and local time display
-
-                                $matchStatusShow = '';
-
+                                $matchStatusShow = $scorecardDatainfo['status']
+                                    ?? $scorecardData['status']
+                                    ?? 'Match details not available yet';
                                 $localTime = '';
 
-
-
-                                // Try to get a match status from the most available source
-
-                                if (!empty($scorecardData['status'])) {
-
-                                    $matchStatusShow = $scorecardData['status'];
-
-                                } elseif (isset($scoreCards['status']) && !empty($scoreCards['status'])) {
-
-                                    $matchStatusShow = $scoreCards['status'];
-
-                                } elseif (isset($match) && !empty($match['status'] ?? null)) {
-
-                                    $matchStatusShow = $match['status'];
-
+                                if (isset($scorecardDatainfo['startdate']) && is_numeric($scorecardDatainfo['startdate'])) {
+                                    $rawStart = (int) ($scorecardDatainfo['startdate'] / 1000);
+                                    $localTime = date('d M, Y h:i A', $rawStart);
                                 }
 
-
-
-                                // For upcoming matches, show "Match Not Started" with local time from startDate if possible
-
-                                if (empty($matchStatusShow) || stripos($matchStatusShow, 'not started') !== false || stripos($matchStatusShow, 'upcoming') !== false) {
-
-                                    $matchStatusShow = 'Match Not Started';
-
-
-
-                                    // Try to get local time from a 'startdate' field (common for upcoming matches)
-
-                                    $rawStart = $scorecardData['startdate']
-
-                                        ?? $scorecardDatainfo['startdate']
-
-                                        ?? $scoreCards['startdate']
-
-                                        ?? $match['startdate']
-
-                                        ?? null;
-
-
-
-                                    if (!empty($rawStart)) {
-
-                                        // startdate is usually milliseconds, convert to int seconds if needed
-
-                                        if (is_numeric($rawStart) && $rawStart > 100000000000) {
-
-                                            $rawStart = intval($rawStart / 1000);
-
-                                        } elseif (is_numeric($rawStart)) {
-
-                                            $rawStart = intval($rawStart);
-
-                                        } else {
-
-                                            $rawStart = null;
-
-                                        }
-
-                                        if (!empty($rawStart)) {
-
-                                            try {
-
-                                                $dt = new DateTime("@$rawStart");
-
-                                                $dt->setTimezone(new DateTimeZone('Asia/Kolkata'));
-
-                                                $localTime = $dt->format('d M, Y h:i A');
-
-                                            } catch(Exception $e) {
-
-                                                $localTime = '';
-
-                                            }
-
-                                        }
-
+                                if ($matchState === 'in progress') {
+                                    $heading = 'Live Match In Progress';
+                                } elseif (str_contains($matchState, 'complete')) {
+                                    $heading = 'Match Result';
+                                } elseif (str_contains($matchState, 'upcoming') || str_contains($matchState, 'not started')) {
+                                    $heading = 'Upcoming Match';
+                                    if (empty($localTime) && stripos($matchStatusShow, 'not started') === false) {
+                                        $matchStatusShow = 'Match Not Started';
                                     }
-
                                 } else {
-
-                                    // Try to parse GMT datetime string in status if available
-
-                                    if (preg_match('/([A-Za-z]{3} \d{2}, \d{2}:\d{2} GMT)/', $matchStatusShow, $matches)) {
-
-                                        try {
-
-                                            $gmtDateTime = $matches[1];
-
-                                            $date = DateTime::createFromFormat('M d, H:i T Y', $gmtDateTime . ' ' . date('Y'), new DateTimeZone('GMT'));
-
-                                            if($date !== false) {
-
-                                                $date->setTimezone(new DateTimeZone('Asia/Kolkata'));
-
-                                                $localTime = $date->format('d M, Y h:i A');
-
-                                            }
-
-                                        } catch(Exception $e) {
-
-                                            $localTime = '';
-
-                                        }
-
-                                    }
-
+                                    $heading = 'Match Information';
                                 }
-
-         
-
                             @endphp
 
-
-
-                            <div class="match-status-box text-center mb-2" style="font-size:1.13rem;">
-
-                                <span style="font-weight:600;color:#255;">
-
-                                    {{ $matchStatusShow }} <br>
-
-                                    Local Time : {{ $localTime }}
-
-                                </span>
-
+                            <h3 class="h5 mb-3">{{ $heading }}</h3>
+                            <div class="match-status-box text-center mb-2" style="font-size:1.05rem;">
+                                <span style="font-weight:600;color:#255;">{{ $matchStatusShow }}</span>
+                                @if(!empty($localTime))
+                                    <br><span class="text-muted">Start: {{ $localTime }}</span>
+                                @endif
                             </div>
 
-                            <p>Stay tuned. Match details will appear here once available.</p>
-
+                            @if(!empty($t1Score) || !empty($t2Score))
+                                <div class="row g-2 mt-3 text-start">
+                                    <div class="col-md-6">
+                                        <strong>{{ $scorecardDatainfo['team1']['teamname'] ?? 'Team 1' }}</strong>
+                                        @if(!empty($t1Score))
+                                            <div>{{ ($t1Score['runs'] ?? '-') }}/{{ ($t1Score['wickets'] ?? '0') }} ({{ ($t1Score['overs'] ?? '-') }} ovs)</div>
+                                        @endif
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>{{ $scorecardDatainfo['team2']['teamname'] ?? 'Team 2' }}</strong>
+                                        @if(!empty($t2Score))
+                                            <div>{{ ($t2Score['runs'] ?? '-') }}/{{ ($t2Score['wickets'] ?? '0') }} ({{ ($t2Score['overs'] ?? '-') }} ovs)</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @else
+                                <p class="text-muted mb-0">Full scorecard will appear here once the match starts.</p>
+                            @endif
                         </div>
-
                     </div>
-
-                
                 @endif
 
             </div>
@@ -852,26 +811,5 @@
         }
     }
 
-    // Initialize over threshold handler for real-time updates
-    document.addEventListener('DOMContentLoaded', function() {
-        var matchPage = document.getElementById('cricket-matchdetail-page');
-        if (matchPage) {
-            var matchId = matchPage.getAttribute('data-match-id');
-            var activeTab = matchPage.getAttribute('data-active-tab') || 'informe';
-            var matchState = matchPage.getAttribute('data-match-state') || '';
-            
-            console.log('Match detail page loaded - Match ID:', matchId, 'Tab:', activeTab, 'State:', matchState);
-            
-            // Only initialize real-time updates for live matches
-            if (matchId && matchState === 'in progress') {
-                if (typeof window.overThresholdHandler !== 'undefined') {
-                    console.log('Initializing over threshold handler for live match');
-                    window.overThresholdHandler.init(matchId, activeTab);
-                } else {
-                    console.warn('Over threshold handler not available, real-time updates may not work');
-                }
-            }
-        }
-    });
 </script>
     @endsection

@@ -31,10 +31,12 @@
     </h4>
 
     
+    @if(!empty($hasPointTable))
     <a href="{{ url('/point-table/' . $seriesId . '/' . $seriesNameSlug) }}"
         class="btn me-2 scoreboard-title point-table-nav" type="button">
         Point Table
     </a>
+    @endif
     @php
     $today = \Carbon\Carbon::now('Asia/Kolkata')->format('Y-m-d');
     $todayMatches = [];

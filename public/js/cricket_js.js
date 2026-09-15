@@ -1,17 +1,85 @@
 
-$(function () {
-    let currentUrl = window.location.href;
-    $('.first-header .nav-item a').each(function () {
-        if (this.href === currentUrl) {
-            $('.first-header .nav-item a').removeClass('active');
-            $(this).addClass('active');
-        }
-    });
 
-    initIndexLiveMatchesRefresh();
-    initMatchdetailLiveRefresh();
+
+$(function () {
+// navebar active class 
+
+//    filter in t20, ODi, test, Other
+
+$(document).on('click', '.second-header .nav-link', function (e) {
+    e.preventDefault();
+
+    $('.second-header .nav-link')
+        .removeClass('active')
+        .css({
+            'background-color': '',
+            'color': ''
+        });
+
+    $(this)
+        .addClass('active')
+        .css({
+            'background-color': '#053259', // Bootstrap primary
+            'color': '#fff'
+        });
 });
 
+
+ //Searching nav working.........
+
+  // Ensure "Point Table" link ('.point-table-nav') works as a normal link and does not trigger this handler.
+  $('.second-header .nav-item .link').on('click', function (e) {
+    // Skip if this is the Point Table nav (identified by class or id)
+    if ($(this).hasClass('point-table-nav') || $(this).attr('id') === 'point-table') {
+      // Allow default navigation for Point Table
+      return;
+    }
+
+    e.preventDefault();
+
+    let te = $(this).text().trim().toLowerCase();
+    $('#search').val(te);
+
+    if (te === 'all' || te ==='mens') {
+        $('.match-item').show();
+        return;
+    }
+
+    $('.match-item').each(function () {
+        let text = $(this).text().toLowerCase();
+
+        if (text.indexOf(te) > -1) {
+            $(this).show();
+        } else {
+            $(this).hide();
+        }
+    });
+});
+
+
+ $('#team1').click(function(){
+  $('#scorecard1').show();
+//   $('#scorecard2').hide();
+});
+
+$('#team2').on('click', function(){
+      $('#scorecard1').hide();
+      $('#scorecard2').removeClass('d-block').show();
+  });
+
+    // initIndexLiveMatchesRefresh();
+    // initMatchdetailScoreboardRefresh();
+});
+
+
+// $(function () {
+//     let currentUrl = window.location.href;
+//     $('.first-header .nav-item a').each(function () {
+//         if (this.href === currentUrl) {
+//             $('.first-header .nav-item a').removeClass('active');
+//             $(this).addClass('active');
+//         }
+//     });
 function initMatchdetailLiveRefresh() {
     // This functionality is now handled by over_threshold_handler.js
     // which uses WebSocket with polling fallback
@@ -295,10 +363,11 @@ function parseOverValue(overString) {
     }
 
     var parts = overString.toString().split('.');
-    var overs = parts.length > 0 ? parseInt(parts[0]) : 0;
-    var balls = parts.length > 1 ? parseInt(parts[1]) : 0;
+    let overs = parts.length > 0 ? parseInt(parts[0]) : 0;
+    let balls = parts.length > 1 ? parseInt(parts[1]) : 0;
 
     // Handle over-end conversion: N.6 → (N+1).0
+    // When balls is 6, it means the over is complete
     if (balls == 6) {
         overs += 1;
         balls = 0;
@@ -361,21 +430,26 @@ function validateBallByBallProgression(currentOver, lastOver, currentOverStr) {
 
 function formatOverDisplay(decimalOver) {
     var overs = Math.floor(decimalOver);
-    var balls = Math.round((decimalOver - overs) * 6) / 6;
+    var ballsDecimal = (decimalOver - overs) * 6;
+    var balls = Math.round(ballsDecimal) / 6;
 
     // Handle over-end conversion: N.6 → (N+1).0
+    // When balls is 0.6 (6 balls), it means the over is complete
     if (balls == 0.6) {
-        overs += 1;
-        balls = 0;
+        var completedOvers = overs + 1;
+        return completedOvers.toString();
     }
 
     // Display format: if balls is 0, show as whole number (e.g., "3" instead of "3.0")
     if (balls == 0) {
         return overs.toString();
     } else {
-        return overs + '.' + balls;
+        // Display the balls as an integer (e.g., 0.5 instead of 0.833...)
+        var ballsInt = Math.round(ballsDecimal);
+        return overs + '.' + ballsInt;
     }
 }
+
 
 //   JavaScript Team Switcher Script 
  

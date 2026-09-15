@@ -42,12 +42,14 @@ class MatchScoreUpdated implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         $validationData = $this->getOversValidationData();
+        $commentaryItems = app(CricbuzzApiService::class)->normalizeCommentaryList($this->commentary);
         
         return [
             'matchId' => $this->matchId,
             'info' => $this->info,
             'scorecard' => $this->scorecard,
             'commentary' => $this->commentary,
+            'commentaryItems' => $commentaryItems,
             'threshold' => $this->thresholdData,
             'timestamp' => now()->toISOString(),
             'overs_validation' => $validationData,
