@@ -1,5 +1,15 @@
 @extends('layouts.main')
-<title>@yield('title', 'Result Matchs')</title>
+
+@section('title', $pageTitle ?? 'Cricket Match Results - Criclivem')
+
+@section('meta-description')
+    <meta name="description" content="{{ $metaDescription ?? 'View recent cricket match results, final scores, and match outcomes from international and domestic cricket matches around the world.' }}">
+@endsection
+
+@section('meta-keywords')
+    <meta name="keywords" content="{{ $metaKeywords ?? 'cricket results, match results, cricket scores, final scores, cricket outcomes, recent matches, cricket winners' }}">
+@endsection
+
 @section('main-container')
     <div class="container-fluit main-section">
     <h3 class="text-center">Live Scores Data Matchs result Matchs</h3> 

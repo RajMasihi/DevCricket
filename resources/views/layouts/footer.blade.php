@@ -21,10 +21,10 @@
                         <span><i class="fa fa-caret-right" aria-hidden="true"></i></span>
                         <a href="{{ route('privacy') }}">Privacy Policy</a>&nbsp;
                     </li>
-                    <li>
+                    <!-- <li>
                         <span><i class="fa fa-caret-right" aria-hidden="true"></i></span>
                         <a href="{{ route('sitemap') }}">Sitemap</a>
-                    </li>
+                    </li> -->
                 </ul>
             </nav>
         </div>

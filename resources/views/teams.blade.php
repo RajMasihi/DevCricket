@@ -1,11 +1,15 @@
 
 @extends('layouts.main')
 
-@section('title', 'Cricket Teams - Criclivem')
+@section('title', $pageTitle ?? 'Cricket Teams - Criclivem')
 
-@section('meta-description', 'View all international, domestic, women\'s, and league cricket teams with detailed player information for T20, ODI, and Test formats.')
+@section('meta-description')
+    <meta name="description" content="{{ $metaDescription ?? 'View all international, domestic, women\'s, and league cricket teams with detailed player information for T20, ODI, and Test formats.' }}">
+@endsection
 
-@section('meta-keywords', 'cricket teams, international teams, domestic teams, women cricket teams, league teams, T20 teams, ODI teams, Test teams')
+@section('meta-keywords')
+    <meta name="keywords" content="{{ $metaKeywords ?? 'cricket teams, international teams, domestic teams, women cricket teams, league teams, T20 teams, ODI teams, Test teams' }}">
+@endsection
 
 @section('main-container')
 <div class="container-fluid main-section">

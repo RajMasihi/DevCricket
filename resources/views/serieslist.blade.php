@@ -1,6 +1,17 @@
 
 
 @extends('layouts.main')
+
+@section('title', $pageTitle ?? 'Series Details - Criclivem')
+
+@section('meta-description')
+    <meta name="description" content="{{ $metaDescription ?? 'View cricket series details including match schedule, teams, and fixtures.' }}">
+@endsection
+
+@section('meta-keywords')
+    <meta name="keywords" content="{{ $metaKeywords ?? 'cricket series details, cricket tournament, match schedule' }}">
+@endsection
+
 @php
     use Illuminate\Support\Str;
 

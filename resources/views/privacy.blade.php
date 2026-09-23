@@ -1,5 +1,15 @@
 @extends('layouts.main')
-<title>@yield('title', 'Privacy & Policy')</title>
+
+@section('title', $pageTitle ?? 'Privacy Policy - Criclivem')
+
+@section('meta-description')
+    <meta name="description" content="{{ $metaDescription ?? 'Read Criclivem privacy policy to understand how we collect, use, and protect your personal data.' }}">
+@endsection
+
+@section('meta-keywords')
+    <meta name="keywords" content="{{ $metaKeywords ?? 'privacy policy, data protection, user privacy, criclivem privacy' }}">
+@endsection
+
 @section('main-container')
  <div class="container-fluit main-section">
     <h3>Tearms and Conditions</h3>

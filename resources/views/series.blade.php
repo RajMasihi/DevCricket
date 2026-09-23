@@ -2,7 +2,17 @@
 use Illuminate\Support\Str;
 ?>
 @extends('layouts.main')
-@section('title', 'Series')
+
+@section('title', $pageTitle ?? 'Cricket Series - International & Domestic | Criclivem')
+
+@section('meta-description')
+    <meta name="description" content="{{ $metaDescription ?? 'Browse all cricket series including international tours, domestic leagues, and tournaments. Get complete series information, schedules, and match details.' }}">
+@endsection
+
+@section('meta-keywords')
+    <meta name="keywords" content="{{ $metaKeywords ?? 'cricket series, international cricket series, domestic cricket leagues, cricket tournaments, cricket tours, series schedule, ICC series' }}">
+@endsection
+
 @section('main-container')
     <div class="container-fluit main-section">
         <h3 style="text-align: center">All International/Domestic/League Series</h3>

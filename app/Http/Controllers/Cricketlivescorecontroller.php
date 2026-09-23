@@ -13,22 +13,38 @@ class Cricketlivescorecontroller extends Controller
     // Static Pages
     public function about()
     {
-        return view('about');
+        return view('about', [
+            'pageTitle' => 'About Us - Criclivem Cricket Platform',
+            'metaDescription' => 'Learn about Criclivem - your premier destination for live cricket scores, match updates, schedules, news, and ICC rankings. Discover our mission to bring cricket to fans worldwide.',
+            'metaKeywords' => 'about criclivem, cricket platform, live cricket scores, cricket news, about us, cricket website'
+        ]);
     }
 
     public function contact()
     {
-        return view('contact');
+        return view('contact', [
+            'pageTitle' => 'Contact Us - Criclivem',
+            'metaDescription' => 'Get in touch with Criclivem for feedback, partnerships, or general inquiries. Contact our team for any questions about our cricket platform and services.',
+            'metaKeywords' => 'contact criclivem, cricket support, feedback, partnerships, cricket website contact'
+        ]);
     }
 
     public function privacy()
     {
-        return view('privacy');
+        return view('privacy', [
+            'pageTitle' => 'Privacy Policy - Criclivem',
+            'metaDescription' => 'Read Criclivem privacy policy to understand how we collect, use, and protect your personal data. Learn about our commitment to user privacy and data security.',
+            'metaKeywords' => 'privacy policy, data protection, user privacy, criclivem privacy, cricket website privacy'
+        ]);
     }
 
     public function gallery()
     {
-        return view('gallery');
+        return view('gallery', [
+            'pageTitle' => 'Cricket Gallery - Images & Videos | Criclivem',
+            'metaDescription' => 'Explore our cricket gallery featuring player images, match photos, cricket moments, and videos from international and domestic cricket matches around the world.',
+            'metaKeywords' => 'cricket gallery, cricket images, cricket photos, cricket videos, player photos, match images'
+        ]);
     }
 
     public function sitemap()
@@ -39,6 +55,10 @@ class Cricketlivescorecontroller extends Controller
     // serires match function start
     public function series()
     {
+        $pageTitle = 'Cricket Series - International & Domestic | Criclivem';
+        $metaDescription = 'Browse all cricket series including international tours, domestic leagues, and tournaments. Get complete series information, schedules, and match details.';
+        $metaKeywords = 'cricket series, international cricket series, domestic cricket leagues, cricket tournaments, cricket tours, series schedule, ICC series';
+        
         $apiUrl = env('CriBase_Url') . "series/v1/all";
         if ($apiUrl) {
             $response = Http::withOptions([
@@ -53,11 +73,11 @@ class Cricketlivescorecontroller extends Controller
         } else {
             // Pass error msg to view or fallback mode
             $seriess = [];
-            $errorMsg = $e->getMessage();
-            return view('series', compact('seriess', 'errorMsg'));
+            $errorMsg = 'API URL not configured';
+            return view('series', compact('seriess', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
             // echo "<pre>";print_r($seriess);die;
-        return view('series', compact('seriess'));
+        return view('series', compact('seriess', 'pageTitle', 'metaDescription', 'metaKeywords'));
     }
 
    
@@ -75,15 +95,25 @@ class Cricketlivescorecontroller extends Controller
 
             $serieslists = $response->json();
             $hasPointTable = $this->cricbuzzApi->hasPointsTable($this->cricbuzzApi->pointsTable($id));
+            
+            // Generate dynamic SEO metadata
+            $seriesName = $serieslists['name'] ?? 'Cricket Series';
+            $pageTitle = "{$seriesName} - Series Details | Criclivem";
+            $metaDescription = "View complete details of {$seriesName} cricket series including match schedule, teams, fixtures, and point table. Get all information about this cricket tournament.";
+            $metaKeywords = "{$seriesName}, cricket series details, cricket tournament, match schedule, cricket fixtures, series point table";
+            
         } else {
             // Pass error msg to view or fallback mode
             $serieslists = [];
             $hasPointTable = false;
-            $errorMsg = $e->getMessage();
-            return view('serieslist', compact('serieslists', 'hasPointTable', 'errorMsg'));
+            $errorMsg = 'API URL not configured';
+            $pageTitle = 'Series Details - Criclivem';
+            $metaDescription = 'View cricket series details including match schedule, teams, and fixtures.';
+            $metaKeywords = 'cricket series details, cricket tournament, match schedule';
+            return view('serieslist', compact('serieslists', 'hasPointTable', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
             // echo "<pre>";print_r($serieslists);die;
-        return view('serieslist', compact('serieslists', 'hasPointTable'));
+        return view('serieslist', compact('serieslists', 'hasPointTable', 'pageTitle', 'metaDescription', 'metaKeywords'));
     }
     // serires match function end
 
@@ -111,6 +141,9 @@ class Cricketlivescorecontroller extends Controller
         return view('result', [
             'matches' => $matches,
             'error' => null,
+            'pageTitle' => 'Cricket Match Results - Recent Scores | Criclivem',
+            'metaDescription' => 'View recent cricket match results, final scores, and match outcomes from international and domestic cricket matches around the world.',
+            'metaKeywords' => 'cricket results, match results, cricket scores, final scores, cricket outcomes, recent matches, cricket winners',
         ]);
     }
 
@@ -221,6 +254,57 @@ class Cricketlivescorecontroller extends Controller
             // Display 3 recent matches when no live matches
             $matchesToDisplay = is_array($recentMatches) ? array_slice($recentMatches, 0, 4) : [];
         }
+
+        // Add match time/status to news items
+        foreach ($newsItems as &$newsItem) {
+            if (isset($newsItem['story']) && isset($newsItem['story']['matchId'])) {
+                $matchId = $newsItem['story']['matchId'];
+                // Try to find match time/status from live, recent, or upcoming matches
+                $relatedMatch = null;
+                
+                // Search in live matches
+                foreach ($liveMatches as $match) {
+                    $matchInfo = $match['matchInfo'] ?? [];
+                    if (($matchInfo['matchId'] ?? '') == $matchId) {
+                        $relatedMatch = $matchInfo;
+                        break;
+                    }
+                }
+                
+                // Search in recent matches if not found
+                if (!$relatedMatch) {
+                    foreach ($recentMatches as $match) {
+                        $matchInfo = $match['matchInfo'] ?? [];
+                        if (($matchInfo['matchId'] ?? '') == $matchId) {
+                            $relatedMatch = $matchInfo;
+                            break;
+                        }
+                    }
+                }
+                
+                // Search in upcoming matches if still not found
+                if (!$relatedMatch) {
+                    foreach ($upcomingMatches as $match) {
+                        $matchInfo = $match['matchInfo'] ?? [];
+                        if (($matchInfo['matchId'] ?? '') == $matchId) {
+                            $relatedMatch = $matchInfo;
+                            break;
+                        }
+                    }
+                }
+                
+                if ($relatedMatch) {
+                    $state = strtolower($relatedMatch['state'] ?? '');
+                    $startDate = isset($relatedMatch['startDate']) ? ((int)$relatedMatch['startDate'] / 1000) : null;
+                    $matchTime = $startDate ? date('d M, h:i A', $startDate) : '';
+                    $status = $relatedMatch['status'] ?? '';
+                    
+                    $newsItem['story']['matchTime'] = $matchTime;
+                    $newsItem['story']['matchStatus'] = $status;
+                    $newsItem['story']['matchState'] = $state;
+                }
+            }
+        }
         
         return view('index', [
             'matches' => $matchesToDisplay,
@@ -231,6 +315,9 @@ class Cricketlivescorecontroller extends Controller
             'newsItems' => $newsItems,
             'categories' => $categories,
             'error' => null,
+            'pageTitle' => 'Live Cricket Scores - Criclivem',
+            'metaDescription' => 'Get live cricket scores, ball-by-ball commentary, and match updates from around the world. Follow international matches, domestic leagues, and women cricket in real-time.',
+            'metaKeywords' => 'live cricket scores, cricket live score, ball by ball commentary, cricket updates, international cricket, domestic cricket, T20 live score, ODI live score, Test cricket live',
         ]);
 
     }
@@ -360,6 +447,9 @@ class Cricketlivescorecontroller extends Controller
             'newsItems' => $newsItems,
             'categories' => $categories,
             'error' => null,
+            'pageTitle' => 'Cricket Schedule - Upcoming Matches | Criclivem',
+            'metaDescription' => 'View upcoming cricket match schedule, fixtures, and start times for international matches, domestic leagues, and tournaments. Plan your cricket viewing with our comprehensive schedule.',
+            'metaKeywords' => 'cricket schedule, upcoming matches, cricket fixtures, match schedule, cricket calendar, upcoming cricket, international cricket schedule, domestic cricket fixtures',
         ]);
     }
     // Live match function end
@@ -384,6 +474,9 @@ class Cricketlivescorecontroller extends Controller
                     'hasPointTable' => false,
                     'tab' => $tab,
                     'errorMsg' => 'Match details are not available for this match.',
+                    'pageTitle' => 'Match Details - Criclivem',
+                    'metaDescription' => 'View detailed cricket match information, scorecard, and live commentary on Criclivem.',
+                    'metaKeywords' => 'cricket match details, live scorecard, cricket commentary, match statistics',
                 ]);
             }
 
@@ -432,6 +525,18 @@ class Cricketlivescorecontroller extends Controller
                     $this->cricbuzzApi->pointsTable($seriesId)
                 );
             }
+
+            // Generate dynamic SEO metadata
+            $team1Name = $scorecardDatainfo['team1']['teamName'] ?? 'Team 1';
+            $team2Name = $scorecardDatainfo['team2']['teamName'] ?? 'Team 2';
+            $matchFormat = strtoupper($scorecardDatainfo['matchFormat'] ?? 'Match');
+            $seriesName = $scorecardDatainfo['seriesName'] ?? '';
+            $matchStatus = $scorecardDatainfo['status'] ?? '';
+            
+            $pageTitle = "{$team1Name} vs {$team2Name} - {$matchFormat} Match - {$seriesName} | Criclivem";
+            $metaDescription = "Live cricket score: {$team1Name} vs {$team2Name} - {$matchFormat} match in {$seriesName}. Get live scores, ball-by-ball commentary, scorecard, and match statistics. {$matchStatus}";
+            $metaKeywords = "{$team1Name} vs {$team2Name}, {$matchFormat} cricket, {$seriesName}, live cricket score, cricket scorecard, ball by ball commentary, {$team1Name}, {$team2Name}";
+
         } catch (\Exception $e) {
             $scorecardDatainfo = [];
             $scorecardData = [];
@@ -440,6 +545,9 @@ class Cricketlivescorecontroller extends Controller
             $commentaryItems = [];
             $hasPointTable = false;
             $errorMsg = $e->getMessage();
+            $pageTitle = 'Match Details - Criclivem';
+            $metaDescription = 'View detailed cricket match information, scorecard, and live commentary on Criclivem.';
+            $metaKeywords = 'cricket match details, live scorecard, cricket commentary, match statistics';
 
             return view('matchdetail', compact(
                 'scorecardDatainfo',
@@ -450,7 +558,10 @@ class Cricketlivescorecontroller extends Controller
                 'hasPointTable',
                 'matchState',
                 'tab',
-                'errorMsg'
+                'errorMsg',
+                'pageTitle',
+                'metaDescription',
+                'metaKeywords'
             ));
         }
 
@@ -462,7 +573,10 @@ class Cricketlivescorecontroller extends Controller
             'commentaryItems',
             'hasPointTable',
             'matchState',
-            'tab'
+            'tab',
+            'pageTitle',
+            'metaDescription',
+            'metaKeywords'
         ));
     }
 
@@ -529,6 +643,10 @@ class Cricketlivescorecontroller extends Controller
         return view('stats', compact('statsData', 'pointtable', 'activeTab'));
     }
     public function teamsinternational(){
+        $pageTitle = 'International Cricket Teams | Criclivem';
+        $metaDescription = 'View all international cricket teams, player squads, and team information. Explore national cricket teams from around the world including ICC member nations.';
+        $metaKeywords = 'international cricket teams, national cricket teams, ICC teams, cricket squads, cricket team information, world cricket teams';
+        
         try {
             $apiUrl = env('CriBase_Url')."teams/v1/international";
             $response = Http::withOptions([
@@ -546,12 +664,16 @@ class Cricketlivescorecontroller extends Controller
         } catch (\Exception $e) {
             $teamsinternational = [];
             $errorMsg = $e->getMessage();
-            return view('teams', compact('teamsinternational', 'errorMsg'));
+            return view('teams', compact('teamsinternational', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
             // echo "<pre>";print_r($teamsinternational);die;
-        return view('teams', compact('teamsinternational'));
+        return view('teams', compact('teamsinternational', 'pageTitle', 'metaDescription', 'metaKeywords'));
     }
     public function teamsdomestic(){
+        $pageTitle = 'Domestic Cricket Teams | Criclivem';
+        $metaDescription = 'Explore domestic cricket teams from various leagues and tournaments around the world. Get information about county cricket, state teams, and domestic cricket franchises.';
+        $metaKeywords = 'domestic cricket teams, county cricket, state cricket teams, cricket franchises, domestic leagues, local cricket teams';
+        
         try {
             $apiUrl = env('CriBase_Url')."teams/v1/domestic";
             $response = Http::withOptions([
@@ -569,12 +691,16 @@ class Cricketlivescorecontroller extends Controller
         } catch (\Exception $e) {
             $teamsDomestic = [];
             $errorMsg = $e->getMessage();
-            return view('teams', compact('teamsDomestic', 'errorMsg'));
+            return view('teams', compact('teamsDomestic', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
             // echo "<pre>";print_r($teamsDomestic);die;
-        return view('teams', compact('teamsDomestic'));
+        return view('teams', compact('teamsDomestic', 'pageTitle', 'metaDescription', 'metaKeywords'));
     }
     public function teamswomens(){
+        $pageTitle = 'Women Cricket Teams | Criclivem';
+        $metaDescription = 'View all women cricket teams and national squads. Explore women international cricket teams, player information, and women cricket leagues around the world.';
+        $metaKeywords = 'women cricket teams, women international cricket, women cricket squads, female cricket teams, women cricket leagues, women national teams';
+        
         try {
             $apiUrl = env('CriBase_Url')."teams/v1/women";
             $response = Http::withOptions([
@@ -592,12 +718,16 @@ class Cricketlivescorecontroller extends Controller
         } catch (\Exception $e) {
             $teamsWomens = [];
             $errorMsg = $e->getMessage();
-            return view('teams', compact('teamsWomens', 'errorMsg'));
+            return view('teams', compact('teamsWomens', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
             // echo "<pre>";print_r($teamsWomens);die;
-        return view('teams', compact('teamsWomens'));
+        return view('teams', compact('teamsWomens', 'pageTitle', 'metaDescription', 'metaKeywords'));
     }
     public function teamsleague(){
+        $pageTitle = 'Cricket League Teams | Criclivem';
+        $metaDescription = 'Explore cricket league teams and franchises from T20 leagues around the world. Get information about IPL teams, BBL franchises, CPL teams, and other domestic cricket leagues.';
+        $metaKeywords = 'cricket league teams, T20 league franchises, IPL teams, BBL teams, CPL teams, cricket franchises, domestic league teams';
+        
         try {
             $apiUrl = env('CriBase_Url')."teams/v1/league";
             $response = Http::withOptions([
@@ -615,10 +745,10 @@ class Cricketlivescorecontroller extends Controller
         } catch (\Exception $e) {
             $teamsleague = [];
             $errorMsg = $e->getMessage();
-            return view('teams', compact('teamsleague', 'errorMsg'));
+            return view('teams', compact('teamsleague', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
             // echo "<pre>";print_r($teamsleague);die;
-        return view('teams', compact('teamsleague'));
+        return view('teams', compact('teamsleague', 'pageTitle', 'metaDescription', 'metaKeywords'));
     }
 
     public function teamDetail($id)
@@ -634,13 +764,23 @@ class Cricketlivescorecontroller extends Controller
             ])->get($apiUrl);
 
             $teamDetail = $response->json();
+            
+            // Generate dynamic SEO metadata
+            $teamName = $teamDetail['teamName'] ?? 'Cricket Team';
+            $pageTitle = "{$teamName} - Team Details | Criclivem";
+            $metaDescription = "View complete details of {$teamName} cricket team including player profiles, match history, upcoming fixtures, and team statistics. Explore the squad and performance records.";
+            $metaKeywords = "{$teamName}, cricket team details, {$teamName} players, cricket squad, team statistics, {$teamName} matches";
+            
         } catch (\Exception $e) {
             $teamDetail = [];
             $errorMsg = $e->getMessage();
-            return view('team_detail', compact('teamDetail', 'errorMsg'));
+            $pageTitle = 'Team Details - Criclivem';
+            $metaDescription = 'View cricket team details including player profiles, match history, and team statistics.';
+            $metaKeywords = 'cricket team details, cricket squad, team statistics, player profiles';
+            return view('team_detail', compact('teamDetail', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
 
-        return view('team_detail', compact('teamDetail'));
+        return view('team_detail', compact('teamDetail', 'pageTitle', 'metaDescription', 'metaKeywords'));
     }
     // public function news(){
     //     return view('news');
@@ -649,6 +789,10 @@ class Cricketlivescorecontroller extends Controller
    
    //  Sduling_upcoming match International
     public function sdulinginternational(){
+        $pageTitle = 'International Cricket Schedule | Criclivem';
+        $metaDescription = 'View complete international cricket schedule with match fixtures, dates, and venues. Stay updated with upcoming international cricket series and tournaments.';
+        $metaKeywords = 'international cricket schedule, cricket fixtures, international cricket calendar, upcoming international matches, cricket series schedule';
+        
         try {
             $apiUrl = env('CriBase_Url')."schedule/v1/international";
             $response = Http::withOptions([
@@ -666,13 +810,17 @@ class Cricketlivescorecontroller extends Controller
         } catch (\Exception $e) {
             $sdulinginternational = [];
             $errorMsg = $e->getMessage();
-            return view('sduling', compact('sdulinginternational', 'errorMsg'));
+            return view('sduling', compact('sdulinginternational', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
             // echo "<pre>";print_r($sdulinginternational);die;
-        return view('sduling', compact('sdulinginternational'));
+        return view('sduling', compact('sdulinginternational', 'pageTitle', 'metaDescription', 'metaKeywords'));
     }
    //  Sduling_upcoming match domestic
     public function sdulingdomestic(){
+        $pageTitle = 'Domestic Cricket Schedule | Criclivem';
+        $metaDescription = 'View domestic cricket schedule with match fixtures, dates, and venues. Stay updated with upcoming domestic cricket leagues and tournaments around the world.';
+        $metaKeywords = 'domestic cricket schedule, cricket fixtures, domestic cricket calendar, upcoming domestic matches, cricket league schedule';
+        
         try {
             $apiUrl = env('CriBase_Url')."schedule/v1/domestic";
             $response = Http::withOptions([
@@ -690,12 +838,16 @@ class Cricketlivescorecontroller extends Controller
         } catch (\Exception $e) {
             $sdulingdomestic = [];
             $errorMsg = $e->getMessage();
-            return view('sduling', compact('sdulingdomestic', 'errorMsg'));
+            return view('sduling', compact('sdulingdomestic', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
             // echo "<pre>";print_r($sdulinginternational);die;
-        return view('sduling', compact('sdulingdomestic'));
+        return view('sduling', compact('sdulingdomestic', 'pageTitle', 'metaDescription', 'metaKeywords'));
     }
     public function sdulingwomen(){
+        $pageTitle = 'Women Cricket Schedule | Criclivem';
+        $metaDescription = 'View women cricket schedule with match fixtures, dates, and venues. Stay updated with upcoming women international cricket series and tournaments.';
+        $metaKeywords = 'women cricket schedule, women cricket fixtures, women cricket calendar, upcoming women matches, women cricket series';
+        
         try {
             $apiUrl = env('CriBase_Url')."schedule/v1/women";
             $response = Http::withOptions([
@@ -713,12 +865,16 @@ class Cricketlivescorecontroller extends Controller
         } catch (\Exception $e) {
             $sdulingwomen = [];
             $errorMsg = $e->getMessage();
-            return view('sduling', compact('sdulingwomen', 'errorMsg'));
+            return view('sduling', compact('sdulingwomen', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
             // echo "<pre>";print_r($sdulingwomen);die;
-        return view('sduling', compact('sdulingwomen'));
+        return view('sduling', compact('sdulingwomen', 'pageTitle', 'metaDescription', 'metaKeywords'));
     }
     public function sdulingleague(){
+        $pageTitle = 'Cricket League Schedule | Criclivem';
+        $metaDescription = 'View cricket league schedule with match fixtures, dates, and venues. Stay updated with upcoming T20 leagues, domestic tournaments, and franchise cricket around the world.';
+        $metaKeywords = 'cricket league schedule, T20 league fixtures, cricket tournament calendar, upcoming league matches, franchise cricket schedule';
+        
         try {
             $apiUrl = env('CriBase_Url')."schedule/v1/league";
             $response = Http::withOptions([
@@ -736,10 +892,10 @@ class Cricketlivescorecontroller extends Controller
         } catch (\Exception $e) {
             $sdulingleague = [];
             $errorMsg = $e->getMessage();
-            return view('sduling', compact('sdulingleague', 'errorMsg'));
+            return view('sduling', compact('sdulingleague', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
             // echo "<pre>";print_r($sdulingleague);die;
-        return view('sduling', compact('sdulingleague'));
+        return view('sduling', compact('sdulingleague', 'pageTitle', 'metaDescription', 'metaKeywords'));
     }
 
     
@@ -752,6 +908,10 @@ class Cricketlivescorecontroller extends Controller
             'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
             'Content-Type'    => 'application/json',
         ];
+
+        $pageTitle = 'Cricket News - Latest Updates | Criclivem';
+        $metaDescription = 'Get the latest cricket news, match updates, player interviews, and cricket analysis from around the world. Stay informed with breaking cricket news and in-depth coverage.';
+        $metaKeywords = 'cricket news, latest cricket updates, cricket interviews, cricket analysis, breaking cricket news, cricket headlines, sports news';
 
         if ($headers) {
             $catResponse = Http::withOptions([
@@ -779,14 +939,14 @@ class Cricketlivescorecontroller extends Controller
                     : [];
             }
 
-            return view('news', compact('newscat', 'categories', 'activeCategoryId', 'newsItems'));
+            return view('news', compact('newscat', 'categories', 'activeCategoryId', 'newsItems', 'pageTitle', 'metaDescription', 'metaKeywords'));
         } else {
             $newscat = [];
             $categories = [];
             $activeCategoryId = null;
             $newsItems = [];
             $errorMsg = $e->getMessage();
-            return view('news', compact('newscat', 'categories', 'activeCategoryId', 'newsItems', 'errorMsg'));
+            return view('news', compact('newscat', 'categories', 'activeCategoryId', 'newsItems', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
     }
 
@@ -802,13 +962,24 @@ class Cricketlivescorecontroller extends Controller
             ])->get(env('CriBase_Url') . "news/v1/detail/{$id}");
 
             $newsDetails = $response->json();
+            
+            // Generate dynamic SEO metadata
+            $headline = $newsDetails['story']['hline'] ?? 'Cricket News';
+            $intro = $newsDetails['story']['intro'] ?? '';
+            $pageTitle = "{$headline} - Cricket News | Criclivem";
+            $metaDescription = !empty($intro) ? substr(strip_tags($intro), 0, 160) : "Read latest cricket news: {$headline}. Get detailed coverage and analysis of cricket events from around the world.";
+            $metaKeywords = "{$headline}, cricket news, cricket updates, sports news, cricket analysis";
+            
         } catch (\Exception $e) {
             $newsDetails = [];
             $errorMsg = $e->getMessage();
-            return view('news_details', compact('newsDetails', 'errorMsg'));
+            $pageTitle = 'Cricket News Details - Criclivem';
+            $metaDescription = 'Read detailed cricket news coverage and analysis from Criclivem.';
+            $metaKeywords = 'cricket news details, cricket analysis, sports news';
+            return view('news_details', compact('newsDetails', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
 
-        return view('news_details', compact('newsDetails'));
+        return view('news_details', compact('newsDetails', 'pageTitle', 'metaDescription', 'metaKeywords'));
     }
 
 
@@ -840,16 +1011,24 @@ class Cricketlivescorecontroller extends Controller
             $category = 'allrounders';
         }
 
+        // Generate dynamic SEO metadata
+        $genderTitle = ucfirst($gender);
+        $categoryTitle = ucfirst($category);
+        $formatTitle = strtoupper($format);
+        $pageTitle = "ICC {$genderTitle} Rankings - {$categoryTitle} {$formatTitle} | Criclivem";
+        $metaDescription = "View official ICC {$genderTitle} rankings for {$categoryTitle} in {$formatTitle} cricket. Get the latest player and team rankings, points, and position changes.";
+        $metaKeywords = "ICC {$genderTitle} rankings, {$categoryTitle} rankings, {$formatTitle} cricket rankings, cricket player rankings, cricket team rankings, ICC rankings table";
+
         try {
             $rankingData = $this->fetchIccRankingData($gender, $category, $format);
             $selectedItem = null;
             // echo '<pre>'; print_r($rankingData);die;
-            return view('icc_ranking', compact('rankingData', 'gender', 'category', 'format', 'selectedItem'));
+            return view('icc_ranking', compact('rankingData', 'gender', 'category', 'format', 'selectedItem', 'pageTitle', 'metaDescription', 'metaKeywords'));
         } catch (\Exception $e) {
             $rankingData = [];
             $selectedItem = null;
             $errorMsg = $e->getMessage();
-            return view('icc_ranking', compact('rankingData', 'gender', 'category', 'format', 'selectedItem', 'errorMsg'));
+            return view('icc_ranking', compact('rankingData', 'gender', 'category', 'format', 'selectedItem', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
     }
 

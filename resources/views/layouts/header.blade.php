@@ -6,33 +6,43 @@
     <meta name="X-UA-Compatible" content="IE=edge">
 
     {{-- Dynamic Page Title --}}
-    <title>@yield('title', 'Criclivem - Live Cricket Scores')</title>
+    <title>@yield('title', 'Criclivem - Live Cricket Scores, Match Updates, Schedule & News')</title>
 
     {{-- Meta Description --}}
-    @section('meta-description')
-        <meta name="description" content="Criclivem - Live cricket scores, match updates, schedules, news, and ICC rankings. Stay updated with latest cricket action from around the world.">
-    @show
+    @yield('meta-description')
+    <meta name="description" content="@yield('meta-description-content', 'Criclivem - Live cricket scores, match updates, schedules, news, and ICC rankings. Stay updated with latest cricket action from around the world including international matches, domestic leagues, and women cricket.')">
 
     {{-- Meta Keywords --}}
-    @section('meta-keywords')
-        <meta name="keywords" content="cricket, live cricket scores, cricket news, ICC rankings, cricket schedule, T20, ODI, Test cricket">
-    @show
+    @yield('meta-keywords')
+    <meta name="keywords" content="@yield('meta-keywords-content', 'cricket, live cricket scores, cricket news, ICC rankings, cricket schedule, T20, ODI, Test cricket, IPL, BBL, CPL, international cricket, domestic cricket, women cricket')">
 
     {{-- Canonical URL --}}
     <link rel="canonical" href="{{ url()->current() }}">
 
+    {{-- Robots Meta --}}
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
     {{-- Open Graph Meta Tags --}}
-    <meta property="og:title" content="@yield('title', 'Criclivem - Live Cricket Scores')">
-    <meta property="og:description" content="@yield('meta-description', 'Criclivem - Live cricket scores, match updates, schedules, news, and ICC rankings.')">
+    <meta property="og:title" content="@yield('title', 'Criclivem - Live Cricket Scores, Match Updates, Schedule & News')">
+    <meta property="og:description" content="@yield('meta-description-content', 'Criclivem - Live cricket scores, match updates, schedules, news, and ICC rankings. Stay updated with latest cricket action from around the world.')">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:image" content="{{ asset('images/criclivem-og.jpg') }}">
+    <meta property="og:image" content="@yield('og-image', asset('images/criclivem-og.jpg'))">
+    <meta property="og:site_name" content="Criclivem">
+    <meta property="og:locale" content="en_US">
 
     {{-- Twitter Card Meta Tags --}}
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="@yield('title', 'Criclivem - Live Cricket Scores')">
-    <meta name="twitter:description" content="@yield('meta-description', 'Criclivem - Live cricket scores, match updates, schedules, news, and ICC rankings.')">
-    <meta name="twitter:image" content="{{ asset('images/criclivem-og.jpg') }}">
+    <meta name="twitter:title" content="@yield('title', 'Criclivem - Live Cricket Scores, Match Updates, Schedule & News')">
+    <meta name="twitter:description" content="@yield('meta-description-content', 'Criclivem - Live cricket scores, match updates, schedules, news, and ICC rankings.')">
+    <meta name="twitter:image" content="@yield('og-image', asset('images/criclivem-og.jpg'))">
+    <meta name="twitter:site" content="@criclivem">
+
+    {{-- Additional SEO Meta Tags --}}
+    <meta name="theme-color" content="#053259">
+    <meta name="msapplication-TileColor" content="#053259">
+    <link rel="preconnect" href="https://static.cricbuzz.com">
+    <link rel="dns-prefetch" href="https://static.cricbuzz.com">
 
     {{-- Laravel Reverb Configuration --}}
     <meta name="reverb-app-key" content="{{ env('REVERB_APP_KEY') }}">
@@ -71,9 +81,9 @@
                                 <a class="nav-link link active" aria-current="page"
                                     href="{{ route('home') }}">Live Score</a>
                             </li>
-                            <li class="nav-item">
+                            <!-- <li class="nav-item">
                                 <a class="nav-link link" href="{{ route('upcoming-matches') }}">Upcoming</a>
-                            </li>
+                            </li> -->
                             <li class="nav-item">
                                 <a class="nav-link link" href="{{ route('schedule-international') }}">schedule</a>
                             </li>

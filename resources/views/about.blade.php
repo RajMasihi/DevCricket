@@ -1,5 +1,15 @@
 @extends('layouts.main')
-<title>@yield('title', 'About Us')</title>
+
+@section('title', $pageTitle ?? 'About Us - Criclivem')
+
+@section('meta-description')
+    <meta name="description" content="{{ $metaDescription ?? 'Learn about Criclivem - your premier destination for live cricket scores, match updates, schedules, news, and ICC rankings.' }}">
+@endsection
+
+@section('meta-keywords')
+    <meta name="keywords" content="{{ $metaKeywords ?? 'about criclivem, cricket platform, live cricket scores, cricket news, about us' }}">
+@endsection
+
 @section('main-container')
  <div class="container-fluit main-section">
 <h4> About Us</h4>

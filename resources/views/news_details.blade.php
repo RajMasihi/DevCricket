@@ -1,6 +1,14 @@
 @extends('layouts.main')
 
-@section('title', 'News Details')
+@section('title', $pageTitle ?? 'News Details - Criclivem')
+
+@section('meta-description')
+    <meta name="description" content="{{ $metaDescription ?? 'Read detailed cricket news coverage and analysis from Criclivem.' }}">
+@endsection
+
+@section('meta-keywords')
+    <meta name="keywords" content="{{ $metaKeywords ?? 'cricket news details, cricket analysis, sports news' }}">
+@endsection
 
 @section('main-container')
     <div class="container-fluid main-section">

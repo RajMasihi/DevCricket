@@ -1,6 +1,14 @@
 @extends('layouts.main')
 
-@section('title', 'News')
+@section('title', 'Cricket News - Latest Updates | Criclivem')
+
+@section('meta-description')
+    <meta name="description" content="Get the latest cricket news, match updates, player interviews, and cricket analysis from around the world. Stay informed with breaking cricket news and in-depth coverage.">
+@endsection
+
+@section('meta-keywords')
+    <meta name="keywords" content="cricket news, latest cricket updates, cricket interviews, cricket analysis, breaking cricket news, cricket headlines, sports news">
+@endsection
 
 @section('main-container')
     
@@ -64,9 +72,36 @@
                                         @if(!empty($intro))
                                             <p class="card-text">{{ $intro }}</p>
                                         @endif
+                                        {{-- Match Time/Status Display --}}
+                                        @if(isset($story['matchTime']) && !empty($story['matchTime']))
+                                            <div class="mt-2 pt-2 border-top">
+                                                @php
+                                                    $matchState = $story['matchState'] ?? '';
+                                                    $matchStatus = $story['matchStatus'] ?? '';
+                                                @endphp
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="text-muted" style="font-size: 12px;">
+                                                        <i class="far fa-clock"></i> {{ $story['matchTime'] }}
+                                                    </span>
+                                                    @if($matchState === 'in progress')
+                                                        <span class="badge bg-success" style="font-size: 10px;">Live</span>
+                                                    @elseif($matchState === 'complete')
+                                                        <span class="badge bg-danger" style="font-size: 10px;">Result</span>
+                                                    @elseif($matchState === 'upcoming')
+                                                        <span class="badge bg-secondary" style="font-size: 10px;">Upcoming</span>
+                                                    @endif
+                                                </div>
+                                                @if(!empty($matchStatus))
+                                                    <p class="text-muted mb-0" style="font-size: 11px;">{{ $matchStatus }}</p>
+                                                @endif
+                                            </div>
+                                        @endif
                                     </div>
                                     <div class="card-footer d-flex justify-content-between">
                                         <small class="text-muted">{{ $publishedTime }}</small>
+                                        @if(!empty($source))
+                                            <small class="text-muted">{{ $source }}</small>
+                                        @endif
                                     </div>
                                 </div>
                             </a>

@@ -1,6 +1,14 @@
 @extends('layouts.main')
 
-@section('title', $scorecardDatainfo['appindex']['seotitle'] ?? ($scorecardDatainfo['seriesname'] ?? 'Match Details'))
+@section('title', $pageTitle ?? ($scorecardDatainfo['appindex']['seotitle'] ?? ($scorecardDatainfo['seriesname'] ?? 'Match Details')))
+
+@section('meta-description')
+    <meta name="description" content="{{ $metaDescription ?? 'View detailed cricket match information, scorecard, and live commentary on Criclivem.' }}">
+@endsection
+
+@section('meta-keywords')
+    <meta name="keywords" content="{{ $metaKeywords ?? 'cricket match details, live scorecard, cricket commentary, match statistics' }}">
+@endsection
 
 @section('main-container')
     @php

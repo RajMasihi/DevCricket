@@ -1,10 +1,14 @@
 @extends('layouts.main')
 
-@section('title', 'ICC Rankings - Criclivem')
+@section('title', $pageTitle ?? 'ICC Rankings - Criclivem')
 
-@section('meta-description', 'View latest ICC cricket rankings for {{ $activeGender === "mens" ? "men" : "women" }} across all formats - Test, ODI, T20. Check player rankings for batsmen, bowlers, all-rounders, and team rankings.')
+@section('meta-description')
+    <meta name="description" content="{{ $metaDescription ?? 'View latest ICC cricket rankings across all formats - Test, ODI, T20. Check player rankings for batsmen, bowlers, all-rounders, and team rankings.' }}">
+@endsection
 
-@section('meta-keywords', 'ICC rankings, cricket rankings, ICC player rankings, {{ $activeFormat }} rankings, {{ $activeCategory }} rankings, {{ $activeGender }} cricket rankings')
+@section('meta-keywords')
+    <meta name="keywords" content="{{ $metaKeywords ?? 'ICC rankings, cricket rankings, ICC player rankings, cricket team rankings, Test rankings, ODI rankings, T20 rankings' }}">
+@endsection
 
 @section('main-container')
     <style>

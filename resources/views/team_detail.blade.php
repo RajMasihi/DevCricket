@@ -1,10 +1,14 @@
 @extends('layouts.main')
 
-@section('title', 'Team Details - Criclivem')
+@section('title', $pageTitle ?? 'Team Details - Criclivem')
 
-@section('meta-description', 'View detailed team information including squad, players for T20, ODI, and Test formats.')
+@section('meta-description')
+    <meta name="description" content="{{ $metaDescription ?? 'View detailed team information including squad, players for T20, ODI, and Test formats.' }}">
+@endsection
 
-@section('meta-keywords', 'team details, cricket squad, team players, T20 players, ODI players, Test players')
+@section('meta-keywords')
+    <meta name="keywords" content="{{ $metaKeywords ?? 'team details, cricket squad, team players, T20 players, ODI players, Test players' }}">
+@endsection
 
 @section('main-container')
 <div class="container-fluid main-section">

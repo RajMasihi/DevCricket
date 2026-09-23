@@ -1,10 +1,14 @@
 @extends('layouts.main')
 
-@section('title', 'Cricket Schedule - Criclivem')
+@section('title', $pageTitle ?? 'Cricket Schedule - Criclivem')
 
-@section('meta-description', 'View complete cricket schedule for international, domestic, league, and women matches. Get upcoming fixtures, match dates, and time details.')
+@section('meta-description')
+    <meta name="description" content="{{ $metaDescription ?? 'View complete cricket schedule for international, domestic, league, and women matches. Get upcoming fixtures, match dates, and time details.' }}">
+@endsection
 
-@section('meta-keywords', 'cricket schedule, upcoming matches, international cricket schedule, domestic cricket, women cricket, league cricket, match fixtures')
+@section('meta-keywords')
+    <meta name="keywords" content="{{ $metaKeywords ?? 'cricket schedule, upcoming matches, international cricket schedule, domestic cricket, women cricket, league cricket, match fixtures' }}">
+@endsection
 
 @section('main-container')
 <style>
