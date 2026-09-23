@@ -4,58 +4,82 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Cricketlivescorecontroller;
-// Route::get('/', function () {
-//     return view('index');
-// });
 
-Route::view('/about', 'about');
-Route::view('/contact', 'contact');
-Route::view('/privacy', 'privacy');
-Route::view('/gallary', 'gallary');
-// Route::view('/news-odi', 'news');
-// Route::view('/news-t20', 'news');
-// Route::view('/test', 'test');
-// Route::view('/sduling', 'sduling');
-// Route::view('/series', 'series');
-// Route::view('/result', 'result');
-// Route::get('/match', [Cricketlivescorecontroller::class, 'showLiveMatches']);
+// Static Pages with SEO-friendly URLs
+Route::get('/about', [Cricketlivescorecontroller::class, 'about'])->name('about');
+Route::get('/contact', [Cricketlivescorecontroller::class, 'contact'])->name('contact');
+Route::get('/privacy-policy', [Cricketlivescorecontroller::class, 'privacy'])->name('privacy');
+Route::get('/gallery', [Cricketlivescorecontroller::class, 'gallery'])->name('gallery');
 
-// Route::get('/live',[Cricketlivescorecontroller::class,'Cricketlive']);
+// Legacy URL redirects for static pages
+Route::permanentRedirect('/privacy', '/privacy-policy');
+Route::permanentRedirect('/gallary', '/gallery');
 
-//main line 
-Route::get('/',[Cricketlivescorecontroller::class,'CricketliveScores']);
-Route::get('/upcoming',[Cricketlivescorecontroller::class,'upcoming']);
-Route::get('/result', [Cricketlivescorecontroller::class,'result']);
-// Sduling match Route
-Route::get('/sduling/international',[Cricketlivescorecontroller::class,'sdulinginternational']);
-Route::get('/sduling/domestic',[Cricketlivescorecontroller::class,'sdulingdomestic']);
-Route::get('/sduling/womens',[Cricketlivescorecontroller::class,'sdulingwomen']);
-Route::get('/sduling/league',[Cricketlivescorecontroller::class,'sdulingleague']);
-// news
-Route::get('/news',[Cricketlivescorecontroller::class,'newscat']);
-Route::get('/news/{id}/{name}',[Cricketlivescorecontroller::class,'newscatdetail']);
-// icc ranking
-Route::get('/icc-ranking/mens',[Cricketlivescorecontroller::class,'icc_ranking']);
-Route::get('/icc-ranking/womens',[Cricketlivescorecontroller::class,'icc_ranking']);
-Route::get('/icc-ranking/{gender}/{category?}/{format?}', [Cricketlivescorecontroller::class, 'icc_ranking']);
-Route::get('/icc-ranking/{gender}/{category}/{format}/{id}/{name?}', [Cricketlivescorecontroller::class, 'icc_ranking_detail']);
-// teams Route
-Route::get('/teams/international',[Cricketlivescorecontroller::class,'teamsinternational']);
-Route::get('/teams/domestic',[Cricketlivescorecontroller::class,'teamsdomestic']);
-Route::get('/teams/womens',[Cricketlivescorecontroller::class,'teamswomens']);
-Route::get('/teams/league',[Cricketlivescorecontroller::class,'teamsleague']);
-// series Route
-Route::get('/series',[Cricketlivescorecontroller::class,'series']);
-Route::get('/serieslist/{id}/{seriesname}', [Cricketlivescorecontroller::class, 'serieslist']);
-// scoreboard 
-Route::get('/score/{id}/{name}', [Cricketlivescorecontroller::class, 'matchDetail']);
-Route::get('/score-scoreboard/{id}/{name}', function (string $id, string $name) {
-    return redirect("/score/{$id}/{$name}?tab=scoreboard");
-});
-Route::get('/score-player/{id}/{name}', function (string $id, string $name) {
-    return redirect("/score/{$id}/{$name}?tab=players");
-});
-// point table
-Route::get('/point-table/{id}/{seriesname}',[Cricketlivescorecontroller::class,'showSeriesPoints']);
-Route::get('/stats/{id}/{seriesname}',[Cricketlivescorecontroller::class,'stats']);
+// Main Live Score Page
+Route::get('/', [Cricketlivescorecontroller::class, 'CricketliveScores'])->name('home');
+Route::get('/live-cricket-scores', [Cricketlivescorecontroller::class, 'CricketliveScores'])->name('live-scores');
+
+// Match Categories with SEO-friendly URLs
+Route::get('/cricket-schedule/upcoming', [Cricketlivescorecontroller::class, 'upcoming'])->name('upcoming-matches');
+Route::get('/cricket-results', [Cricketlivescorecontroller::class, 'result'])->name('match-results');
+
+// Schedule Routes with better URL structure
+Route::get('/cricket-schedule/international', [Cricketlivescorecontroller::class, 'sdulinginternational'])->name('schedule-international');
+Route::get('/cricket-schedule/domestic', [Cricketlivescorecontroller::class, 'sdulingdomestic'])->name('schedule-domestic');
+Route::get('/cricket-schedule/womens', [Cricketlivescorecontroller::class, 'sdulingwomen'])->name('schedule-womens');
+Route::get('/cricket-schedule/league', [Cricketlivescorecontroller::class, 'sdulingleague'])->name('schedule-league');
+
+// News Routes with SEO-friendly URLs
+Route::get('/cricket-news', [Cricketlivescorecontroller::class, 'newscat'])->name('news');
+Route::get('/cricket-news/{id}/{slug}', [Cricketlivescorecontroller::class, 'newscatdetail'])->name('news-detail');
+
+// ICC Ranking Routes with better structure
+Route::get('/icc-rankings/mens', [Cricketlivescorecontroller::class, 'icc_ranking'])->name('icc-rankings-mens');
+Route::get('/icc-rankings/womens', [Cricketlivescorecontroller::class, 'icc_ranking'])->name('icc-rankings-womens');
+Route::get('/icc-rankings/{gender}/{category?}/{format?}', [Cricketlivescorecontroller::class, 'icc_ranking'])->name('icc-rankings');
+Route::get('/icc-rankings/{gender}/{category}/{format}/{id}/{slug?}', [Cricketlivescorecontroller::class, 'icc_ranking_detail'])->name('icc-rankings-detail');
+
+// Teams Routes with better URL structure
+Route::get('/cricket-teams/international', [Cricketlivescorecontroller::class, 'teamsinternational'])->name('teams-international');
+Route::get('/cricket-teams/domestic', [Cricketlivescorecontroller::class, 'teamsdomestic'])->name('teams-domestic');
+Route::get('/cricket-teams/womens', [Cricketlivescorecontroller::class, 'teamswomens'])->name('teams-womens');
+Route::get('/cricket-teams/league', [Cricketlivescorecontroller::class, 'teamsleague'])->name('teams-league');
+Route::get('/cricket-teams/{id}/{slug?}', [Cricketlivescorecontroller::class, 'teamDetail'])->name('team-detail');
+
+// Series Routes with SEO-friendly URLs
+Route::get('/cricket-series', [Cricketlivescorecontroller::class, 'series'])->name('series');
+Route::get('/cricket-series/{id}/{slug}', [Cricketlivescorecontroller::class, 'serieslist'])->name('series-detail');
+
+// Match Scorecard Routes with better structure
+Route::get('/live-cricket-score/{id}/{slug}', [Cricketlivescorecontroller::class, 'matchDetail'])->name('match-detail');
+Route::get('/match-scoreboard/{id}/{slug}', function (string $id, string $slug) {
+    return redirect("/live-cricket-score/{$id}/{$slug}?tab=scoreboard");
+})->name('match-scoreboard');
+Route::get('/match-players/{id}/{slug}', function (string $id, string $slug) {
+    return redirect("/live-cricket-score/{$id}/{$slug}?tab=players");
+})->name('match-players');
+
+// Point Table and Stats Routes
+Route::get('/point-table/{id}/{slug}', [Cricketlivescorecontroller::class, 'showSeriesPoints'])->name('point-table');
+Route::get('/series-stats/{id}/{slug}', [Cricketlivescorecontroller::class, 'stats'])->name('series-stats');
+
+// Legacy URL redirects for SEO (301 permanent redirects)
+Route::permanentRedirect('/upcoming', '/cricket-schedule/upcoming');
+Route::permanentRedirect('/result', '/cricket-results');
+Route::permanentRedirect('/news', '/cricket-news');
+Route::permanentRedirect('/sduling/international', '/cricket-schedule/international');
+Route::permanentRedirect('/sduling/domestic', '/cricket-schedule/domestic');
+Route::permanentRedirect('/sduling/womens', '/cricket-schedule/womens');
+Route::permanentRedirect('/sduling/league', '/cricket-schedule/league');
+Route::permanentRedirect('/teams/international', '/cricket-teams/international');
+Route::permanentRedirect('/teams/domestic', '/cricket-teams/domestic');
+Route::permanentRedirect('/teams/womens', '/cricket-teams/womens');
+Route::permanentRedirect('/teams/league', '/cricket-teams/league');
+Route::permanentRedirect('/series', '/cricket-series');
+Route::permanentRedirect('/icc-ranking/mens', '/icc-rankings/mens');
+Route::permanentRedirect('/icc-ranking/womens', '/icc-rankings/womens');
+Route::permanentRedirect('/score/{id}/{name}', '/live-cricket-score/{id}/{name}');
+
+// Sitemap
+Route::get('/sitemap.xml', [Cricketlivescorecontroller::class, 'sitemap'])->name('sitemap');
 

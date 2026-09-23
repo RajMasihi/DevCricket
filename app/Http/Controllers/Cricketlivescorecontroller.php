@@ -9,6 +9,33 @@ use Illuminate\Support\Facades\Http;
 class Cricketlivescorecontroller extends Controller
 {
     public function __construct(private CricbuzzApiService $cricbuzzApi) {}
+
+    // Static Pages
+    public function about()
+    {
+        return view('about');
+    }
+
+    public function contact()
+    {
+        return view('contact');
+    }
+
+    public function privacy()
+    {
+        return view('privacy');
+    }
+
+    public function gallery()
+    {
+        return view('gallery');
+    }
+
+    public function sitemap()
+    {
+        return response()->view('sitemap')->header('Content-Type', 'application/xml');
+    }
+
     // serires match function start
     public function series()
     {
@@ -91,6 +118,47 @@ class Cricketlivescorecontroller extends Controller
     {
         $liveMatches = $this->cricbuzzApi->liveMatches();
         $recentMatches = $this->cricbuzzApi->recentMatches();
+        $upcomingMatches = $this->cricbuzzApi->upcomingMatches();
+        
+        // Fetch news data
+        $headers = [
+            'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
+            'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
+            'Content-Type'    => 'application/json',
+        ];
+        
+        $newsItems = [];
+        $categories = [];
+        
+        try {
+            // Get news categories
+            $catResponse = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders($headers)->get(env('CriBase_Url') . "news/v1/cat");
+            $newscat = $catResponse->json();
+            
+            $categories = isset($newscat['storyType']) && is_array($newscat['storyType'])
+                ? $newscat['storyType']
+                : [];
+            
+            // Get news from first category (or default category)
+            if (!empty($categories) && isset($categories[0]) && isset($categories[0]['id'])) {
+                $activeCategoryId = $categories[0]['id'];
+                if (!empty($activeCategoryId)) {
+                    $listResponse = Http::withOptions([
+                        'verify' => false,
+                    ])->withHeaders($headers)->get(env('CriBase_Url') . "news/v1/cat/{$activeCategoryId}");
+                    $newsData = $listResponse->json();
+                    $newsItems = isset($newsData['storyList']) && is_array($newsData['storyList'])
+                        ? array_slice($newsData['storyList'], 0, 5) // Get first 5 news items
+                        : [];
+                }
+            }
+        } catch (\Exception $e) {
+            // Handle error silently, news will just be empty
+            $categories = [];
+            $newsItems = [];
+        }
         
         // Format overs with conversion for live matches
         foreach ($liveMatches as &$match) {
@@ -108,14 +176,33 @@ class Cricketlivescorecontroller extends Controller
         }
         
         // Format overs with conversion for recent matches
-        foreach ($recentMatches as &$match) {
-            if (isset($match['matchScore']) && is_array($match['matchScore'])) {
-                foreach ($match['matchScore'] as $teamKey => $teamScore) {
-                    foreach (['inngs1', 'inngs2'] as $innings) {
-                        if (isset($teamScore[$innings]['overs'])) {
-                            $originalOver = $teamScore[$innings]['overs'];
-                            $match['matchScore'][$teamKey][$innings]['overs_display'] = $this->cricbuzzApi->formatOverDisplay($originalOver)['display'];
-                            $match['matchScore'][$teamKey][$innings]['overs_original'] = $originalOver;
+        if (is_array($recentMatches)) {
+            foreach ($recentMatches as &$match) {
+                if (isset($match['matchScore']) && is_array($match['matchScore'])) {
+                    foreach ($match['matchScore'] as $teamKey => $teamScore) {
+                        foreach (['inngs1', 'inngs2'] as $innings) {
+                            if (isset($teamScore[$innings]['overs'])) {
+                                $originalOver = $teamScore[$innings]['overs'];
+                                $match['matchScore'][$teamKey][$innings]['overs_display'] = $this->cricbuzzApi->formatOverDisplay($originalOver)['display'];
+                                $match['matchScore'][$teamKey][$innings]['overs_original'] = $originalOver;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Format overs with conversion for upcoming matches
+        if (is_array($upcomingMatches)) {
+            foreach ($upcomingMatches as &$match) {
+                if (isset($match['matchScore']) && is_array($match['matchScore'])) {
+                    foreach ($match['matchScore'] as $teamKey => $teamScore) {
+                        foreach (['inngs1', 'inngs2'] as $innings) {
+                            if (isset($teamScore[$innings]['overs'])) {
+                                $originalOver = $teamScore[$innings]['overs'];
+                                $match['matchScore'][$teamKey][$innings]['overs_display'] = $this->cricbuzzApi->formatOverDisplay($originalOver)['display'];
+                                $match['matchScore'][$teamKey][$innings]['overs_original'] = $originalOver;
+                            }
                         }
                     }
                 }
@@ -124,21 +211,25 @@ class Cricketlivescorecontroller extends Controller
         
         // Determine which matches to display
         $matchesToDisplay = [];
-        $hasLiveMatches = count($liveMatches) > 0;
+        $hasLiveMatches = is_array($liveMatches) && count($liveMatches) > 0;
         
         if ($hasLiveMatches) {
             // Display live matches and some recent matches
-            $matchesToDisplay = array_merge($liveMatches, array_slice($recentMatches, 0, 3));
+            $recentToDisplay = is_array($recentMatches) ? array_slice($recentMatches, 0, 3) : [];
+            $matchesToDisplay = array_merge($liveMatches, $recentToDisplay);
         } else {
             // Display 3 recent matches when no live matches
-            $matchesToDisplay = array_slice($recentMatches, 0, 4);
+            $matchesToDisplay = is_array($recentMatches) ? array_slice($recentMatches, 0, 4) : [];
         }
         
         return view('index', [
             'matches' => $matchesToDisplay,
             'liveMatches' => $liveMatches,
             'recentMatches' => $recentMatches,
+            'upcomingMatches' => $upcomingMatches,
             'hasLiveMatches' => $hasLiveMatches,
+            'newsItems' => $newsItems,
+            'categories' => $categories,
             'error' => null,
         ]);
 
@@ -147,24 +238,127 @@ class Cricketlivescorecontroller extends Controller
     public function upcoming()
     {
         $matches = $this->cricbuzzApi->upcomingMatches();
+        $liveMatches = $this->cricbuzzApi->liveMatches();
+        $recentMatches = $this->cricbuzzApi->recentMatches();
 
         // Format overs with conversion for all matches
-        foreach ($matches as &$match) {
-            if (isset($match['matchScore']) && is_array($match['matchScore'])) {
-                foreach ($match['matchScore'] as $teamKey => $teamScore) {
-                    foreach (['inngs1', 'inngs2'] as $innings) {
-                        if (isset($teamScore[$innings]['overs'])) {
-                            $originalOver = $teamScore[$innings]['overs'];
-                            $match['matchScore'][$teamKey][$innings]['overs_display'] = $this->cricbuzzApi->formatOverDisplay($originalOver)['display'];
-                            $match['matchScore'][$teamKey][$innings]['overs_original'] = $originalOver;
+        if (is_array($matches)) {
+            foreach ($matches as &$match) {
+                if (isset($match['matchScore']) && is_array($match['matchScore'])) {
+                    foreach ($match['matchScore'] as $teamKey => $teamScore) {
+                        foreach (['inngs1', 'inngs2'] as $innings) {
+                            if (isset($teamScore[$innings]['overs'])) {
+                                $originalOver = $teamScore[$innings]['overs'];
+                                $match['matchScore'][$teamKey][$innings]['overs_display'] = $this->cricbuzzApi->formatOverDisplay($originalOver)['display'];
+                                $match['matchScore'][$teamKey][$innings]['overs_original'] = $originalOver;
+                            }
                         }
                     }
                 }
             }
         }
 
+        // Format overs for live matches
+        if (is_array($liveMatches)) {
+            foreach ($liveMatches as &$match) {
+                if (isset($match['matchScore']) && is_array($match['matchScore'])) {
+                    foreach ($match['matchScore'] as $teamKey => $teamScore) {
+                        foreach (['inngs1', 'inngs2'] as $innings) {
+                            if (isset($teamScore[$innings]['overs'])) {
+                                $originalOver = $teamScore[$innings]['overs'];
+                                $match['matchScore'][$teamKey][$innings]['overs_display'] = $this->cricbuzzApi->formatOverDisplay($originalOver)['display'];
+                                $match['matchScore'][$teamKey][$innings]['overs_original'] = $originalOver;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Format overs for recent matches
+        if (is_array($recentMatches)) {
+            foreach ($recentMatches as &$match) {
+                if (isset($match['matchScore']) && is_array($match['matchScore'])) {
+                    foreach ($match['matchScore'] as $teamKey => $teamScore) {
+                        foreach (['inngs1', 'inngs2'] as $innings) {
+                            if (isset($teamScore[$innings]['overs'])) {
+                                $originalOver = $teamScore[$innings]['overs'];
+                                $match['matchScore'][$teamKey][$innings]['overs_display'] = $this->cricbuzzApi->formatOverDisplay($originalOver)['display'];
+                                $match['matchScore'][$teamKey][$innings]['overs_original'] = $originalOver;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Fetch news data
+        $headers = [
+            'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
+            'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
+            'Content-Type'    => 'application/json',
+        ];
+        
+        $newsItems = [];
+        $categories = [];
+        
+        try {
+            // Get news categories
+            $catResponse = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders($headers)->get(env('CriBase_Url') . "news/v1/cat");
+            $newscat = $catResponse->json();
+            
+            $categories = isset($newscat['storyType']) && is_array($newscat['storyType'])
+                ? $newscat['storyType']
+                : [];
+            
+            // Get news from first category (or default category)
+            if (!empty($categories) && isset($categories[0]) && isset($categories[0]['id'])) {
+                $activeCategoryId = $categories[0]['id'];
+                if (!empty($activeCategoryId)) {
+                    $listResponse = Http::withOptions([
+                        'verify' => false,
+                    ])->withHeaders($headers)->get(env('CriBase_Url') . "news/v1/cat/{$activeCategoryId}");
+                    $newsData = $listResponse->json();
+                    $newsItems = isset($newsData['storyList']) && is_array($newsData['storyList'])
+                        ? array_slice($newsData['storyList'], 0, 5) // Get first 5 news items
+                        : [];
+                }
+            }
+        } catch (\Exception $e) {
+            // Handle error silently, news will just be empty
+            $categories = [];
+            $newsItems = [];
+        }
+
+        // For upcoming page, prioritize upcoming matches but show some live/recent if available
+        $matchesToDisplay = [];
+        $hasLiveMatches = is_array($liveMatches) && count($liveMatches) > 0;
+        
+        // Always show upcoming matches first on the upcoming page
+        if (is_array($matches) && count($matches) > 0) {
+            $matchesToDisplay = $matches;
+        }
+        
+        // If no upcoming matches, show live matches
+        if (count($matchesToDisplay) === 0 && $hasLiveMatches) {
+            $matchesToDisplay = $liveMatches;
+        }
+        
+        // If still no matches, show recent matches
+        if (count($matchesToDisplay) === 0 && is_array($recentMatches) && count($recentMatches) > 0) {
+            $matchesToDisplay = array_slice($recentMatches, 0, 4);
+        }
+    
         return view('index', [
-            'sduling' => $matches,
+            'matches' => $matchesToDisplay,
+            'liveMatches' => $liveMatches,
+            'recentMatches' => $recentMatches,
+            'upcomingMatches' => $matches,
+            'hasLiveMatches' => $hasLiveMatches,
+            'newsItems' => $newsItems,
+            'categories' => $categories,
             'error' => null,
         ]);
     }
@@ -335,8 +529,8 @@ class Cricketlivescorecontroller extends Controller
         return view('stats', compact('statsData', 'pointtable', 'activeTab'));
     }
     public function teamsinternational(){
-        $apiUrl = env('CriBase_Url')."teams/v1/international";
-        if ($apiUrl) {
+        try {
+            $apiUrl = env('CriBase_Url')."teams/v1/international";
             $response = Http::withOptions([
                 'verify' => false,
             ])->withHeaders([
@@ -346,7 +540,10 @@ class Cricketlivescorecontroller extends Controller
             ])->get($apiUrl);
 
             $teamsinternational = $response->json();
-        } else {
+            if (!is_array($teamsinternational)) {
+                $teamsinternational = [];
+            }
+        } catch (\Exception $e) {
             $teamsinternational = [];
             $errorMsg = $e->getMessage();
             return view('teams', compact('teamsinternational', 'errorMsg'));
@@ -355,8 +552,8 @@ class Cricketlivescorecontroller extends Controller
         return view('teams', compact('teamsinternational'));
     }
     public function teamsdomestic(){
-        $apiUrl = env('CriBase_Url')."teams/v1/domestic";
-        if ($apiUrl) {
+        try {
+            $apiUrl = env('CriBase_Url')."teams/v1/domestic";
             $response = Http::withOptions([
                 'verify' => false,
             ])->withHeaders([
@@ -366,7 +563,10 @@ class Cricketlivescorecontroller extends Controller
             ])->get($apiUrl);
 
             $teamsDomestic = $response->json();
-        } else {
+            if (!is_array($teamsDomestic)) {
+                $teamsDomestic = [];
+            }
+        } catch (\Exception $e) {
             $teamsDomestic = [];
             $errorMsg = $e->getMessage();
             return view('teams', compact('teamsDomestic', 'errorMsg'));
@@ -375,8 +575,8 @@ class Cricketlivescorecontroller extends Controller
         return view('teams', compact('teamsDomestic'));
     }
     public function teamswomens(){
-        $apiUrl = env('CriBase_Url')."teams/v1/women";
-        if ($apiUrl) {
+        try {
+            $apiUrl = env('CriBase_Url')."teams/v1/women";
             $response = Http::withOptions([
                 'verify' => false,
             ])->withHeaders([
@@ -386,7 +586,10 @@ class Cricketlivescorecontroller extends Controller
             ])->get($apiUrl);
 
             $teamsWomens = $response->json();
-        } else {
+            if (!is_array($teamsWomens)) {
+                $teamsWomens = [];
+            }
+        } catch (\Exception $e) {
             $teamsWomens = [];
             $errorMsg = $e->getMessage();
             return view('teams', compact('teamsWomens', 'errorMsg'));
@@ -395,8 +598,8 @@ class Cricketlivescorecontroller extends Controller
         return view('teams', compact('teamsWomens'));
     }
     public function teamsleague(){
-        $apiUrl = env('CriBase_Url')."teams/v1/league";
-        if ($apiUrl) {
+        try {
+            $apiUrl = env('CriBase_Url')."teams/v1/league";
             $response = Http::withOptions([
                 'verify' => false,
             ])->withHeaders([
@@ -406,7 +609,10 @@ class Cricketlivescorecontroller extends Controller
             ])->get($apiUrl);
 
             $teamsleague = $response->json();
-        } else {
+            if (!is_array($teamsleague)) {
+                $teamsleague = [];
+            }
+        } catch (\Exception $e) {
             $teamsleague = [];
             $errorMsg = $e->getMessage();
             return view('teams', compact('teamsleague', 'errorMsg'));
@@ -414,15 +620,37 @@ class Cricketlivescorecontroller extends Controller
             // echo "<pre>";print_r($teamsleague);die;
         return view('teams', compact('teamsleague'));
     }
+
+    public function teamDetail($id)
+    {
+        try {
+            $apiUrl = env('CriBase_Url') . "teams/v1/{$id}";
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
+                'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
+                'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
+                'Content-Type'    => 'application/json',
+            ])->get($apiUrl);
+
+            $teamDetail = $response->json();
+        } catch (\Exception $e) {
+            $teamDetail = [];
+            $errorMsg = $e->getMessage();
+            return view('team_detail', compact('teamDetail', 'errorMsg'));
+        }
+
+        return view('team_detail', compact('teamDetail'));
+    }
     // public function news(){
     //     return view('news');
         
     // }
    
-   //  Sduling_upcoming match International 
+   //  Sduling_upcoming match International
     public function sdulinginternational(){
-        $apiUrl = env('CriBase_Url')."schedule/v1/International?lastTime=1729555200000";
-        if ($apiUrl) {
+        try {
+            $apiUrl = env('CriBase_Url')."schedule/v1/international";
             $response = Http::withOptions([
                 'verify' => false,
             ])->withHeaders([
@@ -432,7 +660,10 @@ class Cricketlivescorecontroller extends Controller
             ])->get($apiUrl);
 
             $sdulinginternational = $response->json();
-        } else {
+            if (!is_array($sdulinginternational)) {
+                $sdulinginternational = [];
+            }
+        } catch (\Exception $e) {
             $sdulinginternational = [];
             $errorMsg = $e->getMessage();
             return view('sduling', compact('sdulinginternational', 'errorMsg'));
@@ -440,10 +671,10 @@ class Cricketlivescorecontroller extends Controller
             // echo "<pre>";print_r($sdulinginternational);die;
         return view('sduling', compact('sdulinginternational'));
     }
-   //  Sduling_upcoming match domestic 
+   //  Sduling_upcoming match domestic
     public function sdulingdomestic(){
-        $apiUrl = env('CriBase_Url')."schedule/v1/domestic?lastTime=1729555200000";
-        if ($apiUrl) {
+        try {
+            $apiUrl = env('CriBase_Url')."schedule/v1/domestic";
             $response = Http::withOptions([
                 'verify' => false,
             ])->withHeaders([
@@ -453,7 +684,10 @@ class Cricketlivescorecontroller extends Controller
             ])->get($apiUrl);
 
             $sdulingdomestic = $response->json();
-        } else {
+            if (!is_array($sdulingdomestic)) {
+                $sdulingdomestic = [];
+            }
+        } catch (\Exception $e) {
             $sdulingdomestic = [];
             $errorMsg = $e->getMessage();
             return view('sduling', compact('sdulingdomestic', 'errorMsg'));
@@ -462,8 +696,8 @@ class Cricketlivescorecontroller extends Controller
         return view('sduling', compact('sdulingdomestic'));
     }
     public function sdulingwomen(){
-        $apiUrl = env('CriBase_Url')."schedule/v1/women?lastTime=1729555200000";
-        if ($apiUrl) {
+        try {
+            $apiUrl = env('CriBase_Url')."schedule/v1/women";
             $response = Http::withOptions([
                 'verify' => false,
             ])->withHeaders([
@@ -473,7 +707,10 @@ class Cricketlivescorecontroller extends Controller
             ])->get($apiUrl);
 
             $sdulingwomen = $response->json();
-        } else {
+            if (!is_array($sdulingwomen)) {
+                $sdulingwomen = [];
+            }
+        } catch (\Exception $e) {
             $sdulingwomen = [];
             $errorMsg = $e->getMessage();
             return view('sduling', compact('sdulingwomen', 'errorMsg'));
@@ -482,8 +719,8 @@ class Cricketlivescorecontroller extends Controller
         return view('sduling', compact('sdulingwomen'));
     }
     public function sdulingleague(){
-        $apiUrl = env('CriBase_Url')."schedule/v1/league?lastTime=1729555200000";
-        if ($apiUrl) {
+        try {
+            $apiUrl = env('CriBase_Url')."schedule/v1/league";
             $response = Http::withOptions([
                 'verify' => false,
             ])->withHeaders([
@@ -493,7 +730,10 @@ class Cricketlivescorecontroller extends Controller
             ])->get($apiUrl);
 
             $sdulingleague = $response->json();
-        } else {
+            if (!is_array($sdulingleague)) {
+                $sdulingleague = [];
+            }
+        } catch (\Exception $e) {
             $sdulingleague = [];
             $errorMsg = $e->getMessage();
             return view('sduling', compact('sdulingleague', 'errorMsg'));
@@ -550,7 +790,7 @@ class Cricketlivescorecontroller extends Controller
         }
     }
 
-    public function newscatdetail($id, $name = null)
+    public function newscatdetail($id, $slug = null)
     {
         try {
             $response = Http::withOptions([
@@ -582,17 +822,22 @@ class Cricketlivescorecontroller extends Controller
         $gender = strtolower($pathGender) === 'womens' ? 'womens' : 'mens';
         $category = strtolower($category ?: $request->query('category', 'allrounders'));
         $defaultFormat = $gender === 'womens' ? 'odi' : 'test';
-        $format = strtolower($format ?: $request->query('format', $defaultFormat));
+        
+        // Get format from query string or parameter, but validate it against the gender's allowed formats
+        $requestedFormat = strtolower($format ?: $request->query('format', $defaultFormat));
+        $allowedFormats = $gender === 'womens' ? ['odi', 't20'] : ['test', 'odi', 't20'];
+        
+        // If the requested format is not valid for this gender, use the default
+        if (!in_array($requestedFormat, $allowedFormats, true)) {
+            $format = $defaultFormat;
+        } else {
+            $format = $requestedFormat;
+        }
 
         $allowedCategories = ['batsmen', 'bowlers', 'allrounders', 'teams'];
-        $allowedFormats = $gender === 'womens' ? ['odi', 't20'] : ['test', 'odi', 't20'];
 
         if (!in_array($category, $allowedCategories, true)) {
             $category = 'allrounders';
-        }
-
-        if (!in_array($format, $allowedFormats, true)) {
-            $format = $defaultFormat;
         }
 
         try {
@@ -608,11 +853,11 @@ class Cricketlivescorecontroller extends Controller
         }
     }
 
-    public function icc_ranking_detail(Request $request, $gender, $category, $format, $id, $name = null)
+    public function icc_ranking_detail(Request $request, $gender, $category, $format, $id, $slug = null)
     {
         $gender = strtolower($gender) === 'womens' ? 'womens' : 'mens';
         $category = strtolower($category);
-        $format = strtolower($format);
+        $requestedFormat = strtolower($format);
 
         $allowedCategories = ['batsmen', 'bowlers', 'allrounders', 'teams'];
         $defaultFormat = $gender === 'womens' ? 'odi' : 'test';
@@ -622,8 +867,11 @@ class Cricketlivescorecontroller extends Controller
             $category = 'allrounders';
         }
 
-        if (!in_array($format, $allowedFormats, true)) {
+        // If the requested format is not valid for this gender, use the default
+        if (!in_array($requestedFormat, $allowedFormats, true)) {
             $format = $defaultFormat;
+        } else {
+            $format = $requestedFormat;
         }
 
         try {
@@ -655,21 +903,52 @@ class Cricketlivescorecontroller extends Controller
 
     private function fetchIccRankingData($gender, $category, $format)
     {
-        
-        $isMen = $gender === 'mens' ? '0' : '1';
-        if($gender == 'womens'){
-        $apiUrl = env('CriBase_Url') . "stats/v1/rankings/{$category}?isWomen={$isMen}&formatType={$format}";
-        }else{
-        $apiUrl = env('CriBase_Url') . "stats/v1/rankings/{$category}?isMen={$isMen}&formatType={$format}";
-        }
-        $response = Http::withOptions([
+        try {
+            $apiUrl = env('CriBase_Url') . "stats/v1/rankings/{$category}";
+            $queryParams = [];
+
+            if ($gender === 'womens') {
+                $queryParams['isWomen'] = '1';
+            } else {
+                $queryParams['isMen'] = '0';
+            }
+
+            $queryParams['formatType'] = $format;
+
+            $response = Http::withOptions([
                 'verify' => false,
             ])->withHeaders([
-            'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
-            'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
-            'Content-Type'    => 'application/json',
-        ])->get($apiUrl);
-            // echo "<pre>";print_r($apiUrl);die;
-        return $response->json();
+                'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
+                'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
+                'Content-Type'    => 'application/json',
+            ])->get($apiUrl, $queryParams);
+
+            $data = $response->json();
+
+            // Normalize the response to handle different API structures
+            if (isset($data['rank']) && is_array($data['rank'])) {
+                // Ensure rank data is properly structured
+                foreach ($data['rank'] as &$rankItem) {
+                    if (is_array($rankItem)) {
+                        // Normalize category data keys
+                        foreach (['batsmen', 'bowlers', 'allrounders', 'teams', 'batsman', 'bowler', 'allrounder', 'team'] as $key) {
+                            if (isset($rankItem[$key]) && is_array($rankItem[$key])) {
+                                // Ensure name field exists
+                                if (!isset($rankItem[$key]['name']) && isset($rankItem[$key]['teamName'])) {
+                                    $rankItem[$key]['name'] = $rankItem[$key]['teamName'];
+                                }
+                                if (!isset($rankItem[$key]['name']) && isset($rankItem[$key]['playerName'])) {
+                                    $rankItem[$key]['name'] = $rankItem[$key]['playerName'];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return $data;
+        } catch (\Exception $e) {
+            return ['rank' => [], 'error' => $e->getMessage()];
+        }
     }
 }

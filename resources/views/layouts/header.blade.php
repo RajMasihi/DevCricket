@@ -3,14 +3,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <title>Criclivem</title>
-    
+    <meta name="X-UA-Compatible" content="IE=edge">
+
+    {{-- Dynamic Page Title --}}
+    <title>@yield('title', 'Criclivem - Live Cricket Scores')</title>
+
+    {{-- Meta Description --}}
+    @section('meta-description')
+        <meta name="description" content="Criclivem - Live cricket scores, match updates, schedules, news, and ICC rankings. Stay updated with latest cricket action from around the world.">
+    @show
+
+    {{-- Meta Keywords --}}
+    @section('meta-keywords')
+        <meta name="keywords" content="cricket, live cricket scores, cricket news, ICC rankings, cricket schedule, T20, ODI, Test cricket">
+    @show
+
+    {{-- Canonical URL --}}
+    <link rel="canonical" href="{{ url()->current() }}">
+
+    {{-- Open Graph Meta Tags --}}
+    <meta property="og:title" content="@yield('title', 'Criclivem - Live Cricket Scores')">
+    <meta property="og:description" content="@yield('meta-description', 'Criclivem - Live cricket scores, match updates, schedules, news, and ICC rankings.')">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="{{ asset('images/criclivem-og.jpg') }}">
+
+    {{-- Twitter Card Meta Tags --}}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="@yield('title', 'Criclivem - Live Cricket Scores')">
+    <meta name="twitter:description" content="@yield('meta-description', 'Criclivem - Live cricket scores, match updates, schedules, news, and ICC rankings.')">
+    <meta name="twitter:image" content="{{ asset('images/criclivem-og.jpg') }}">
+
     {{-- Laravel Reverb Configuration --}}
     <meta name="reverb-app-key" content="{{ env('REVERB_APP_KEY') }}">
     <meta name="reverb-host" content="{{ env('REVERB_HOST', request()->getHost()) }}">
     <meta name="reverb-port" content="{{ env('REVERB_PORT', 8080) }}">
     <meta name="reverb-scheme" content="{{ env('REVERB_SCHEME', request()->secure() ? 'https' : 'http') }}">
-    
+
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
@@ -21,7 +50,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="{{ asset('js/cricket_js.js') }}"></script>
     <script src="{{ asset('js/over_threshold_handler.js') }}"></script>
- 
+
 </head>
 
 <body>
@@ -40,16 +69,19 @@
                         <ul class="navbar-nav first-nav">
                             <li class="nav-item">
                                 <a class="nav-link link active" aria-current="page"
-                                    href="{{ asset('/') }}">Live Score</a>
+                                    href="{{ route('home') }}">Live Score</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link link" href="{{ asset("/sduling/international") }}">schedule</a>
+                                <a class="nav-link link" href="{{ route('upcoming-matches') }}">Upcoming</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link link" href="{{ route('schedule-international') }}">schedule</a>
                             </li>
                             <!-- <li class="nav-item">
-                                <a class="nav-link link" href="{{ asset("/result") }}">Result</a>
+                                <a class="nav-link link" href="{{ route('match-results') }}">Result</a>
                             </li> -->
                             <li class="nav-item">
-                                <a class="nav-link link" href="{{ asset("/series") }}">series</a>
+                                <a class="nav-link link" href="{{ route('series') }}">series</a>
                             </li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link link dropdown-toggle" href="#"
@@ -57,18 +89,18 @@
                                     aria-expanded="false">
                                     Teams
                                 </a>
-                                <ul class="dropdown-menu team-dropdown-menu" aria-labelledby="navbarDropdownMenuLink" >
-                                 
+                                <ul class="dropdown-menu team-dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+
                                     <li>
-                                        <a class="dropdown-item" href="{{ url('/teams/international') }}">International</a>
-                                        <a class="dropdown-item" href="{{ url('/teams/domestic') }}">Domestic</a>
-                                        <a class="dropdown-item" href="{{ url('/teams/league') }}">League</a>
-                                        <a class="dropdown-item" href="{{ url('/teams/womens') }}">Womens</a>
+                                        <a class="dropdown-item" href="{{ route('teams-international') }}">International</a>
+                                        <a class="dropdown-item" href="{{ route('teams-domestic') }}">Domestic</a>
+                                        <a class="dropdown-item" href="{{ route('teams-league') }}">League</a>
+                                        <a class="dropdown-item" href="{{ route('teams-womens') }}">Womens</a>
                                     </li>
                                 </ul>
                             </li>
                              <li class="nav-item">
-                                <a class="nav-link link" href="{{ asset("/news") }}">news</a>
+                                <a class="nav-link link" href="{{ route('news') }}">news</a>
                             </li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link link dropdown-toggle" href="#"
@@ -77,10 +109,10 @@
                                     ICC Ranks
                                 </a>
                                 <ul class="dropdown-menu team-dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                                 
+
                                     <li>
-                                        <a class="dropdown-item" href="{{ url('/icc-ranking/mens') }}">In't Rank Mens</a>
-                                        <a class="dropdown-item" href="{{ url('/icc-ranking/womens') }}">In't Rank Womens</a>
+                                        <a class="dropdown-item" href="{{ route('icc-rankings-mens') }}">In't Rank Mens</a>
+                                        <a class="dropdown-item" href="{{ route('icc-rankings-womens') }}">In't Rank Womens</a>
                                     </li>
                                 </ul>
                             </li>

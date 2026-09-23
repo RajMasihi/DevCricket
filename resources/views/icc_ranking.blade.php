@@ -1,6 +1,10 @@
 @extends('layouts.main')
 
-@section('title', 'ICC Rankings')
+@section('title', 'ICC Rankings - Criclivem')
+
+@section('meta-description', 'View latest ICC cricket rankings for {{ $activeGender === "mens" ? "men" : "women" }} across all formats - Test, ODI, T20. Check player rankings for batsmen, bowlers, all-rounders, and team rankings.')
+
+@section('meta-keywords', 'ICC rankings, cricket rankings, ICC player rankings, {{ $activeFormat }} rankings, {{ $activeCategory }} rankings, {{ $activeGender }} cricket rankings')
 
 @section('main-container')
     <style>
@@ -53,9 +57,17 @@
     <div class="container-fluid main-section">
         <h4 class="text-center mb-3">ICC {{ $activeGender === 'mens' ? "Men's" : "Women's" }} Rankings</h4>
 
-        <div class="d-flex flex-wrap pb-3 gap-2 d-none">
+        <div class="d-flex flex-wrap pb-3 gap-2">
             @foreach($genderTabs as $genderKey => $genderLabel)
-                <a href="{{ url('/icc-ranking/' . $genderKey . '/' . $activeCategory . '/' . $activeFormat) }}"
+                @php
+                    // Determine the appropriate format when switching genders
+                    $targetFormat = $activeFormat;
+                    $targetGenderFormats = $genderKey === 'womens' ? ['odi', 't20'] : ['test', 'odi', 't20'];
+                    if (!in_array($activeFormat, $targetGenderFormats)) {
+                        $targetFormat = $genderKey === 'womens' ? 'odi' : 'test';
+                    }
+                @endphp
+                <a href="{{ route('icc-rankings', ['gender' => $genderKey, 'category' => $activeCategory, 'format' => $targetFormat]) }}"
                    class="btn scoreboard-title {{ $activeGender === $genderKey ? 'active-ranking-tab' : '' }}">
                     {{ $genderLabel }}
                 </a>
@@ -64,7 +76,7 @@
 
         <div class="d-flex flex-wrap pb-3 gap-2">
             @foreach($typeTabs as $tabKey => $tabLabel)
-                <a href="{{ url('/icc-ranking/' . $activeGender . '/' . $tabKey . '/' . $activeFormat) }}"
+                <a href="{{ route('icc-rankings', ['gender' => $activeGender, 'category' => $tabKey, 'format' => $activeFormat]) }}"
                    class="btn scoreboard-title {{ $activeCategory === $tabKey ? 'active-ranking-tab' : '' }}">
                     {{ $tabLabel }}
                 </a>
@@ -73,7 +85,7 @@
 
         <div class="d-flex flex-wrap pb-3 gap-2">
             @foreach($formatTabs as $formatKey => $formatLabel)
-                <a href="{{ url('/icc-ranking/' . $activeGender . '/' . $activeCategory . '/' . $formatKey) }}"
+                <a href="{{ route('icc-rankings', ['gender' => $activeGender, 'category' => $activeCategory, 'format' => $formatKey]) }}"
                    class="btn scoreboard-title {{ $activeFormat === $formatKey ? 'active-ranking-tab' : '' }}">
                     {{ $formatLabel }}
                 </a>
@@ -157,7 +169,7 @@
                                         <td>
                                             @if(!empty($itemId))
 
-                                                <a href="{{ url('/icc-ranking/' . $activeGender . '/' . $activeCategory . '/' . $activeFormat . '/' . $itemId . '/' . $itemSlug) }}"
+                                                <a href="{{ route('icc-rankings-detail', ['gender' => $activeGender, 'category' => $activeCategory, 'format' => $activeFormat, 'id' => $itemId, 'slug' => $itemSlug]) }}"
                                                    style="text-decoration:none; color:#053259;">
                                                     <img class="img" src="{{ $itemImg }}" alt="{{ $itemName ?: 'No Image' }}" />
 

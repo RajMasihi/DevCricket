@@ -1,6 +1,10 @@
 @extends('layouts.main')
 
-@section('title', 'Upcoming Matches')
+@section('title', 'Cricket Schedule - Criclivem')
+
+@section('meta-description', 'View complete cricket schedule for international, domestic, league, and women matches. Get upcoming fixtures, match dates, and time details.')
+
+@section('meta-keywords', 'cricket schedule, upcoming matches, international cricket schedule, domestic cricket, women cricket, league cricket, match fixtures')
 
 @section('main-container')
 <style>
@@ -12,11 +16,11 @@
 @php
 $activeType = request()->get('type');
 if (!$activeType) {
-if (request()->is('sduling/domestic')) {
+if (request()->is('cricket-schedule/domestic') || request()->is('sduling/domestic')) {
 $activeType = 'domestic';
-} elseif (request()->is('sduling/league')) {
+} elseif (request()->is('cricket-schedule/league') || request()->is('sduling/league')) {
 $activeType = 'league';
-} elseif (request()->is('sduling/womens')) {
+} elseif (request()->is('cricket-schedule/womens') || request()->is('sduling/womens')) {
 $activeType = 'women';
 } else {
 $activeType = 'international';
@@ -43,19 +47,19 @@ $schedulePayload = $sdulingwomen ?? [];
     <h3 class="text-center">Schedule - Upcoming Matches</h3>
 
     <div class="d-flex pb-3 flex-wrap">
-        <a href="{{ url('/sduling/international?type=international') }}"
+        <a href="{{ route('schedule-international', ['type' => 'international']) }}"
             class="btn me-2 mb-2 scoreboard-title{{ $activeType === 'international' ? ' active-tab' : '' }}">
             International
         </a>
-        <a href="{{ url('/sduling/domestic?type=domestic') }}"
+        <a href="{{ route('schedule-domestic', ['type' => 'domestic']) }}"
             class="btn me-2 mb-2 scoreboard-title{{ $activeType === 'domestic' ? ' active-tab' : '' }}">
             Domestic
         </a>
-        <a href="{{ url('/sduling/league?type=league') }}"
+        <a href="{{ route('schedule-league', ['type' => 'league']) }}"
             class="btn me-2 mb-2 scoreboard-title{{ $activeType === 'league' ? ' active-tab' : '' }}">
             League
         </a>
-        <a href="{{ url('/sduling/womens?type=women') }}"
+        <a href="{{ route('schedule-womens', ['type' => 'women']) }}"
             class="btn me-2 mb-2 scoreboard-title{{ $activeType === 'women' ? ' active-tab' : '' }}">
             Women
         </a>
@@ -119,7 +123,7 @@ $schedulePayload = $sdulingwomen ?? [];
         @endphp
 
         <div class="col match-item">
-            <a href="{{ url('score/' . $matchId . '/' . $team1Slug . '-' . $team2Slug) }}"
+            <a href="{{ route('match-detail', ['id' => $matchId, 'slug' => $team1Slug . '-' . $team2Slug]) }}"
                 class="text-decoration-none text-dark">
                 <div class="card h-100 shadow-sm border-0" style="box-shadow: 2px 2px 6px 1px #053259 !important;">
                     <div class="card-body p-3">

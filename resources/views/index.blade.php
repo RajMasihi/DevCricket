@@ -38,7 +38,7 @@ $activeTab = 'live';
             class="btn me-2 scoreboard-title{{ $activeTab == 'result' ? ' active-tab' : '' }}" type="button">
             Result
         </a> -->
-        <a href="{{ url('/upcoming?tab=upcoming') }}" id="upcoming_tab_btn"
+        <a href="{{ route('upcoming-matches', ['tab' => 'upcoming']) }}" id="upcoming_tab_btn"
             class="btn me-2 scoreboard-title{{ $activeTab == 'upcoming' ? ' active-tab' : '' }}" type="button">
             Upcoming
         </a>
@@ -854,19 +854,20 @@ $activeTab = 'live';
 
             <span style="color:red;">Wait ...</span>
 
-            @elseif(isset($sduling) && count($sduling) === 0 && $activeTab == 'upcoming')
+            @elseif(isset($upcomingMatches) && is_array($upcomingMatches) && count($upcomingMatches) === 0 && $activeTab == 'upcoming')
             <p>No upcoming matches found.</p>
-            @elseif(isset($sduling) && $activeTab == 'upcoming')
+            @elseif(isset($upcomingMatches) && is_array($upcomingMatches) && $activeTab == 'upcoming')
             @php
-            usort($sduling, function($a, $b) {
+            $upcomingDisplay = $upcomingMatches;
+            usort($upcomingDisplay, function($a, $b) {
             $aDate = isset($a['matchInfo']['startDate']) ? $a['matchInfo']['startDate'] : (isset($a['startDate']) ?
             $a['startDate'] : 0);
             $bDate = isset($b['matchInfo']['startDate']) ? $b['matchInfo']['startDate'] : (isset($b['startDate']) ?
             $b['startDate'] : 0);
-            return $bDate <=> $aDate;
+            return $aDate <=> $bDate;
                 });
                 @endphp
-                @foreach($sduling as $match)
+                @foreach($upcomingDisplay as $match)
                 @php
                 $mi = (isset($match['matchInfo']) && is_array($match['matchInfo'])) ? $match['matchInfo'] : [];
                 $score = (isset($match['matchScore']) && is_array($match['matchScore'])) ? $match['matchScore'] : [];
