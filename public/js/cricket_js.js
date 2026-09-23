@@ -4,6 +4,24 @@
 $(function () {
 // navebar active class 
 
+// Mobile menu toggle functionality
+$('#mobileMenuToggle').on('click', function() {
+    $('#mobileMenuDropdown').toggleClass('show');
+});
+
+// Mobile submenu toggle
+$('.mobile-submenu > span').on('click', function(e) {
+    e.preventDefault();
+    $(this).parent('.mobile-submenu').toggleClass('open');
+});
+
+// Close mobile menu when clicking outside
+$(document).on('click', function(e) {
+    if (!$(e.target).closest('.mobile-header').length) {
+        $('#mobileMenuDropdown').removeClass('show');
+    }
+});
+
 //    filter in t20, ODi, test, Other
 
 $(document).on('click', '.second-header .nav-link', function (e) {

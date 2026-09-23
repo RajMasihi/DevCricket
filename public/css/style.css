@@ -1,3 +1,360 @@
+/* Mobile Bottom Navigation Styles */
+.mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #053259;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0;
+    z-index: 1000;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-nav-item {
+    flex: 1;
+    text-align: center;
+}
+
+.mobile-nav-item a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #fff;
+    transition: color 0.3s;
+    font-size: 12px;
+}
+
+.mobile-nav-item a:hover,
+.mobile-nav-item a.active {
+    color: #4CAF50;
+}
+
+.mobile-nav-item i {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.mobile-nav-item span {
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* Mobile Header Styles */
+.mobile-header {
+    background: #053259;
+    padding: 10px 15px;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mobile-logo {
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.mobile-menu-toggle {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.mobile-menu-dropdown {
+    display: none;
+    background: #fff;
+    border-top: 1px solid #e0e0e0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.mobile-menu-dropdown.show {
+    display: block;
+    max-height: 500px;
+}
+
+.mobile-menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.mobile-menu-list li {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.mobile-menu-list li a {
+    display: block;
+    padding: 15px 20px;
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.3s;
+}
+
+.mobile-menu-list li a:hover,
+.mobile-menu-list li a.active {
+    background: #f5f5f5;
+    color: #053259;
+}
+
+.mobile-submenu {
+    position: relative;
+}
+
+.mobile-submenu > span {
+    display: block;
+    padding: 15px 20px;
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+}
+
+.mobile-submenu > span i {
+    float: right;
+    margin-top: 3px;
+    transition: transform 0.3s;
+}
+
+.mobile-submenu.open > span i {
+    transform: rotate(180deg);
+}
+
+.mobile-submenu-list {
+    display: none;
+    background: #f9f9f9;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.mobile-submenu.open .mobile-submenu-list {
+    display: block;
+}
+
+.mobile-submenu-list li a {
+    padding: 12px 30px;
+    font-size: 14px;
+    color: #555;
+}
+
+/* Professional UI/UX Improvements */
+.card {
+    border-radius: 8px;
+    border: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.match-item .card {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.match-item .card-body {
+    padding: 15px;
+}
+
+/* Improved Typography */
+h4, h5, h6 {
+    font-weight: 600;
+    color: #053259;
+}
+
+/* Better spacing */
+.main-section {
+    padding: 20px 15px;
+}
+
+/* Improved button styles */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Navigation improvements */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 24px;
+}
+
+.link {
+    color: #fff !important;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.link:hover {
+    color: #4CAF50 !important;
+}
+
+/* Responsive improvements */
+@media (max-width: 767px) {
+    body {
+        padding-bottom: 60px;
+    }
+    
+    .main-section {
+        padding-bottom: 20px;
+        padding: 15px 10px;
+    }
+    
+    .header-bar {
+        display: none;
+    }
+    
+    .mobile-header {
+        display: block;
+    }
+    
+    .container-fluid {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
+    .card {
+        margin-bottom: 15px;
+    }
+}
+
+/* Tablet improvements */
+@media (min-width: 768px) and (max-width: 991px) {
+    .mobile-bottom-nav {
+        display: flex;
+    }
+    
+    body {
+        padding-bottom: 60px;
+    }
+    
+    .main-section {
+        padding-bottom: 20px;
+    }
+}
+
+/* Desktop improvements */
+@media (min-width: 992px) {
+    .main-section {
+        padding: 30px 20px;
+    }
+    
+    .card {
+        margin-bottom: 20px;
+    }
+}
+
+/* Status badges improvements */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    border-radius: 4px;
+}
+
+/* Animation for live badge */
+@keyframes pulse-live {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.badge .animation {
+    animation: pulse-live 1.5s infinite;
+}
+
+/* Improved scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Improved loading states */
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.loading::after {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #053259;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+    margin-left: 10px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Improved error states */
+.error-message {
+    background: #fee;
+    border: 1px solid #fcc;
+    color: #c33;
+    padding: 15px;
+    border-radius: 6px;
+    margin: 15px 0;
+}
+
+/* Success states */
+.success-message {
+    background: #efe;
+    border: 1px solid #cfc;
+    color: #3c3;
+    padding: 15px;
+    border-radius: 6px;
+    margin: 15px 0;
+}
+
 /* point table css start */
 
 /* ---------- Over Threshold Styles ---------- */
@@ -135,7 +492,7 @@ body {
 }
 
 .main-section h4 {
-    padding: 0 0 1.8rem 0;
+    /* padding: 0 0 1.8rem 0; */
     margin: 0;
     text-align: center;
     color: #0a3659;

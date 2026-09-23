@@ -794,7 +794,7 @@ class Cricketlivescorecontroller extends Controller
         $metaKeywords = 'international cricket schedule, cricket fixtures, international cricket calendar, upcoming international matches, cricket series schedule';
         
         try {
-            $apiUrl = env('CriBase_Url')."schedule/v1/international";
+            $apiUrl = env('CriBase_Url')."schedule/v1/International?lastTime=1729555200000";
             $response = Http::withOptions([
                 'verify' => false,
             ])->withHeaders([
@@ -807,6 +807,7 @@ class Cricketlivescorecontroller extends Controller
             if (!is_array($sdulinginternational)) {
                 $sdulinginternational = [];
             }
+            // dd($sdulinginternational);
         } catch (\Exception $e) {
             $sdulinginternational = [];
             $errorMsg = $e->getMessage();
@@ -835,6 +836,7 @@ class Cricketlivescorecontroller extends Controller
             if (!is_array($sdulingdomestic)) {
                 $sdulingdomestic = [];
             }
+        //    dd($sdulingdomestic);
         } catch (\Exception $e) {
             $sdulingdomestic = [];
             $errorMsg = $e->getMessage();
@@ -862,6 +864,7 @@ class Cricketlivescorecontroller extends Controller
             if (!is_array($sdulingwomen)) {
                 $sdulingwomen = [];
             }
+            
         } catch (\Exception $e) {
             $sdulingwomen = [];
             $errorMsg = $e->getMessage();

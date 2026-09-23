@@ -60,11 +60,45 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="{{ asset('js/cricket_js.js') }}"></script>
     <script src="{{ asset('js/over_threshold_handler.js') }}"></script>
-
+    <style>
+    .active-tab {
+        border-bottom: 2px solid #053259 !important;
+    }
+    </style>
 </head>
 
 <body>
-    <header class="header-bar">
+    <!-- Mobile Header (Visible only on mobile) -->
+    <div class="mobile-header d-md-none">
+        <div class="mobile-header-content">
+            <a href="{{ route('home') }}" class="mobile-logo">Criclivem</a>
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <!-- Mobile Menu Dropdown -->
+        <div class="mobile-menu-dropdown" id="mobileMenuDropdown">
+            <ul class="mobile-menu-list">
+                <li><a href="{{ route('home') }}" class="{{ request()->is('/') ? 'active' : '' }}">Live Score</a></li>
+                <li><a href="{{ route('schedule-international') }}" class="{{ request()->is('cricket-schedule/*') ? 'active' : '' }}">Schedule</a></li>
+                <li><a href="{{ route('series') }}" class="{{ request()->is('cricket-series*') ? 'active' : '' }}">Series</a></li>
+                <li><a href="{{ route('news') }}" class="{{ request()->is('cricket-news*') ? 'active' : '' }}">News</a></li>
+                <li><a href="{{ route('icc-rankings-mens') }}" class="{{ request()->is('icc-rankings*') ? 'active' : '' }}">ICC Rankings</a></li>
+                <li class="mobile-submenu">
+                    <span>Teams <i class="fas fa-chevron-down"></i></span>
+                    <ul class="mobile-submenu-list">
+                        <li><a href="{{ route('teams-international') }}">International</a></li>
+                        <li><a href="{{ route('teams-domestic') }}">Domestic</a></li>
+                        <li><a href="{{ route('teams-league') }}">League</a></li>
+                        <li><a href="{{ route('teams-womens') }}">Women</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Desktop Header (Hidden on mobile) -->
+    <header class="header-bar d-none d-md-block">
         <div class="first-header">
             <nav class="navbar navbar-expand-lg navbar-light">
                 <div class="container-fluid">
