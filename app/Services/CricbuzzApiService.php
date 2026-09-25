@@ -20,6 +20,7 @@ class CricbuzzApiService
 
     private function fetchFromApi(string $path): array
     {
+
         try {
             $response = Http::withOptions(['verify' => false])
                 ->withHeaders($this->headers())
@@ -36,6 +37,7 @@ class CricbuzzApiService
         } catch (\Throwable) {
             return [];
         }
+
     }
 
     public function get(string $path, int $ttlSeconds = 60): array

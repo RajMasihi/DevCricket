@@ -113,7 +113,9 @@ $activeTab = 'live';
             class="btn me-2 scoreboard-title{{ $activeTab == 'result' ? ' active-tab' : '' }}" type="button">
             Result
         </a> -->
-        <a href="{{ route('upcoming-matches', ['tab' => 'upcoming']) }}" id="upcoming_tab_btn"
+
+        <a href="{{ url('/upcoming?tab=upcoming') }}" id="upcoming_tab_btn"
+
             class="btn me-2 scoreboard-title{{ $activeTab == 'upcoming' ? ' active-tab' : '' }}" type="button">
             Upcoming
         </a>
