@@ -80,7 +80,9 @@
         <div class="mobile-menu-dropdown" id="mobileMenuDropdown">
             <ul class="mobile-menu-list">
                 <li><a href="{{ route('home') }}" class="{{ request()->is('/') ? 'active' : '' }}">Live Score</a></li>
+                <li><a href="{{ route('upcoming-matches') }}" class="{{ request()->is('cricket-schedule/upcoming') ? 'active' : '' }}">Upcoming</a></li>
                 <li><a href="{{ route('schedule-international') }}" class="{{ request()->is('cricket-schedule/*') ? 'active' : '' }}">Schedule</a></li>
+                <li><a href="{{ route('match-results') }}" class="{{ request()->is('cricket-results') ? 'active' : '' }}">Result</a></li>
                 <li><a href="{{ route('series') }}" class="{{ request()->is('cricket-series*') ? 'active' : '' }}">Series</a></li>
                 <li><a href="{{ route('news') }}" class="{{ request()->is('cricket-news*') ? 'active' : '' }}">News</a></li>
                 <li><a href="{{ route('icc-rankings-mens') }}" class="{{ request()->is('icc-rankings*') ? 'active' : '' }}">ICC Rankings</a></li>
@@ -212,7 +214,7 @@
                                     @if(!empty($pointTableId))
                                        <a class="point-table-nav nav-link link" href="javascript:void(0);" id="point-table"
                                             data-seriesid="{{ $pointTableId }}">Point Table</a> 
-                                            <a class="point-table-nav nav-link link" href="{{url('/point-table')}}/{{ $pointTableId }}" id="point-table"
+                                            <a class="point-table-nav nav-link link" href="{{ url('/point-table')}}/{{ $pointTableId }}" id="point-table"
                                             data-seriesid="{{ $pointTableId }}">Point Table</a>
                                     @endif
                                 </li>

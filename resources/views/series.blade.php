@@ -32,7 +32,7 @@ use Illuminate\Support\Str;
                                     <div class="row row-cols-1 row-cols-md-2 g-3">
                                         @foreach($monthItem['series'] as $series)
                                             <div class="col match-item">
-                                                <a href="{{ url('/serieslist'.'/'. $series['id'] .'/'. Str::slug($series['name'])) }}" style="text-decoration: none; color:#141010;">
+                                                <a href="{{ url('/cricket-series/' . $series['id'] . '/' . Str::slug($series['name'])) }}" style="text-decoration: none; color:#141010;">
                                                     <div class='card h-100' style='box-shadow: 2px 2px 6px 1px #053259;'>
                                                         <div class='card-body'>
                                                             <h5 class='card-title mb-1'>{{ $series['name'] }}</h5>

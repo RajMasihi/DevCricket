@@ -9,15 +9,15 @@
         </a>
     </div>
     <div class="mobile-nav-item">
-        <a href="{{ route('schedule-international') }}" class="{{ request()->is('cricket-schedule/international') ? 'active' : '' }}">
+        <a href="{{ route('upcoming-matches') }}" class="{{ request()->is('cricket-schedule/upcoming') ? 'active' : '' }}">
             <i class="fas fa-calendar-alt"></i>
-            <span>schedule</span>
+            <span>Upcoming</span>
         </a>
     </div>
     <div class="mobile-nav-item">
-        <a href="{{ route('series') }}" class="{{ request()->is('cricket-series') ? 'active' : '' }}">
+        <a href="{{ route('match-results') }}" class="{{ request()->is('cricket-results') ? 'active' : '' }}">
             <i class="fas fa-trophy"></i>
-            <span>Series</span>
+            <span>Result</span>
         </a>
     </div>
     <div class="mobile-nav-item">

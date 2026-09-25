@@ -470,6 +470,70 @@ function formatOverDisplay(decimalOver) {
 
 
 //   JavaScript Team Switcher Script 
- 
 
+// Team Switcher Function for Scoreboard
+function showScorecardTeam(scIdx, buttonElement) {
+    // Remove active class from all team buttons
+    document.querySelectorAll('.sc-team-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+    });
     
+    // Add active class to clicked button
+    buttonElement.classList.add('active');
+    
+    // Hide all team cards
+    document.querySelectorAll('.scoreboard-main').forEach(function(card) {
+        card.style.display = 'none';
+    });
+    
+    // Show the selected team card
+    var targetCard = document.getElementById('sc_team_card_' + scIdx);
+    if (targetCard) {
+        targetCard.style.display = 'block';
+    } else {
+        // Fallback: try to find by data attribute
+        var cardsByIndex = document.querySelectorAll('.scoreboard-main');
+        if (cardsByIndex[scIdx]) {
+            cardsByIndex[scIdx].style.display = 'block';
+        }
+    }
+    
+    return false;
+}
+
+// Initialize team switching on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if scoreboard tab is active
+    var scoreboard = document.getElementById('scoreboard');
+    if (scoreboard && !scoreboard.classList.contains('d-none-dynamic')) {
+        // Initialize first team as active
+        var firstTeamBtn = document.querySelector('.sc-team-btn');
+        if (firstTeamBtn) {
+            firstTeamBtn.classList.add('active');
+        }
+        
+        // Ensure first team card is visible and others hidden
+        var allTeamCards = document.querySelectorAll('.scoreboard-main');
+        allTeamCards.forEach(function(card, index) {
+            if (index === 0) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    
+    // Add click event listeners to team buttons
+    var teamButtons = document.querySelectorAll('.sc-team-btn');
+    teamButtons.forEach(function(button) {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var scIdx = this.getAttribute('data-team-index');
+            if (scIdx !== null) {
+                showScorecardTeam(parseInt(scIdx), this);
+            }
+        });
+    });
+});
+

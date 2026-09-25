@@ -27,6 +27,14 @@
         $t1Score2 = $matchScore['team1Score']['inngs2'] ?? [];
         $t2Score = $matchScore['team2Score']['inngs1'] ?? [];
         $t2Score2 = $matchScore['team2Score']['inngs2'] ?? [];
+        
+        // Check if it's a test match
+        $matchFormat = strtolower($scorecardDatainfo['matchformat'] ?? $scorecardDatainfo['matchFormat'] ?? '');
+        $isTestMatch = ($matchFormat === 'test' || $matchFormat === 'test match');
+        
+        // Get team abbreviations for test match display
+        $team1Abbr = strtoupper(substr($team1, 0, 4));
+        $team2Abbr = strtoupper(substr($team2, 0, 4));
     @endphp
 
 @if(!empty($errorMsg))
@@ -50,17 +58,17 @@
             $matchUrlTeamSlug = $team1NameSlug . '-' . $team2NameSlug;
             @endphp
 
-            <a href="{{ url('/score/' . $matchId . '/' . $matchUrlTeamSlug . '?tab=informe') }}" id="inform_btn"
+            <a href="{{ url('/live-cricket-score/' . $matchId . '/' . $matchUrlTeamSlug . '?tab=informe') }}" id="inform_btn"
                 class="btn me-2 scoreboard-title{{ $activeTab == 'informe' ? ' active-tab' : '' }}">
                 Informe
             </a>
 
-            <a href="{{ url('/score/' . $matchId . '/' . $matchUrlTeamSlug . '?tab=scoreboard') }}" id="scoreboard_btn"
+            <a href="{{ url('/live-cricket-score/' . $matchId . '/' . $matchUrlTeamSlug . '?tab=scoreboard') }}" id="scoreboard_btn"
                 class="btn me-2 scoreboard-title{{ $activeTab == 'scoreboard' ? ' active-tab' : '' }}">
                 Match Scoreboard
             </a>
 
-            <a href="{{ url('/score/' . $matchId . '/' . $matchUrlTeamSlug . '?tab=players') }}" id="players_btn"
+            <a href="{{ url('/live-cricket-score/' . $matchId . '/' . $matchUrlTeamSlug . '?tab=players') }}" id="players_btn"
                 class="btn me-2 scoreboard-title{{ $activeTab == 'players' ? ' active-tab' : '' }}">
                 Players
             </a>
@@ -71,7 +79,7 @@
                     Point Table
                 </a>
             @endif
-            <a href="{{ url('/stats/'.$seriesId.'/'.$seriesNameSlug) }}" class="btn me-2 scoreboard-title">
+            <a href="{{ url('/series-stats/' . $seriesId . '/' . $seriesNameSlug) }}" class="btn me-2 scoreboard-title">
                 Stats
             </a>
         </div>
@@ -233,10 +241,24 @@
                         <div class="col-12 mb-3">
                             <div class="d-flex flex-wrap justify-content-left gap-2" role="group" aria-label="Team Scorecard Selector">
                                 @foreach($scoreCards as $scIdx => $sc)
+                                    @php
+                                        // Determine button label based on match format
+                                        if ($isTestMatch) {
+                                            // Test match format: Team1 (1st Inn), Team2 (1st Inn), Team1 (2nd Inn), Team2 (2nd Inn)
+                                            $teamAbbr = ($scIdx % 2 === 0) ? $team1Abbr : $team2Abbr;
+                                            $inningsNum = ($scIdx < 2) ? '1st Inn' : '2nd Inn';
+                                            $buttonLabel = $teamAbbr . ' (' . $inningsNum . ')';
+                                        } else {
+                                            // Regular format: Use existing team name
+                                            $buttonLabel = $sc['batteamname'] ?? 'Innings '.($scIdx + 1);
+                                        }
+                                    @endphp
                                     <button type="button"
                                         class="btn btn-sm btn-outline-primary fw-bold sc-team-btn text-truncate btn-team-sc {{ $loop->first ? 'active' : '' }}"
-                                        onclick="showScorecardTeam({{ $scIdx }}, this)">
-                                        {{ $sc['batteamname'] ?? 'Innings '.($scIdx + 1) }}
+                                        data-team-index="{{ $scIdx }}"
+                                        id="team_btn_{{ $scIdx }}"
+                                        onclick="showScorecardTeam({{ $scIdx }}, this); return false;">
+                                        {{ $buttonLabel }}
                                     </button>
                                 @endforeach
                             </div>
@@ -248,6 +270,14 @@
                     @foreach ($scoreCards as $scIdx => $sc)
                         @php
                             $batTeam = $sc['batteamname'] ?? 'Innings '.($scIdx + 1);
+                            
+                            // For test matches, use abbreviated format
+                            if ($isTestMatch) {
+                                $teamAbbr = ($scIdx % 2 === 0) ? $team1Abbr : $team2Abbr;
+                                $inningsNum = ($scIdx < 2) ? '1st Inn' : '2nd Inn';
+                                $batTeam = $teamAbbr . ' (' . $inningsNum . ')';
+                            }
+                            
                             $totalRuns = $sc['score'] ?? '';
                             $totalWickets = $sc['wickets'] ?? '';
                             $totalOvers = $sc['overs_display'] ?? $sc['overs'] ?? '';
@@ -317,7 +347,7 @@
                             }
                         @endphp
 
-                        <div class="col-12 sc-team-card-wrapper {{ $loop->first ? '' : 'd-none-dynamic' }} scoreboard-main" id="sc_team_card_{{ $scIdx }}">
+                        <div class="col-12 sc-team-card-wrapper scoreboard-main" id="sc_team_card_{{ $scIdx }}" data-team-index="{{ $scIdx }}" style="display: {{ $loop->first ? 'block' : 'none' }};">
                             <div class="scoreboard-card shadow-sm bg-white w-100 mb-3">
                                 <div class="scoreboard-header p-2 p-md-3 text-white d-flex justify-content-between bg-custom-navy">
                                     <div class="team-name-down fw-bold fs-6 fs-md-5 text-truncate me-2">

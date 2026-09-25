@@ -178,7 +178,7 @@ $activeTab = 'live';
                     $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                 @endphp
                 <div class="match-slider-item">
-                    <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
+                    <a href="{{ url('/live-cricket-score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
                         style="text-decoration: none; color:#141010;">
                         <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                             <div class="card shadow-sm w-100">
@@ -382,7 +382,7 @@ $activeTab = 'live';
                     $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                     @endphp
                     <div class="col match-item" data-match-id="{{ $match_id }}">
-                        <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
+                        <a href="{{ url('/live-cricket-score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
                             style="text-decoration: none; color:#141010;">
                             <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                                 <div class="card shadow-sm w-100">
@@ -573,7 +573,7 @@ $activeTab = 'live';
                         $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                         @endphp
                         <div class="col match-item" data-match-id="{{ $match_id }}">
-                            <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
+                            <a href="{{ url('/live-cricket-score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
                                 style="text-decoration: none; color:#141010;">
                                 <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                                     <div class="card shadow-sm w-100">
@@ -767,7 +767,7 @@ $activeTab = 'live';
                             $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                             @endphp
                             <div class="col match-item" data-match-id="{{ $match_id }}">
-                                <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
+                                <a href="{{ url('/live-cricket-score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
                                     style="text-decoration: none; color:#141010;">
                                     <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                                         <div class="card shadow-sm w-100">
@@ -975,7 +975,7 @@ $activeTab = 'live';
                 $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                 @endphp
                 <div class="col match-item" data-match-id="{{ $match_id }}">
-                    <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
+                    <a href="{{ url('/live-cricket-score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
                         style="text-decoration: none; color:#141010;">
                         <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                             <div class="card shadow-sm w-100">
@@ -1173,7 +1173,7 @@ $activeTab = 'live';
                 $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                 @endphp
                 <div class="col match-item" data-match-id="{{ $match_id }}">
-                    <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
+                    <a href="{{ url('/live-cricket-score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
                         style="text-decoration: none; color:#141010;">
                         <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                             <div class="card shadow-sm w-100">
@@ -1364,7 +1364,7 @@ $activeTab = 'live';
             $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
             @endphp
             <div class="col match-item" data-match-id="{{ $match_id }}">
-                <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
+                <a href="{{ url('/live-cricket-score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
                     style="text-decoration: none; color:#141010;">
                     <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                         <div class="card shadow-sm w-100">

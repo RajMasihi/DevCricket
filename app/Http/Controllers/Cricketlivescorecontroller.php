@@ -548,7 +548,7 @@ class Cricketlivescorecontroller extends Controller
             $pageTitle = 'Match Details - Criclivem';
             $metaDescription = 'View detailed cricket match information, scorecard, and live commentary on Criclivem.';
             $metaKeywords = 'cricket match details, live scorecard, cricket commentary, match statistics';
-
+            
             return view('matchdetail', compact(
                 'scorecardDatainfo',
                 'scorecardData',
@@ -564,7 +564,7 @@ class Cricketlivescorecontroller extends Controller
                 'metaKeywords'
             ));
         }
-
+        // dd($scorecardDatainfo);
         return view('matchdetail', compact(
             'scorecardDatainfo',
             'scorecardData',
@@ -584,6 +584,10 @@ class Cricketlivescorecontroller extends Controller
     {
         $pointTableUrl = env('CriBase_Url')."stats/v1/series/{$id}/points-table";
         $statsUrl = env('CriBase_Url')."stats/v1/series/{$id}?statsType=mostRuns";
+        $pageTitle = 'Series Point Table - Criclivem';
+        $metaDescription = 'View cricket series point table with team standings, points, and rankings.';
+        $metaKeywords = 'cricket point table, series standings, team rankings, cricket points table, tournament standings';
+        
         if ($pointTableUrl) {
             $headers = [
                 'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
@@ -605,17 +609,21 @@ class Cricketlivescorecontroller extends Controller
         } else {
             $pointtable = [];
             $statsData = [];
-            $errorMsg = $e->getMessage();
-            return view('stats', compact('pointtable', 'statsData', 'errorMsg'));
+            $errorMsg = 'API URL not configured';
+            return view('stats', compact('pointtable', 'statsData', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
 
         $activeTab = 'points';
-        return view('stats', compact('pointtable', 'statsData', 'activeTab'));
+        return view('stats', compact('pointtable', 'statsData', 'activeTab', 'pageTitle', 'metaDescription', 'metaKeywords'));
     }
     public function stats($id)
     {
         $statsUrl = env('CriBase_Url')."stats/v1/series/{$id}?statsType=mostRuns";
         $pointTableUrl = env('CriBase_Url')."stats/v1/series/{$id}/points-table";
+        $pageTitle = 'Series Statistics - Criclivem';
+        $metaDescription = 'View cricket series statistics including most runs, most wickets, highest scores, and bowling figures.';
+        $metaKeywords = 'cricket series stats, cricket statistics, most runs, most wickets, cricket records, series performance';
+        
         if ($statsUrl) {
             $headers = [
                 'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
@@ -635,12 +643,12 @@ class Cricketlivescorecontroller extends Controller
         } else {
             $statsData = [];
             $pointtable = [];
-            $errorMsg = $e->getMessage();
-            return view('stats', compact('statsData', 'pointtable', 'errorMsg'));
+            $errorMsg = 'API URL not configured';
+            return view('stats', compact('statsData', 'pointtable', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
 
         $activeTab = 'stats';
-        return view('stats', compact('statsData', 'pointtable', 'activeTab'));
+        return view('stats', compact('statsData', 'pointtable', 'activeTab', 'pageTitle', 'metaDescription', 'metaKeywords'));
     }
     public function teamsinternational(){
         $pageTitle = 'International Cricket Teams | Criclivem';
