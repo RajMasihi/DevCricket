@@ -206,7 +206,7 @@ h4, h5, h6 {
 }
 
 .link {
-    color: #fff !important;
+    color: #fff;
     font-weight: 500;
     transition: color 0.2s;
 }
@@ -1155,7 +1155,7 @@ li span .fa {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    padding: 12px 20px;
+    /* padding: 12px 20px; */
     font-size: 14px;
 }
 
