@@ -30,7 +30,7 @@
                         {{-- Skip hidden category IDs --}}
                         @continue(in_array((int)$catId, $hiddenCatIds))
 
-                        <a href="{{ url('/news?cat=' . $catId) }}"
+                        <a href="{{ url('/cricket-news?cat=' . $catId) }}"
                            class="btn scoreboard-title {{ (string)$activeCategoryId === (string)$catId ? 'active-news-tab' : '' }}">
                             {{ $catName }}
                         </a>
@@ -62,7 +62,7 @@
 
                     @if(!empty($storyId))
                         <div class="col">
-                            <a href="{{ url('/news/' . $storyId . '/' . $slug) }}" style="text-decoration:none; color:#141010;">
+                            <a href="{{ url('/cricket-news/' . $storyId . '/' . $slug) }}" style="text-decoration:none; color:#141010;">
                                 <div class="card h-80" style="box-shadow: 2px 2px 6px 1px #053259;">
                                     @if(!empty($imageUrl))
                                         <img src="{{ $imageUrl }}" class="card-img-top" alt="{{ $headline }}">

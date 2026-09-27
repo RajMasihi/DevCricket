@@ -15,9 +15,9 @@
         </a>
     </div>
     <div class="mobile-nav-item">
-        <a href="{{ route('series') }}" class="{{ request()->is('cricket-series') ? 'active' : '' }}">
+        <a href="{{ route('match-results') }}" class="{{ request()->is('cricket-results') ? 'active' : '' }}">
             <i class="fas fa-trophy"></i>
-            <span>Series</span>
+            <span>Result</span>
         </a>
     </div>
     <div class="mobile-nav-item">

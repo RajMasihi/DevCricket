@@ -92,7 +92,7 @@
                     $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                 @endphp
                 <div class="col match-item">
-                    <a href="{{ url('score/' . $match_id.'/'.$team1NameSlug.'-vs-'.$team2NameSlug)}}" style="text-decoration: none; color:#141010;">
+                    <a href="{{ url('/live-cricket-score/' . $match_id.'/'.$team1NameSlug.'-vs-'.$team2NameSlug)}}" style="text-decoration: none; color:#141010;">
                         <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                             <div class="row card-body">
                                 <div class="col-7">

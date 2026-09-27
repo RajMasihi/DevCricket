@@ -470,6 +470,130 @@ function formatOverDisplay(decimalOver) {
 
 
 //   JavaScript Team Switcher Script 
- 
 
+// Team Switcher Function for Scoreboard
+function showScorecardTeam(scIdx, buttonElement) {
+    // Remove active class from all team buttons
+    document.querySelectorAll('.sc-team-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+    });
     
+    // Add active class to clicked button
+    buttonElement.classList.add('active');
+    
+    // Hide all team cards
+    document.querySelectorAll('.scoreboard-main').forEach(function(card) {
+        card.style.display = 'none';
+    });
+    
+    // Show the selected team card
+    var targetCard = document.getElementById('sc_team_card_' + scIdx);
+    if (targetCard) {
+        targetCard.style.display = 'block';
+    } else {
+        // Fallback: try to find by data attribute
+        var cardsByIndex = document.querySelectorAll('.scoreboard-main');
+        if (cardsByIndex[scIdx]) {
+            cardsByIndex[scIdx].style.display = 'block';
+        }
+    }
+    
+    return false;
+}
+
+function getLocalMatchParts(unixSeconds) {
+    var ts = parseInt(unixSeconds, 10);
+    if (!ts) {
+        return null;
+    }
+    var d = new Date(ts * 1000);
+    if (isNaN(d.getTime())) {
+        return null;
+    }
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var day = String(d.getDate()).padStart(2, '0');
+    var month = months[d.getMonth()];
+    var year = d.getFullYear();
+    var hours = d.getHours();
+    var minutes = String(d.getMinutes()).padStart(2, '0');
+    var ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    if (hours === 0) {
+        hours = 12;
+    }
+    hours = String(hours).padStart(2, '0');
+    return {
+        date: day + ' ' + month + ', ' + year,
+        dateShort: day + ' ' + month,
+        time: hours + ':' + minutes + ' ' + ampm
+    };
+}
+
+function applyLocalMatchTimes() {
+    document.querySelectorAll('.js-local-date[data-start]').forEach(function(el) {
+        var parts = getLocalMatchParts(el.getAttribute('data-start'));
+        if (parts) {
+            el.textContent = parts.date;
+        }
+    });
+    document.querySelectorAll('.js-local-time[data-start]').forEach(function(el) {
+        var parts = getLocalMatchParts(el.getAttribute('data-start'));
+        if (parts) {
+            el.textContent = parts.time;
+        }
+    });
+    document.querySelectorAll('.js-local-match-date[data-start]').forEach(function(el) {
+        var parts = getLocalMatchParts(el.getAttribute('data-start'));
+        if (parts) {
+            el.textContent = 'Match Date: ' + parts.dateShort;
+        }
+    });
+    document.querySelectorAll('.js-local-start-status[data-start]').forEach(function(el) {
+        var parts = getLocalMatchParts(el.getAttribute('data-start'));
+        if (!parts) {
+            return;
+        }
+        var original = (el.textContent || '').trim();
+        if (!original || /GMT/i.test(original) || /Match starts/i.test(original)) {
+            el.textContent = 'Match starts at ' + parts.dateShort + ', ' + parts.time;
+        }
+    });
+}
+
+// Initialize team switching on page load
+document.addEventListener('DOMContentLoaded', function() {
+    applyLocalMatchTimes();
+    // Check if scoreboard tab is active
+    var scoreboard = document.getElementById('scoreboard');
+    if (scoreboard && !scoreboard.classList.contains('d-none-dynamic')) {
+        // Initialize first team as active
+        var firstTeamBtn = document.querySelector('.sc-team-btn');
+        if (firstTeamBtn) {
+            firstTeamBtn.classList.add('active');
+        }
+        
+        // Ensure first team card is visible and others hidden
+        var allTeamCards = document.querySelectorAll('.scoreboard-main');
+        allTeamCards.forEach(function(card, index) {
+            if (index === 0) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    
+    // Add click event listeners to team buttons
+    var teamButtons = document.querySelectorAll('.sc-team-btn');
+    teamButtons.forEach(function(button) {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var scIdx = this.getAttribute('data-team-index');
+            if (scIdx !== null) {
+                showScorecardTeam(parseInt(scIdx), this);
+            }
+        });
+    });
+});
+

@@ -160,7 +160,7 @@
         @endphp
 
         <div class="col match-item">
-            <a href="{{ url('score/' . $matchId . '/' . ($team1NameSlug ?: 'team-1') . '-vs-' . ($team2NameSlug ?: 'team-2')) }}"
+            <a href="{{ url('/live-cricket-score/' . $matchId . '/' . ($team1NameSlug ?: 'team-1') . '-vs-' . ($team2NameSlug ?: 'team-2')) }}"
                 class="text-decoration-none text-dark d-block h-100">
                 <div class="card h-100 shadow-sm border-0"
                     style="box-shadow: 0 4px 6px rgba(5, 50, 89, 0.15) !important;">

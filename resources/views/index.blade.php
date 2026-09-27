@@ -180,7 +180,7 @@ $activeTab = 'live';
                     $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                 @endphp
                 <div class="match-slider-item">
-                    <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
+                    <a href="{{ url('/live-cricket-score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
                         style="text-decoration: none; color:#141010;">
                         <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                             <div class="card shadow-sm w-100">
@@ -384,7 +384,7 @@ $activeTab = 'live';
                     $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                     @endphp
                     <div class="col match-item" data-match-id="{{ $match_id }}">
-                        <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
+                        <a href="{{ url('/live-cricket-score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
                             style="text-decoration: none; color:#141010;">
                             <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                                 <div class="card shadow-sm w-100">
@@ -575,7 +575,7 @@ $activeTab = 'live';
                         $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                         @endphp
                         <div class="col match-item" data-match-id="{{ $match_id }}">
-                            <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
+                            <a href="{{ url('/live-cricket-score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
                                 style="text-decoration: none; color:#141010;">
                                 <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                                     <div class="card shadow-sm w-100">
@@ -769,7 +769,7 @@ $activeTab = 'live';
                             $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                             @endphp
                             <div class="col match-item" data-match-id="{{ $match_id }}">
-                                <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
+                                <a href="{{ url('/live-cricket-score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
                                     style="text-decoration: none; color:#141010;">
                                     <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                                         <div class="card shadow-sm w-100">
@@ -977,7 +977,7 @@ $activeTab = 'live';
                 $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                 @endphp
                 <div class="col match-item" data-match-id="{{ $match_id }}">
-                    <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
+                    <a href="{{ url('/live-cricket-score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
                         style="text-decoration: none; color:#141010;">
                         <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                             <div class="card shadow-sm w-100">
@@ -1175,7 +1175,7 @@ $activeTab = 'live';
                 $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
                 @endphp
                 <div class="col match-item" data-match-id="{{ $match_id }}">
-                    <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
+                    <a href="{{ url('/live-cricket-score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
                         style="text-decoration: none; color:#141010;">
                         <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                             <div class="card shadow-sm w-100">
@@ -1188,7 +1188,8 @@ $activeTab = 'live';
                                                 <strong>{{ $matchDesc }} - {{ $seriesName }}</strong>
                                             </p>
                                             @if(!empty($matchDateShort))
-                                            <p class="card-text mb-0 mt-1" style="color: #5d6570; font-size: 12px;">
+                                            <p class="card-text mb-0 mt-1 js-local-match-date"
+                                                data-start="{{ $startDate }}" style="color: #5d6570; font-size: 12px;">
                                                 Match Date: {{ $matchDateShort }}
                                             </p>
                                             @endif
@@ -1197,13 +1198,11 @@ $activeTab = 'live';
                                         <div class="d-flex align-items-center gap-2 flex-shrink-0">
                                             <p class="match-formate mb-0 {{ $matchFormatClass }}">
                                                 @if($matchFormat === 'T20')
-                                                <span
-                                                    class="t20-series badge text-light border">{{ $matchFormat }}</span>
+                                                <span class="badge text-light border t20-series">{{ $matchFormat }}</span>
                                                 @elseif($matchFormat === 'TEST')
-                                                <span
-                                                    class="test-series badge bg-light text-dark border">{{ $matchFormat }}</span>
+                                                <span class="badge bg-light text-dark border test-series">{{ $matchFormat }}</span>
                                                 @else
-                                                <span class="badge bg-light text-dark border">{{ $matchFormat }}</span>
+                                                <span class="badge text-dark border odi-series">{{ $matchFormat }}</span>
                                                 @endif
                                             </p>
 
@@ -1290,7 +1289,8 @@ $activeTab = 'live';
                                         <p class="card-text status-complete text-danger mb-0"
                                             style="font-size: 12px; font-weight: 500;">{{ $status }}</p>
                                         @else
-                                        <p class="card-text status-else text-muted mb-0"
+                                        <p class="card-text status-else text-muted mb-0 js-local-start-status"
+                                            data-start="{{ $startDate }}"
                                             style="font-size: 12px; font-weight: 500;">{{ $status }}</p>
                                         @endif
                                     </div>
@@ -1366,7 +1366,7 @@ $activeTab = 'live';
             $team2CssClass = $team2Won ? 'winner-team' : 'loser-team';
             @endphp
             <div class="col match-item" data-match-id="{{ $match_id }}">
-                <a href="{{ url('score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
+                <a href="{{ url('/live-cricket-score/' . $match_id . '/' . $team1NameSlug . '-' . $team2NameSlug) }}"
                     style="text-decoration: none; color:#141010;">
                     <div class="card h-100" style="box-shadow: 2px 2px 6px 1px #053259;">
                         <div class="card shadow-sm w-100">

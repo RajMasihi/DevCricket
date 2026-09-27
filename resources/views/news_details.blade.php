@@ -70,7 +70,7 @@
         @endif
 
         <div class="mb-3">
-            <a href="{{ url('/news') }}" class="btn scoreboard-title">Back To News</a>
+            <a href="{{ url('/cricket-news') }}" class="btn scoreboard-title">Back To News</a>
         </div>
 
         <div class="card" style="box-shadow: 2px 2px 6px 1px #053259;">

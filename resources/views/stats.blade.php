@@ -1,22 +1,22 @@
 @extends('layouts.main')
 
-@section('title', $statsData['appIndex']['seoTitle'] ?? 'Match Stats')
+@section('title', $pageTitle ?? 'Series Stats - Criclivem')
+
+@section('meta-description')
+    <meta name="description" content="{{ $metaDescription ?? 'View cricket series statistics including most runs, most wickets, highest scores, and bowling figures.' }}">
+@endsection
+
+@section('meta-keywords')
+    <meta name="keywords" content="{{ $metaKeywords ?? 'cricket series stats, cricket statistics, most runs, most wickets, cricket records, series performance' }}">
+@endsection
 
 @section('main-container')
 <div class="container-fluid main-section py-4">
     @php
         $activeTab = $activeTab ?? request()->get('tab', 'stats');
 
-        // $seoTitle = $statsData['seriesName'] ?? ($pointtable['seriesName'] ?? 'Series Stats');
-        $seriesName = $statsData['seriesName'] ?? ($pointtable['seriesName'] ?? 'Series');
-
-        if (!empty($statsData['seriesName'])) {
-            $seoTitle = $seriesName . ' Stats';
-        } elseif (!empty($pointtable['seriesName'])) {
-            $seoTitle = $seriesName . ' Point Table';
-        } else {
-            $seoTitle = 'Series Stats';
-        }
+        // Get series name for display
+        $displaySeriesName = $statsData['seriesName'] ?? ($pointtable['seriesName'] ?? 'Series');
 
         $seriesId = request()->route('id');
    
@@ -37,12 +37,12 @@
 
     <div class="row mb-3">
         <div class="col text-center">
-            <h3>{{ $seoTitle }}</h3>
+            <h3>{{ $displaySeriesName }} {{ $activeTab === 'stats' ? 'Statistics' : 'Point Table' }}</h3>
         </div>
     </div>
 
     <div class="d-flex pb-3">
-        <a href="{{ url('/stats/' . $seriesId . '/' . $seriesNameSlug . '?tab=stats') }}"
+        <a href="{{ url('/series-stats/' . $seriesId . '/' . $seriesNameSlug . '?tab=stats') }}"
            class="btn me-2 scoreboard-title{{ $activeTab === 'stats' ? ' active-tab' : '' }}">
             Stats
         </a>
@@ -80,7 +80,7 @@
                                         @foreach($rowValues as $colIndex => $cell)
                                             @if($colIndex === 1 && $playerId)
                                                 <td class="text-start text-truncate" style="max-width: 180px;">
-                                                    <a href="{{ url('/player/' . $playerId) }}" class="player-link fw-bold" target="_blank">{{ $cell }}</a>
+                                                    <a href="{{ url('/live-cricket-score/' . $playerId) }}" class="player-link fw-bold" target="_blank">{{ $cell }}</a>
                                                 </td>
                                             @elseif($colIndex > 0)
                                                 <td class="text-end font-monospace">{{ $cell }}</td>

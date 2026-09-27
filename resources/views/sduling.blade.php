@@ -140,13 +140,13 @@ $schedulePayload = $sdulingwomen ?? [];
                             </p>
 
                             <div class="d-flex align-items-center gap-1 flex-shrink-0">
-                                <span class="match-formate {{ $matchFormatClass }}">
+                                <span class="match-formate mb-0 {{ $matchFormatClass }}">
                                     @if($matchFormat === 'T20')
-                                    <span class="t20-series">{{ $matchFormat }}</span>
+                                    <span class="badge text-light border t20-series">{{ $matchFormat }}</span>
                                     @elseif($matchFormat === 'TEST')
-                                    <span class="test-series">{{ $matchFormat }}</span>
+                                    <span class="badge bg-light text-dark border test-series">{{ $matchFormat }}</span>
                                     @else
-                                    <span>{{ $matchFormat }}</span>
+                                    <span class="badge text-dark border odi-series">{{ $matchFormat }}</span>
                                     @endif
                                 </span>
 
@@ -190,13 +190,13 @@ $schedulePayload = $sdulingwomen ?? [];
                                 </div>
                             </div>
 
-                            <!-- RIGHT: Date & Time Display -->
+                            <!-- RIGHT: Date & Time Display (converted to user's local timezone) -->
                             <div class="col-5 text-end border-start ps-2">
                                 <div class="text-dark fw-semibold" style="font-size: 13px;">
-                                    <i class="bi bi-calendar3 text-primary me-1"></i>{{ $formattedDate }}
+                                    <i class="bi bi-calendar3 text-primary me-1"></i><span class="js-local-date" data-start="{{ $startDate }}">{{ $formattedDate }}</span>
                                 </div>
                                 <div class="text-muted fw-bold mt-1" style="font-size: 13px;">
-                                    <i class="bi bi-clock me-1"></i>{{ $formattedTime }}
+                                    <i class="bi bi-clock me-1"></i><span class="js-local-time" data-start="{{ $startDate }}">{{ $formattedTime }}</span>
                                 </div>
                             </div>
 
