@@ -9,9 +9,9 @@
         </a>
     </div>
     <div class="mobile-nav-item">
-        <a href="{{ route('upcoming-matches') }}" class="{{ request()->is('cricket-schedule/upcoming') ? 'active' : '' }}">
+        <a href="{{ route('schedule-international') }}" class="{{ request()->is('cricket-schedule/*') ? 'active' : '' }}">
             <i class="fas fa-calendar-alt"></i>
-            <span>Upcoming</span>
+            <span>Schedule</span>
         </a>
     </div>
     <div class="mobile-nav-item">

@@ -1699,7 +1699,7 @@ li span .fa {
     .main-section {
         border-radius: 0 !important;
         box-shadow: none !important;
-        padding: 1rem 1.6rem;
+        padding: 1rem 1.6rem 5rem 0;
         margin: 0;
         width: 100%;
         max-width: 100vw;
@@ -1981,7 +1981,7 @@ li span .fa {
 
 @media (max-width: 576px) and (min-width: 250px) {
     .main-section {
-        padding: 1rem 1.6rem;
+        padding: 1rem 1.6rem 5rem 0;
         width: 100vw;
     }
 
