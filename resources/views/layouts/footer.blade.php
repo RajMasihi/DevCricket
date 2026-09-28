@@ -9,9 +9,15 @@
         </a>
     </div>
     <div class="mobile-nav-item">
+<<<<<<< HEAD
         <a href="{{ route('schedule-international') }}" class="{{ request()->is('cricket-schedule/*') ? 'active' : '' }}">
             <i class="fas fa-calendar-alt"></i>
             <span>Schedule</span>
+=======
+        <a href="{{ route('schedule-international') }}" class="{{ request()->is('cricket-schedule/international') ? 'active' : '' }}">
+            <i class="fas fa-calendar-alt"></i>
+            <span>schedule</span>
+>>>>>>> 768954bfb46143a65dfe2f41e1a234c6d012a677
         </a>
     </div>
     <div class="mobile-nav-item">

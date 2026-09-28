@@ -501,8 +501,68 @@ function showScorecardTeam(scIdx, buttonElement) {
     return false;
 }
 
+function getLocalMatchParts(unixSeconds) {
+    var ts = parseInt(unixSeconds, 10);
+    if (!ts) {
+        return null;
+    }
+    var d = new Date(ts * 1000);
+    if (isNaN(d.getTime())) {
+        return null;
+    }
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var day = String(d.getDate()).padStart(2, '0');
+    var month = months[d.getMonth()];
+    var year = d.getFullYear();
+    var hours = d.getHours();
+    var minutes = String(d.getMinutes()).padStart(2, '0');
+    var ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    if (hours === 0) {
+        hours = 12;
+    }
+    hours = String(hours).padStart(2, '0');
+    return {
+        date: day + ' ' + month + ', ' + year,
+        dateShort: day + ' ' + month,
+        time: hours + ':' + minutes + ' ' + ampm
+    };
+}
+
+function applyLocalMatchTimes() {
+    document.querySelectorAll('.js-local-date[data-start]').forEach(function(el) {
+        var parts = getLocalMatchParts(el.getAttribute('data-start'));
+        if (parts) {
+            el.textContent = parts.date;
+        }
+    });
+    document.querySelectorAll('.js-local-time[data-start]').forEach(function(el) {
+        var parts = getLocalMatchParts(el.getAttribute('data-start'));
+        if (parts) {
+            el.textContent = parts.time;
+        }
+    });
+    document.querySelectorAll('.js-local-match-date[data-start]').forEach(function(el) {
+        var parts = getLocalMatchParts(el.getAttribute('data-start'));
+        if (parts) {
+            el.textContent = 'Match Date: ' + parts.dateShort;
+        }
+    });
+    document.querySelectorAll('.js-local-start-status[data-start]').forEach(function(el) {
+        var parts = getLocalMatchParts(el.getAttribute('data-start'));
+        if (!parts) {
+            return;
+        }
+        var original = (el.textContent || '').trim();
+        if (!original || /GMT/i.test(original) || /Match starts/i.test(original)) {
+            el.textContent = 'Match starts at ' + parts.dateShort + ', ' + parts.time;
+        }
+    });
+}
+
 // Initialize team switching on page load
 document.addEventListener('DOMContentLoaded', function() {
+    applyLocalMatchTimes();
     // Check if scoreboard tab is active
     var scoreboard = document.getElementById('scoreboard');
     if (scoreboard && !scoreboard.classList.contains('d-none-dynamic')) {

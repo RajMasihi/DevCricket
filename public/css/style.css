@@ -1057,6 +1057,13 @@ badge {
     padding: 1rem 1.5rem 0 0;
 }
 
+.card-body .match-formate {
+    margin-top: 0 !important;
+    padding: 0 !important;
+    text-align: inherit;
+    color: inherit;
+}
+
 /* .match-formate span {
     background-color: #1877ce;
     padding: .2rem .7rem;
