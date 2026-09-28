@@ -53,13 +53,35 @@ class Cricketlivescorecontroller extends Controller
     }
 
     // serires match function start
-    public function series()
+    public function series($category = 'all')
     {
         $pageTitle = 'Cricket Series - International & Domestic | Criclivem';
         $metaDescription = 'Browse all cricket series including international tours, domestic leagues, and tournaments. Get complete series information, schedules, and match details.';
         $metaKeywords = 'cricket series, international cricket series, domestic cricket leagues, cricket tournaments, cricket tours, series schedule, ICC series';
         
+        // Determine API endpoint based on category
         $apiUrl = env('CriBase_Url') . "series/v1/all";
+        
+        if ($category !== 'all') {
+            // Try category-specific API endpoints first
+            $categoryApiUrl = env('CriBase_Url') . "series/v1/{$category}";
+            
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
+                'Accept' => 'application/json',
+                'x-rapidapi-host' => 'cricbuzz-cricket2.p.rapidapi.com',
+                'x-rapidapi-key' => env('RAPIDAPI_KEY'),
+            ])->get($categoryApiUrl);
+            
+            $seriess = $response->json();
+            
+            // If category-specific endpoint doesn't work, fall back to all and filter
+            if (empty($seriess) || !isset($seriess['seriesMapProto'])) {
+                $apiUrl = env('CriBase_Url') . "series/v1/all";
+            }
+        }
+        
         if ($apiUrl) {
             $response = Http::withOptions([
                 'verify' => false,
@@ -70,14 +92,117 @@ class Cricketlivescorecontroller extends Controller
             ])->get($apiUrl);
 
             $seriess = $response->json();
+            
+            // Filter series by category if not using category-specific endpoint
+            if ($category !== 'all' && isset($seriess['seriesMapProto'])) {
+                $seriess = $this->filterSeriesByCategory($seriess, $category);
+            }
         } else {
             // Pass error msg to view or fallback mode
             $seriess = [];
             $errorMsg = 'API URL not configured';
             return view('series', compact('seriess', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
-            // echo "<pre>";print_r($seriess);die;
-        return view('series', compact('seriess', 'pageTitle', 'metaDescription', 'metaKeywords'));
+        
+        // Update page title based on category
+        $categoryTitle = ucfirst($category);
+        if ($category === 'all') {
+            $pageTitle = 'All Cricket Series - International & Domestic | Criclivem';
+        } else {
+            $pageTitle = "{$categoryTitle} Cricket Series | Criclivem";
+        }
+        
+        return view('series', compact('seriess', 'pageTitle', 'metaDescription', 'metaKeywords', 'category'));
+    }
+    
+    private function filterSeriesByCategory($seriess, $category)
+    {
+        if (!isset($seriess['seriesMapProto'])) {
+            return $seriess;
+        }
+        
+        $filteredSeries = [];
+        
+        foreach ($seriess['seriesMapProto'] as $monthIndex => $monthItem) {
+            if (!isset($monthItem['series'])) {
+                continue;
+            }
+            
+            $filteredMonthSeries = [];
+            
+            foreach ($monthItem['series'] as $series) {
+                $seriesName = strtolower($series['name'] ?? '');
+                $isMatch = false;
+                
+                switch ($category) {
+                    case 'international':
+                        $isMatch = $this->isInternationalSeries($seriesName);
+                        break;
+                    case 'domestic':
+                        $isMatch = $this->isDomesticSeries($seriesName);
+                        break;
+                    case 'women':
+                        $isMatch = $this->isWomenSeries($seriesName);
+                        break;
+                    case 'league':
+                        $isMatch = $this->isLeagueSeries($seriesName);
+                        break;
+                    default:
+                        $isMatch = true;
+                }
+                
+                if ($isMatch) {
+                    $filteredMonthSeries[] = $series;
+                }
+            }
+            
+            if (!empty($filteredMonthSeries)) {
+                $filteredSeries['seriesMapProto'][$monthIndex] = [
+                    'date' => $monthItem['date'],
+                    'series' => $filteredMonthSeries
+                ];
+            }
+        }
+        
+        return $filteredSeries;
+    }
+    
+    private function isInternationalSeries($seriesName)
+    {
+        $internationalKeywords = ['icc', 'international', 'world cup', 'asia cup', 'champions trophy', 'bilateral', 'tour'];
+        foreach ($internationalKeywords as $keyword) {
+            if (strpos($seriesName, $keyword) !== false) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private function isDomesticSeries($seriesName)
+    {
+        $domesticKeywords = ['cup', 'trophy', 'championship', 'domestic', 'national'];
+        foreach ($domesticKeywords as $keyword) {
+            if (strpos($seriesName, $keyword) !== false && !$this->isInternationalSeries($seriesName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private function isWomenSeries($seriesName)
+    {
+        return strpos($seriesName, 'women') !== false || strpos($seriesName, 'woman') !== false;
+    }
+    
+    private function isLeagueSeries($seriesName)
+    {
+        $leagueKeywords = ['ipl', 'bbl', 'cpl', 'psl', 'slt', 'the hundred', 'lanka premier', 'bangladesh premier', 't20 blast', 'big bash', 'caribbean premier', 'super league'];
+        foreach ($leagueKeywords as $keyword) {
+            if (strpos($seriesName, $keyword) !== false) {
+                return true;
+            }
+        }
+        return false;
     }
 
    
@@ -437,12 +562,12 @@ class Cricketlivescorecontroller extends Controller
         if (count($matchesToDisplay) === 0 && is_array($recentMatches) && count($recentMatches) > 0) {
             $matchesToDisplay = array_slice($recentMatches, 0, 4);
         }
-    
+        // dd($matchesToDisplay);
         return view('index', [
-            'matches' => $matchesToDisplay,
+            'matches' => $matches,
             'liveMatches' => $liveMatches,
             'recentMatches' => $recentMatches,
-            'upcomingMatches' => $matches,
+            'upcomingMatches' => $matchesToDisplay,
             'hasLiveMatches' => $hasLiveMatches,
             'newsItems' => $newsItems,
             'categories' => $categories,
@@ -646,7 +771,7 @@ class Cricketlivescorecontroller extends Controller
             $errorMsg = 'API URL not configured';
             return view('stats', compact('statsData', 'pointtable', 'errorMsg', 'pageTitle', 'metaDescription', 'metaKeywords'));
         }
-
+        //  dd($statsData);
         $activeTab = 'stats';
         return view('stats', compact('statsData', 'pointtable', 'activeTab', 'pageTitle', 'metaDescription', 'metaKeywords'));
     }

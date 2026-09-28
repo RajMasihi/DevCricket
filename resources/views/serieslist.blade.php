@@ -16,10 +16,9 @@
     use Illuminate\Support\Str;
 
     $seriesId = request()->route('id') ?? ($serieslists['seriesId'] ?? '');
-
     // Convert route slug (e.g. "ipl-2026") into readable title if array data is missing
-    $routeSeriesName = request()->route('seriesname') 
-        ? ucwords(str_replace('-', ' ', request()->route('seriesname'))) 
+    $routeSeriesName = request()->route('slug') 
+        ? ucwords(str_replace('-', ' ', request()->route('slug'))) 
         : null;
 
     // Resolve final display name with fallbacks
@@ -157,12 +156,32 @@
         } else {
         $matchDateTodayCheck = '';
         }
+
+        // Winner Detection Logic
+        $winnerName = '';
+        $team1Won = false;
+        $team2Won = false;
+        $status = $match['status'] ?? '';
+        
+        if (!empty($status)) {
+            if (preg_match('/^(.*?)\swon\b/i', $status, $m)) {
+                $winnerName = trim($m[1]);
+            }
+        }
+        
+        if (strcasecmp($winnerName, $team1Name) == 0) {
+            $team1Won = true;
+            $team2Won = false;
+        } elseif (strcasecmp($winnerName, $team2Name) == 0) {
+            $team1Won = false;
+            $team2Won = true;
+        }
         @endphp
 
         <div class="col match-item">
             <a href="{{ url('/live-cricket-score/' . $matchId . '/' . ($team1NameSlug ?: 'team-1') . '-vs-' . ($team2NameSlug ?: 'team-2')) }}"
                 class="text-decoration-none text-dark d-block h-100">
-                <div class="card h-100 shadow-sm border-0"
+                <div class="card h-100 shadow-sm border-0 match-card-custom"
                     style="box-shadow: 0 4px 6px rgba(5, 50, 89, 0.15) !important;">
                     <div class="card-body p-3 d-flex flex-column justify-content-between">
 
@@ -200,13 +219,15 @@
                                     @endphp
                                     @if ($format)
                                         @if (strtolower($format) === 't20')
-                                            <span class="badge border match-formate" style="font-size: 11px; background-color: #424242; color:#ffff;">
-                                            <span class="t20-series">T20</span>
+                                            <span class="format-badge t20-format" style="font-size: 11px;">
+                                            T20
+                                            </span>
                                         @elseif (strtolower($format) === 'odi')
-                                            <span class="badge border match-formate" style="font-size: 11px; background-color:  #3D62BC; color:#ffff;">
-                                            <span class="odi-series">ODI</span>
+                                            <span class="format-badge odi-format" style="font-size: 11px;">
+                                            ODI
+                                            </span>
                                         @else
-                                            <span class="badge text-dark border match-formate" style="font-size: 11px;">
+                                            <span class="format-badge default-format" style="font-size: 11px;">
                                             {{ strtoupper($format) }}
                                             </span>
                                         @endif
@@ -224,14 +245,14 @@
                                         <img class="img flex-shrink-0 me-2" src="{{ $team1Img }}"
                                             alt="{{ $team1Name ?: 'Team 1' }}"
                                             style="width: 20px; height: 20px; object-fit: contain;" />
-                                        <span class="fw-semibold text-truncate"
+                                        <span class="fw-semibold text-truncate {{ $team1Won ? 'winner-team-name' : '' }}"
                                             style="font-size: 14px;">{{ $team1Name }}</span>
                                     </div>
                                     <div class="d-flex align-items-center overflow-hidden">
                                         <img class="img flex-shrink-0 me-2" src="{{ $team2Img }}"
                                             alt="{{ $team2Name ?: 'Team 2' }}"
                                             style="width: 20px; height: 20px; object-fit: contain;" />
-                                        <span class="fw-semibold text-truncate"
+                                        <span class="fw-semibold text-truncate {{ $team2Won ? 'winner-team-name' : '' }}"
                                             style="font-size: 14px;">{{ $team2Name }}</span>
                                     </div>
                                 </div>
@@ -244,8 +265,8 @@
 
                                     @if ($hasScore)
                                     <div class="fw-bold text-nowrap" style="font-size: 13px;">
-                                        <div>{{ $score1 ?: '--' }}</div>
-                                        <div>{{ $score2 ?: '--' }}</div>
+                                        <div class="{{ $team1Won ? 'winner-score' : '' }}">{{ $score1 ?: '--' }}</div>
+                                        <div class="{{ $team2Won ? 'winner-score' : '' }}">{{ $score2 ?: '--' }}</div>
                                     </div>
                                     @else
                                     <div class="text-muted" style="font-size: 11px;">
@@ -282,9 +303,20 @@
                         <div class="mt-2 pt-2 border-top">
                             @if ((isset($match['state']) && strtolower($match['state']) === 'complete') ||
                             ($match['matchEnded'] ?? false))
-                            <p class="card-text text-danger mb-0 fw-medium text-truncate" style="font-size: 12px;">
-                                {{ $match['status'] ?? 'Match Complete' }}
-                            </p>
+                                @if($team1Won || $team2Won)
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span class="won-by-badge mb-0 fw-medium text-danger" style="font-size: 12px;">
+                                            {{ $match['status'] ?? 'Match Complete' }}
+                                        </span>
+                                        <!-- <span class="winner-team-badge  fw-bold" style="font-size: 11px;">
+                                            {{ $team1Won ? $team1Name : ($team2Won ? $team2Name : '') }}
+                                        </span> -->
+                                    </div>
+                                @else
+                                    <p class="card-text text-danger mb-0 fw-medium text-truncate" style="font-size: 12px;">
+                                        {{ $match['status'] ?? 'Match Complete' }}
+                                    </p>
+                                @endif
                             @else
                             <p class="card-text text-primary mb-0 fw-medium text-truncate" style="font-size: 12px;">
                                 {{ $match['status'] ?? '' }}

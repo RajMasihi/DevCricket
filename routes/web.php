@@ -50,6 +50,7 @@ Route::get('/cricket-teams/{id}/{slug?}', [Cricketlivescorecontroller::class, 't
 
 // Series Routes with SEO-friendly URLs
 Route::get('/cricket-series', [Cricketlivescorecontroller::class, 'series'])->name('series');
+Route::get('/cricket-series/{category}', [Cricketlivescorecontroller::class, 'series'])->name('series-category');
 Route::get('/cricket-series/{id}/{slug}', [Cricketlivescorecontroller::class, 'serieslist'])->name('series-detail');
 Route::get('/serieslist/{id}/{slug}', [Cricketlivescorecontroller::class, 'serieslist'])->name('series-detail-legacy');
 

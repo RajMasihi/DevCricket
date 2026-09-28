@@ -239,9 +239,7 @@ h4, h5, h6 {
         padding-right: 10px;
     }
     
-    .card {
-        /* margin-bottom: 15px; */
-    }
+    
 }
 
 /* Tablet improvements */
@@ -265,9 +263,7 @@ h4, h5, h6 {
         padding: 30px 20px;
     }
     
-    .card {
-        /* margin-bottom: 20px; */
-    }
+    
 }
 
 /* Status badges improvements */
@@ -1064,6 +1060,71 @@ badge {
     color: inherit;
 }
 
+/* Format Badge Styling - Updated to match reference design */
+.format-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.t20-format {
+    background: linear-gradient(135deg, #424242 0%, #2c2c2c 100%);
+}
+
+.odi-format {
+    background: linear-gradient(135deg, #3D62BC 0%, #2a4a94 100%);
+}
+
+.default-format {
+    background: linear-gradient(135deg, #053259 0%, #032245 100%);
+}
+
+/* Won by Team Section Styling */
+.won-by-badge {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.winner-team-badge {
+    background: linear-gradient(135deg, #2adb7b 0%, #1bc369 100%);
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(42, 219, 123, 0.3);
+    font-size: 11px;
+    letter-spacing: 0.3px;
+    text-transform: capitalize;
+}
+
+/* Winner team name styling */
+.winner-team-name {
+    color: #2adb7b;
+    font-weight: 700;
+}
+
+/* Winner score styling */
+.winner-score {
+    color: #2adb7b;
+    font-weight: 700;
+}
+
+/* Match card custom styling */
+.match-card-custom {
+    border-radius: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.match-card-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(5, 50, 89, 0.2) !important;
+}
+
 /* .match-formate span {
     background-color: #1877ce;
     padding: .2rem .7rem;
@@ -1126,6 +1187,57 @@ badge {
     background-color:  #3D62BC;
     color:#ffff !important;
     /* border: 1px solid #dee2e6 !important */
+}
+
+/* Series category button styling */
+.series-category-btn {
+    background: white;
+    color: #053259;
+    border: 2px solid #053259;
+    border-radius: 25px;
+    padding: 8px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    text-transform: capitalize;
+}
+
+.series-category-btn:hover {
+    background: #053259;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(5, 50, 89, 0.2);
+}
+
+.series-category-btn.active {
+    background: linear-gradient(135deg, #053259 0%, #0a4d8c 100%);
+    color: white;
+    border-color: #053259;
+    box-shadow: 0 4px 12px rgba(5, 50, 89, 0.3);
+}
+
+/* Series accordion styling */
+.accordion-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.accordion-button {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.accordion-button:not(.collapsed) {
+    background: linear-gradient(135deg, #053259 0%, #0a4d8c 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(5, 50, 89, 0.2);
+}
+
+.accordion-button:focus {
+    box-shadow: 0 0 0 0.2rem rgba(5, 50, 89, 0.25);
 }
 /* ---------- Header / Nav / Dropdown ---------- */
 .header-bar {
