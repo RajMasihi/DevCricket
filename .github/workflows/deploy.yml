@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-# updated
+# update
 # on:
 #   workflow_dispatch:
 jobs:
