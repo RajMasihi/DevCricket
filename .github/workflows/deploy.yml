@@ -40,7 +40,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no \
           -i key.pem \
           ubuntu@${{ secrets.EC2_IP }} << 'EOF'
-
+          cd ~/cricketapp
           pwd
           ls -la
           
