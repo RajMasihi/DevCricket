@@ -41,12 +41,9 @@ jobs:
           -i key.pem \
           ubuntu@${{ secrets.EC2_IP }} << 'EOF'
 
-          cd ~/cricketapp
-
           pwd
           ls -la
-          git pull origin main
-          npm run build
+          
           docker compose pull
 
           docker compose down
@@ -54,11 +51,6 @@ jobs:
           docker compose up -d
 
           docker compose ps
-          git reset --hard
-       
-          docker exec cricketapp-app-1 php artisan config:clear
-          docker exec cricketapp-app-1 php artisan view:clear
-          docker exec cricketapp-app-1 php artisan optimize:clear
           EOF
 
           rm -f key.pem
