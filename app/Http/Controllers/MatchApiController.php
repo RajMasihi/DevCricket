@@ -3,16 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Services\CricbuzzApiService;
+use App\Services\CricbuzzScrapingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 
 class MatchApiController extends Controller
 {
-    public function __construct(private CricbuzzApiService $api) {}
+    public function __construct(
+        private CricbuzzApiService $api,
+        private CricbuzzScrapingService $scrapingService
+    ) {}
 
     public function liveMatches(): JsonResponse
     {
-        $matches = $this->api->liveMatches();
+        // Try to use scraping service first, fallback to API
+        try {
+            $matches = $this->scrapingService->scrapeLiveMatches();
+        } catch (\Exception $e) {
+            $matches = $this->api->liveMatches();
+        }
 
         // Format overs with conversion for all matches
         foreach ($matches as &$match) {
@@ -37,7 +46,12 @@ class MatchApiController extends Controller
 
     public function matchInfo(int|string $id): JsonResponse
     {
-        $info = $this->api->matchInfo($id);
+        // Try to use scraping service first, fallback to API
+        try {
+            $info = $this->scrapingService->scrapeMatchDetail($id);
+        } catch (\Exception $e) {
+            $info = $this->api->matchInfo($id);
+        }
         $overThreshold = $this->calculateOverThreshold($info);
         $oversValidation = $this->getOversValidationData($id, $info);
         

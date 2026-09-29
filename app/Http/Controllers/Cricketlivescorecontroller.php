@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Services\CricbuzzApiService;
+use App\Services\CricbuzzScrapingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
 class Cricketlivescorecontroller extends Controller
 {
-    public function __construct(private CricbuzzApiService $cricbuzzApi) {}
+    public function __construct(
+        private CricbuzzApiService $cricbuzzApi,
+        private CricbuzzScrapingService $scrapingService
+    ) {}
 
     // Static Pages
     public function about()
@@ -246,7 +250,12 @@ class Cricketlivescorecontroller extends Controller
 
     public function result()
     {
-        $matches = $this->cricbuzzApi->recentMatches();
+        // Try to use scraping service first, fallback to API
+        try {
+            $matches = $this->scrapingService->scrapeRecentMatches();
+        } catch (\Exception $e) {
+            $matches = $this->cricbuzzApi->recentMatches();
+        }
 
         // Format overs with conversion for all matches
         foreach ($matches as &$match) {
@@ -274,19 +283,36 @@ class Cricketlivescorecontroller extends Controller
 
     public function CricketliveScores()
     {
-        $liveMatches = $this->cricbuzzApi->liveMatches();
-        $recentMatches = $this->cricbuzzApi->recentMatches();
-        $upcomingMatches = $this->cricbuzzApi->upcomingMatches();
+        // Try to use scraping service first, fallback to API
+        try {
+            $liveMatches = $this->scrapingService->scrapeLiveMatches();
+        } catch (\Exception $e) {
+            $liveMatches = $this->cricbuzzApi->liveMatches();
+        }
+
+        try {
+            $recentMatches = $this->scrapingService->scrapeRecentMatches();
+        } catch (\Exception $e) {
+            $recentMatches = $this->cricbuzzApi->recentMatches();
+        }
+
+        try {
+            $upcomingMatches = $this->scrapingService->scrapeUpcomingMatches();
+        } catch (\Exception $e) {
+            $upcomingMatches = $this->cricbuzzApi->upcomingMatches();
+        }
         
-        // Fetch news data
+        // News data - temporarily disabled (requires separate scraping implementation)
+        $newsItems = [];
+        $categories = [];
+        
+        // Fetch news data (API fallback - comment out if no API key available)
+        /*
         $headers = [
             'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
             'X-Rapidapi-Host' => 'cricbuzz-cricket2.p.rapidapi.com',
             'Content-Type'    => 'application/json',
         ];
-        
-        $newsItems = [];
-        $categories = [];
         
         try {
             // Get news categories
@@ -317,6 +343,7 @@ class Cricketlivescorecontroller extends Controller
             $categories = [];
             $newsItems = [];
         }
+        */
         
         // Format overs with conversion for live matches
         foreach ($liveMatches as &$match) {
@@ -449,9 +476,24 @@ class Cricketlivescorecontroller extends Controller
 
     public function upcoming()
     {
-        $matches = $this->cricbuzzApi->upcomingMatches();
-        $liveMatches = $this->cricbuzzApi->liveMatches();
-        $recentMatches = $this->cricbuzzApi->recentMatches();
+        // Try to use scraping service first, fallback to API
+        try {
+            $matches = $this->scrapingService->scrapeUpcomingMatches();
+        } catch (\Exception $e) {
+            $matches = $this->cricbuzzApi->upcomingMatches();
+        }
+
+        try {
+            $liveMatches = $this->scrapingService->scrapeLiveMatches();
+        } catch (\Exception $e) {
+            $liveMatches = $this->cricbuzzApi->liveMatches();
+        }
+
+        try {
+            $recentMatches = $this->scrapingService->scrapeRecentMatches();
+        } catch (\Exception $e) {
+            $recentMatches = $this->cricbuzzApi->recentMatches();
+        }
 
         // Format overs with conversion for all matches
         if (is_array($matches)) {
@@ -587,7 +629,12 @@ class Cricketlivescorecontroller extends Controller
         }
 
         try {
-            $scorecardDatainfo = $this->cricbuzzApi->matchInfo($id);
+            // Try to use scraping service first, fallback to API
+            try {
+                $scorecardDatainfo = $this->scrapingService->scrapeMatchDetail($id);
+            } catch (\Exception $e) {
+                $scorecardDatainfo = $this->cricbuzzApi->matchInfo($id);
+            }
 
             if (empty($scorecardDatainfo)) {
                 return view('matchdetail', [
@@ -605,19 +652,34 @@ class Cricketlivescorecontroller extends Controller
                 ]);
             }
 
-            $scorecardData = $this->cricbuzzApi->scorecard($id);
-            $scorecardData = $this->cricbuzzApi->enrichScorecardFromMatchInfo($scorecardDatainfo, $scorecardData);
+            // Try to get additional data from API, use fallback if not available
+            try {
+                $scorecardData = $this->cricbuzzApi->scorecard($id);
+                $scorecardData = $this->cricbuzzApi->enrichScorecardFromMatchInfo($scorecardDatainfo, $scorecardData);
+            } catch (\Exception $e) {
+                // Use enriched data from scraped match info
+                $scorecardData = $this->cricbuzzApi->enrichScorecardFromMatchInfo($scorecardDatainfo, []);
+            }
 
-            $teamsData = $this->cricbuzzApi->teams($id);
+            try {
+                $teamsData = $this->cricbuzzApi->teams($id);
+            } catch (\Exception $e) {
+                $teamsData = [];
+            }
 
             $matchState = $this->cricbuzzApi->normalizeMatchState($scorecardDatainfo);
 
-            $commentary = $this->cricbuzzApi->isLiveMatch($scorecardDatainfo)
-                ? $this->cricbuzzApi->commentary($id)
-                : [];
-            $commentaryItems = !empty($commentary)
-                ? $this->cricbuzzApi->normalizeCommentaryList($commentary)
-                : [];
+            try {
+                $commentary = $this->cricbuzzApi->isLiveMatch($scorecardDatainfo)
+                    ? $this->cricbuzzApi->commentary($id)
+                    : [];
+                $commentaryItems = !empty($commentary)
+                    ? $this->cricbuzzApi->normalizeCommentaryList($commentary)
+                    : [];
+            } catch (\Exception $e) {
+                $commentary = [];
+                $commentaryItems = [];
+            }
 
             // Format overs with conversion for match info
             if (isset($scorecardDatainfo['matchScore']) && is_array($scorecardDatainfo['matchScore'])) {
@@ -646,9 +708,13 @@ class Cricketlivescorecontroller extends Controller
             $seriesId = $scorecardDatainfo['seriesid'] ?? $scorecardDatainfo['seriesId'] ?? '';
             $hasPointTable = false;
             if (!empty($seriesId)) {
-                $hasPointTable = $this->cricbuzzApi->hasPointsTable(
-                    $this->cricbuzzApi->pointsTable($seriesId)
-                );
+                try {
+                    $hasPointTable = $this->cricbuzzApi->hasPointsTable(
+                        $this->cricbuzzApi->pointsTable($seriesId)
+                    );
+                } catch (\Exception $e) {
+                    $hasPointTable = false;
+                }
             }
 
             // Generate dynamic SEO metadata
