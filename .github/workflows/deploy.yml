@@ -27,7 +27,7 @@ jobs:
           docker build \
           -t ${{ secrets.DOCKER_USERNAME }}/cricketapp:latest .
 
-      - name: Push Image
+      - name: Push Image on dockerhub
         run: |
           docker push \
           ${{ secrets.DOCKER_USERNAME }}/cricketapp:latest
