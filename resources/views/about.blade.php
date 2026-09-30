@@ -12,7 +12,7 @@
 
 @section('main-container')
  <div class="container-fluit main-section">
-<h4> About Us</h4>
+<h4> About Us </h4>
 <p>Welcome to Live Cricket Data, your ultimate destination for real-time cricket updates and insights, directly powered by Google&#8217;s live data sources. We bring you accurate, fast, and detailed cricket information from around the world — including live scores, ball-by-ball commentary, match statistics, player performances, and team rankings.</p>
 
 <p>Our platform is designed for cricket lovers who never want to miss a single moment of the game. Whether it&#8217;s an international series, IPL, World Cup, or domestic tournament, we deliver instant score updates, match highlights, and in-depth analytics right at your fingertips.</p>
