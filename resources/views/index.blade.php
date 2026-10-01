@@ -90,7 +90,7 @@ $activeTab = 'live';
 }
 @endphp
 <div class="container-fluid main-section" id="cricket-index-page" data-active-tab="{{ e($activeTab) }}">
-    <div id="live_section" style="display:{{ $activeTab == 'live' ? 'block' : 'none' }};">
+    <div id="live_header" style="display:{{ $activeTab == 'live' ? 'block' : 'none' }};">
         <h4 class="text-center mb-3">Live Score</h4>
     </div>
     
@@ -232,20 +232,41 @@ $activeTab = 'live';
                                                 style="font-size: 14px; font-weight: 600;">{{ $team1Name }}</span>
                                         </div>
                                         <div class="text-end flex-shrink-0">
-                                            @if(!empty($t1Score))
-                                            <span class="score-span {{ $team1CssClass }}"
-                                                style="font-size: 13px; font-weight: 600;">
-                                                {{ $t1Score['runs'] ?? '-' }}/{{ $t1Score['wickets'] ?? '0' }}
-                                                ({{ $t1Score['overs_display'] ?? $t1Score['overs'] ?? '-' }} ovs)
-                                            </span>
-                                            @endif
-                                            @if($matchFormat === 'TEST' && !empty($t1Score2))
-                                            <br>
-                                            <span class="score-span {{ $team1CssClass }}"
-                                                style="font-size: 13px; font-weight: 600;">
-                                                {{ $t1Score2['runs'] ?? '-' }}/{{ $t1Score2['wickets'] ?? '0' }}
-                                                ({{ $t1Score2['overs_display'] ?? $t1Score2['overs'] ?? '-' }} ovs)
-                                            </span>
+                                            @if($state === 'upcoming')
+                                                <!-- Show start time for upcoming matches -->
+                                                @if(!empty($localTime))
+                                                <span class="text-muted" style="font-size: 12px;">
+                                                    {{ date('h:i A', $startDate) }}
+                                                </span>
+                                                @endif
+                                            @else
+                                                <!-- Show scores for live and recent matches -->
+                                                @php
+                                                    $t1Runs = isset($t1Score['runs']) ? (int)$t1Score['runs'] : 0;
+                                                    $t1Wickets = isset($t1Score['wickets']) ? (int)$t1Score['wickets'] : 0;
+                                                    $t1Overs = isset($t1Score['overs']) ? (string)$t1Score['overs'] : '0.0';
+                                                    $hasRealScore = ($t1Runs > 0 || $t1Wickets > 0 || $t1Overs !== '0.0');
+                                                @endphp
+                                                @if($hasRealScore)
+                                                <span class="score-span {{ $team1CssClass }}"
+                                                    style="font-size: 13px; font-weight: 600;">
+                                                    {{ $t1Score['runs'] ?? '-' }}/{{ $t1Score['wickets'] ?? '0' }}
+                                                    ({{ $t1Score['overs_display'] ?? $t1Score['overs'] ?? '-' }} ovs)
+                                                </span>
+                                                @else
+                                                <!-- No scores available - show message -->
+                                                <span class="text-muted" style="font-size: 11px;">
+                                                    {{ $state === 'complete' ? 'View details' : 'Live on detail page' }}
+                                                </span>
+                                                @endif
+                                                @if($matchFormat === 'TEST' && !empty($t1Score2) && ($t1Score2['runs'] > 0 || $t1Score2['wickets'] > 0 || $t1Score2['overs'] != '0.0'))
+                                                <br>
+                                                <span class="score-span {{ $team1CssClass }}"
+                                                    style="font-size: 13px; font-weight: 600;">
+                                                    {{ $t1Score2['runs'] ?? '-' }}/{{ $t1Score2['wickets'] ?? '0' }}
+                                                    ({{ $t1Score2['overs_display'] ?? $t1Score2['overs'] ?? '-' }} ovs)
+                                                </span>
+                                                @endif
                                             @endif
                                         </div>
                                     </div>
@@ -262,20 +283,41 @@ $activeTab = 'live';
                                                 style="font-size: 14px; font-weight: 600;">{{ $team2Name }}</span>
                                         </div>
                                         <div class="text-end flex-shrink-0">
-                                            @if(!empty($t2Score))
-                                            <span class="score-span {{ $team2CssClass }}"
-                                                style="font-size: 13px; font-weight: 600;">
-                                                {{ $t2Score['runs'] ?? '-' }}/{{ $t2Score['wickets'] ?? '0' }}
-                                                ({{ $t2Score['overs_display'] ?? $t2Score['overs'] ?? '-' }} ovs)
-                                            </span>
-                                            @endif
-                                            @if($matchFormat === 'TEST' && !empty($t2Score2))
-                                            <br>
-                                            <span class="score-span {{ $team2CssClass }}"
-                                                style="font-size: 13px; font-weight: 600;">
-                                                {{ $t2Score2['runs'] ?? '-' }}/{{ $t2Score2['wickets'] ?? '0' }}
-                                                ({{ $t2Score2['overs_display'] ?? $t2Score2['overs'] ?? '-' }} ovs)
-                                            </span>
+                                            @if($state === 'upcoming')
+                                                <!-- Show start time for upcoming matches -->
+                                                @if(!empty($localTime))
+                                                <span class="text-muted" style="font-size: 12px;">
+                                                    {{ date('h:i A', $startDate) }}
+                                                </span>
+                                                @endif
+                                            @else
+                                                <!-- Show scores for live and recent matches -->
+                                                @php
+                                                    $t2Runs = isset($t2Score['runs']) ? (int)$t2Score['runs'] : 0;
+                                                    $t2Wickets = isset($t2Score['wickets']) ? (int)$t2Score['wickets'] : 0;
+                                                    $t2Overs = isset($t2Score['overs']) ? (string)$t2Score['overs'] : '0.0';
+                                                    $hasRealScore2 = ($t2Runs > 0 || $t2Wickets > 0 || $t2Overs !== '0.0');
+                                                @endphp
+                                                @if($hasRealScore2)
+                                                <span class="score-span {{ $team2CssClass }}"
+                                                    style="font-size: 13px; font-weight: 600;">
+                                                    {{ $t2Score['runs'] ?? '-' }}/{{ $t2Score['wickets'] ?? '0' }}
+                                                    ({{ $t2Score['overs_display'] ?? $t2Score['overs'] ?? '-' }} ovs)
+                                                </span>
+                                                @else
+                                                <!-- No scores available - show message -->
+                                                <span class="text-muted" style="font-size: 11px;">
+                                                    {{ $state === 'complete' ? 'View details' : 'Live on detail page' }}
+                                                </span>
+                                                @endif
+                                                @if($matchFormat === 'TEST' && !empty($t2Score2) && ($t2Score2['runs'] > 0 || $t2Score2['wickets'] > 0 || $t2Score2['overs'] != '0.0'))
+                                                <br>
+                                                <span class="score-span {{ $team2CssClass }}"
+                                                    style="font-size: 13px; font-weight: 600;">
+                                                    {{ $t2Score2['runs'] ?? '-' }}/{{ $t2Score2['wickets'] ?? '0' }}
+                                                    ({{ $t2Score2['overs_display'] ?? $t2Score2['overs'] ?? '-' }} ovs)
+                                                </span>
+                                                @endif
                                             @endif
                                         </div>
                                     </div>
@@ -447,7 +489,7 @@ $activeTab = 'live';
                                                     ({{ $t1Score['overs_display'] ?? $t1Score['overs'] ?? '-' }} ovs)
                                                 </span>
                                                 @endif
-                                                @if($matchFormat === 'TEST' && !empty($t1Score2))
+                                                @if($matchFormat === 'TEST' && !empty($t1Score2) && ($t1Score2['runs'] > 0 || $t1Score2['wickets'] > 0 || $t1Score2['overs'] != '0.0'))
                                                 <br>
                                                 <span class="score-span {{ $team1CssClass }}"
                                                     style="font-size: 13px; font-weight: 600;">
@@ -477,7 +519,7 @@ $activeTab = 'live';
                                                     ({{ $t2Score['overs_display'] ?? $t2Score['overs'] ?? '-' }} ovs)
                                                 </span>
                                                 @endif
-                                                @if($matchFormat === 'TEST' && !empty($t2Score2))
+                                                @if($matchFormat === 'TEST' && !empty($t2Score2) && ($t2Score2['runs'] > 0 || $t2Score2['wickets'] > 0 || $t2Score2['overs'] != '0.0'))
                                                 <br>
                                                 <span class="score-span {{ $team2CssClass }}"
                                                     style="font-size: 13px; font-weight: 600;">
@@ -904,17 +946,17 @@ $activeTab = 'live';
     </div>
 
     <!-- Result Tab Section -->
-    <section id="result_section" style="display:{{ $activeTab == 'result' ? 'block' : 'none' }};">
+    <section id="result_section" style="display:{{ $activeTab == 'recent' ? 'block' : 'none' }};">
         <div class="container-fluid">
 
             <div class="row row-cols-1 row-cols-md-2 g-4 pt-2">
-                @if(isset($error) && $activeTab == 'result')
+                @if(isset($error) && $activeTab == 'recent')
 
                 <span style="color:red;">Wait ...</span>
 
-                @elseif(isset($result) && count($result) === 0 && $activeTab == 'result')
+                @elseif(isset($result) && count($result) === 0 && $activeTab == 'recent')
                 <p>No recent matches found.</p>
-                @elseif(isset($result) && $activeTab == 'result')
+                @elseif(isset($result) && $activeTab == 'recent')
                 @php
                 usort($result, function($a, $b) {
                 $aDate = isset($a['matchInfo']['startDate']) ? $a['matchInfo']['startDate'] : (isset($a['startDate']) ?
@@ -1039,7 +1081,7 @@ $activeTab = 'live';
                                                     ({{ $t1Score['overs_display'] ?? $t1Score['overs'] ?? '-' }} ovs)
                                                 </span>
                                                 @endif
-                                                @if($matchFormat === 'TEST' && !empty($t1Score2))
+                                                @if($matchFormat === 'TEST' && !empty($t1Score2) && ($t1Score2['runs'] > 0 || $t1Score2['wickets'] > 0 || $t1Score2['overs'] != '0.0'))
                                                 <br>
                                                 <span class="score-span {{ $team1CssClass }}"
                                                     style="font-size: 13px; font-weight: 600;">
@@ -1069,7 +1111,7 @@ $activeTab = 'live';
                                                     ({{ $t2Score['overs_display'] ?? $t2Score['overs'] ?? '-' }} ovs)
                                                 </span>
                                                 @endif
-                                                @if($matchFormat === 'TEST' && !empty($t2Score2))
+                                                @if($matchFormat === 'TEST' && !empty($t2Score2) && ($t2Score2['runs'] > 0 || $t2Score2['wickets'] > 0 || $t2Score2['overs'] != '0.0'))
                                                 <br>
                                                 <span class="score-span {{ $team2CssClass }}"
                                                     style="font-size: 13px; font-weight: 600;">
@@ -1236,7 +1278,7 @@ $activeTab = 'live';
                                                     ({{ $t1Score['overs_display'] ?? $t1Score['overs'] ?? '-' }} ovs)
                                                 </span>
                                                 @endif
-                                                @if($matchFormat === 'TEST' && !empty($t1Score2))
+                                                @if($matchFormat === 'TEST' && !empty($t1Score2) && ($t1Score2['runs'] > 0 || $t1Score2['wickets'] > 0 || $t1Score2['overs'] != '0.0'))
                                                 <br>
                                                 <span class="score-span {{ $team1CssClass }}"
                                                     style="font-size: 13px; font-weight: 600;">
@@ -1266,7 +1308,7 @@ $activeTab = 'live';
                                                     ({{ $t2Score['overs_display'] ?? $t2Score['overs'] ?? '-' }} ovs)
                                                 </span>
                                                 @endif
-                                                @if($matchFormat === 'TEST' && !empty($t2Score2))
+                                                @if($matchFormat === 'TEST' && !empty($t2Score2) && ($t2Score2['runs'] > 0 || $t2Score2['wickets'] > 0 || $t2Score2['overs'] != '0.0'))
                                                 <br>
                                                 <span class="score-span {{ $team2CssClass }}"
                                                     style="font-size: 13px; font-weight: 600;">
@@ -1418,20 +1460,41 @@ $activeTab = 'live';
                                                 style="font-size: 14px; font-weight: 600;">{{ $team1Name }}</span>
                                         </div>
                                         <div class="text-end flex-shrink-0">
-                                            @if(!empty($t1Score))
-                                            <span class="score-span {{ $team1CssClass }}"
-                                                style="font-size: 13px; font-weight: 600;">
-                                                {{ $t1Score['runs'] ?? '-' }}/{{ $t1Score['wickets'] ?? '0' }}
-                                                ({{ $t1Score['overs_display'] ?? $t1Score['overs'] ?? '-' }} ovs)
-                                            </span>
-                                            @endif
-                                            @if($matchFormat === 'TEST' && !empty($t1Score2))
-                                            <br>
-                                            <span class="score-span {{ $team1CssClass }}"
-                                                style="font-size: 13px; font-weight: 600;">
-                                                {{ $t1Score2['runs'] ?? '-' }}/{{ $t1Score2['wickets'] ?? '0' }}
-                                                ({{ $t1Score2['overs_display'] ?? $t1Score2['overs'] ?? '-' }} ovs)
-                                            </span>
+                                            @if($state === 'upcoming')
+                                                <!-- Show start time for upcoming matches -->
+                                                @if(!empty($localTime))
+                                                <span class="text-muted" style="font-size: 12px;">
+                                                    {{ date('h:i A', $startDate) }}
+                                                </span>
+                                                @endif
+                                            @else
+                                                <!-- Show scores for live and recent matches -->
+                                                @php
+                                                    $t1Runs = isset($t1Score['runs']) ? (int)$t1Score['runs'] : 0;
+                                                    $t1Wickets = isset($t1Score['wickets']) ? (int)$t1Score['wickets'] : 0;
+                                                    $t1Overs = isset($t1Score['overs']) ? (string)$t1Score['overs'] : '0.0';
+                                                    $hasRealScore = ($t1Runs > 0 || $t1Wickets > 0 || $t1Overs !== '0.0');
+                                                @endphp
+                                                @if($hasRealScore)
+                                                <span class="score-span {{ $team1CssClass }}"
+                                                    style="font-size: 13px; font-weight: 600;">
+                                                    {{ $t1Score['runs'] ?? '-' }}/{{ $t1Score['wickets'] ?? '0' }}
+                                                    ({{ $t1Score['overs_display'] ?? $t1Score['overs'] ?? '-' }} ovs)
+                                                </span>
+                                                @else
+                                                <!-- No scores available - show message -->
+                                                <span class="text-muted" style="font-size: 11px;">
+                                                    {{ $state === 'complete' ? 'View details' : 'Live on detail page' }}
+                                                </span>
+                                                @endif
+                                                @if($matchFormat === 'TEST' && !empty($t1Score2) && ($t1Score2['runs'] > 0 || $t1Score2['wickets'] > 0 || $t1Score2['overs'] != '0.0'))
+                                                <br>
+                                                <span class="score-span {{ $team1CssClass }}"
+                                                    style="font-size: 13px; font-weight: 600;">
+                                                    {{ $t1Score2['runs'] ?? '-' }}/{{ $t1Score2['wickets'] ?? '0' }}
+                                                    ({{ $t1Score2['overs_display'] ?? $t1Score2['overs'] ?? '-' }} ovs)
+                                                </span>
+                                                @endif
                                             @endif
                                         </div>
                                     </div>
@@ -1448,20 +1511,41 @@ $activeTab = 'live';
                                                 style="font-size: 14px; font-weight: 600;">{{ $team2Name }}</span>
                                         </div>
                                         <div class="text-end flex-shrink-0">
-                                            @if(!empty($t2Score))
-                                            <span class="score-span {{ $team2CssClass }}"
-                                                style="font-size: 13px; font-weight: 600;">
-                                                {{ $t2Score['runs'] ?? '-' }}/{{ $t2Score['wickets'] ?? '0' }}
-                                                ({{ $t2Score['overs_display'] ?? $t2Score['overs'] ?? '-' }} ovs)
-                                            </span>
-                                            @endif
-                                            @if($matchFormat === 'TEST' && !empty($t2Score2))
-                                            <br>
-                                            <span class="score-span {{ $team2CssClass }}"
-                                                style="font-size: 13px; font-weight: 600;">
-                                                {{ $t2Score2['runs'] ?? '-' }}/{{ $t2Score2['wickets'] ?? '0' }}
-                                                ({{ $t2Score2['overs_display'] ?? $t2Score2['overs'] ?? '-' }} ovs)
-                                            </span>
+                                            @if($state === 'upcoming')
+                                                <!-- Show start time for upcoming matches -->
+                                                @if(!empty($localTime))
+                                                <span class="text-muted" style="font-size: 12px;">
+                                                    {{ date('h:i A', $startDate) }}
+                                                </span>
+                                                @endif
+                                            @else
+                                                <!-- Show scores for live and recent matches -->
+                                                @php
+                                                    $t2Runs = isset($t2Score['runs']) ? (int)$t2Score['runs'] : 0;
+                                                    $t2Wickets = isset($t2Score['wickets']) ? (int)$t2Score['wickets'] : 0;
+                                                    $t2Overs = isset($t2Score['overs']) ? (string)$t2Score['overs'] : '0.0';
+                                                    $hasRealScore2 = ($t2Runs > 0 || $t2Wickets > 0 || $t2Overs !== '0.0');
+                                                @endphp
+                                                @if($hasRealScore2)
+                                                <span class="score-span {{ $team2CssClass }}"
+                                                    style="font-size: 13px; font-weight: 600;">
+                                                    {{ $t2Score['runs'] ?? '-' }}/{{ $t2Score['wickets'] ?? '0' }}
+                                                    ({{ $t2Score['overs_display'] ?? $t2Score['overs'] ?? '-' }} ovs)
+                                                </span>
+                                                @else
+                                                <!-- No scores available - show message -->
+                                                <span class="text-muted" style="font-size: 11px;">
+                                                    {{ $state === 'complete' ? 'View details' : 'Live on detail page' }}
+                                                </span>
+                                                @endif
+                                                @if($matchFormat === 'TEST' && !empty($t2Score2) && ($t2Score2['runs'] > 0 || $t2Score2['wickets'] > 0 || $t2Score2['overs'] != '0.0'))
+                                                <br>
+                                                <span class="score-span {{ $team2CssClass }}"
+                                                    style="font-size: 13px; font-weight: 600;">
+                                                    {{ $t2Score2['runs'] ?? '-' }}/{{ $t2Score2['wickets'] ?? '0' }}
+                                                    ({{ $t2Score2['overs_display'] ?? $t2Score2['overs'] ?? '-' }} ovs)
+                                                </span>
+                                                @endif
                                             @endif
                                         </div>
                                     </div>

@@ -3,12 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Services\CricbuzzApiService;
+use App\Services\CricbuzzScrapingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class Cricketlivescorecontroller extends Controller
 {
-    public function __construct(private CricbuzzApiService $cricbuzzApi) {}
+    public function __construct(
+        private CricbuzzApiService $cricbuzzApi,
+        private CricbuzzScrapingService $scrapingService
+    ) {}
 
     // Static Pages
     public function about()
@@ -246,7 +251,14 @@ class Cricketlivescorecontroller extends Controller
 
     public function result()
     {
-        $matches = $this->cricbuzzApi->recentMatches();
+        // Try to use scraping service first, fallback to API
+        try {
+            $matches = $this->scrapingService->scrapeRecentMatches();
+            Log::info('Recent matches fetched for result page: ' . count($matches));
+        } catch (\Exception $e) {
+            Log::error('Error scraping recent matches for result page: ' . $e->getMessage());
+            $matches = $this->cricbuzzApi->recentMatches();
+        }
 
         // Format overs with conversion for all matches
         foreach ($matches as &$match) {
@@ -274,10 +286,31 @@ class Cricketlivescorecontroller extends Controller
 
     public function CricketliveScores()
     {
-        $liveMatches = $this->cricbuzzApi->liveMatches();
-        $recentMatches = $this->cricbuzzApi->recentMatches();
-        $upcomingMatches = $this->cricbuzzApi->upcomingMatches();
-        
+        // Try to use scraping service first, fallback to API
+        try {
+            $liveMatches = $this->scrapingService->scrapeLiveMatches();
+            Log::info('Live matches fetched: ' . count($liveMatches));
+        } catch (\Exception $e) {
+            Log::error('Error scraping live matches: ' . $e->getMessage());
+            $liveMatches = $this->cricbuzzApi->liveMatches();
+        }
+
+        try {
+            $recentMatches = $this->scrapingService->scrapeRecentMatches();
+            Log::info('Recent matches fetched: ' . count($recentMatches));
+        } catch (\Exception $e) {
+            Log::error('Error scraping recent matches: ' . $e->getMessage());
+            $recentMatches = $this->cricbuzzApi->recentMatches();
+        }
+
+        try {
+            $upcomingMatches = $this->scrapingService->scrapeUpcomingMatches();
+            Log::info('Upcoming matches fetched: ' . count($upcomingMatches));
+        } catch (\Exception $e) {
+            Log::error('Error scraping upcoming matches: ' . $e->getMessage());
+            $upcomingMatches = $this->cricbuzzApi->upcomingMatches();
+        }
+        // dd($liveMatches);
         // Fetch news data
         $headers = [
             'X-Rapidapi-Key' => env('RAPIDAPI_KEY'),
@@ -366,19 +399,44 @@ class Cricketlivescorecontroller extends Controller
                 }
             }
         }
-        
-        // Determine which matches to display
-        $matchesToDisplay = [];
-        $hasLiveMatches = is_array($liveMatches) && count($liveMatches) > 0;
-        
-        if ($hasLiveMatches) {
-            // Display live matches and some recent matches
-            $recentToDisplay = is_array($recentMatches) ? array_slice($recentMatches, 0, 3) : [];
-            $matchesToDisplay = array_merge($liveMatches, $recentToDisplay);
+
+        // Re-index arrays to ensure they are sequential
+        $liveMatches = array_values($liveMatches ?? []);
+        $recentMatches = array_values($recentMatches ?? []);
+        $upcomingMatches = array_values($upcomingMatches ?? []);
+
+        // Determine which matches to display based on active tab
+        $activeTab = request()->get('tab', 'live');
+        $matches = [];
+        $hasLiveMatches = count($liveMatches) > 0;
+
+        if ($activeTab === 'live') {
+            // Show all scraped live matches without any filtering
+            $matches = $liveMatches;
+        } elseif ($activeTab === 'upcoming') {
+            // Show all scraped upcoming matches without any filtering
+            $matches = $upcomingMatches;
+        } elseif ($activeTab === 'recent') {
+            // Show all scraped recent matches without any filtering
+            $matches = $recentMatches;
         } else {
-            // Display 3 recent matches when no live matches
-            $matchesToDisplay = is_array($recentMatches) ? array_slice($recentMatches, 0, 4) : [];
+            // Default: show live + recent
+            if ($hasLiveMatches) {
+                $recentToDisplay = array_slice($recentMatches, 0, 3);
+                $matches = array_merge($liveMatches, $recentToDisplay);
+            } else {
+                $matches = array_slice($recentMatches, 0, 4);
+            }
         }
+
+        // Ensure matches is never empty
+        if (empty($matches)) {
+            $matches = $liveMatches ?: $recentMatches ?: $upcomingMatches ?: [];
+        }
+
+        Log::info('Active tab: ' . $activeTab);
+        Log::info('Total scraped - Live: ' . count($liveMatches) . ', Recent: ' . count($recentMatches) . ', Upcoming: ' . count($upcomingMatches));
+        Log::info('Matches to display for tab ' . $activeTab . ': ' . count($matches));
 
         // Add match time/status to news items
         foreach ($newsItems as &$newsItem) {
@@ -432,7 +490,7 @@ class Cricketlivescorecontroller extends Controller
         }
         
         return view('index', [
-            'matches' => $matchesToDisplay,
+            'matches' => $matches,
             'liveMatches' => $liveMatches,
             'recentMatches' => $recentMatches,
             'upcomingMatches' => $upcomingMatches,
@@ -449,13 +507,34 @@ class Cricketlivescorecontroller extends Controller
 
     public function upcoming()
     {
-        $matches = $this->cricbuzzApi->upcomingMatches();
-        $liveMatches = $this->cricbuzzApi->liveMatches();
-        $recentMatches = $this->cricbuzzApi->recentMatches();
+        // Try to use scraping service first, fallback to API
+        try {
+            $upcomingMatches = $this->scrapingService->scrapeUpcomingMatches();
+            Log::info('Upcoming matches fetched: ' . count($upcomingMatches));
+        } catch (\Exception $e) {
+            Log::error('Error scraping upcoming matches: ' . $e->getMessage());
+            $upcomingMatches = $this->cricbuzzApi->upcomingMatches();
+        }
+
+        try {
+            $liveMatches = $this->scrapingService->scrapeLiveMatches();
+            Log::info('Live matches fetched: ' . count($liveMatches));
+        } catch (\Exception $e) {
+            Log::error('Error scraping live matches: ' . $e->getMessage());
+            $liveMatches = $this->cricbuzzApi->liveMatches();
+        }
+
+        try {
+            $recentMatches = $this->scrapingService->scrapeRecentMatches();
+            Log::info('Recent matches fetched: ' . count($recentMatches));
+        } catch (\Exception $e) {
+            Log::error('Error scraping recent matches: ' . $e->getMessage());
+            $recentMatches = $this->cricbuzzApi->recentMatches();
+        }
 
         // Format overs with conversion for all matches
-        if (is_array($matches)) {
-            foreach ($matches as &$match) {
+        if (is_array($upcomingMatches)) {
+            foreach ($upcomingMatches as &$match) {
                 if (isset($match['matchScore']) && is_array($match['matchScore'])) {
                     foreach ($match['matchScore'] as $teamKey => $teamScore) {
                         foreach (['inngs1', 'inngs2'] as $innings) {
@@ -544,30 +623,38 @@ class Cricketlivescorecontroller extends Controller
             $newsItems = [];
         }
 
-        // For upcoming page, prioritize upcoming matches but show some live/recent if available
-        $matchesToDisplay = [];
-        $hasLiveMatches = is_array($liveMatches) && count($liveMatches) > 0;
-        
-        // Always show upcoming matches first on the upcoming page
-        if (is_array($matches) && count($matches) > 0) {
-            $matchesToDisplay = $matches;
-        }
-        
-        // If no upcoming matches, show live matches
+        // Re-index arrays to ensure they are sequential
+        $liveMatches = array_values($liveMatches ?? []);
+        $recentMatches = array_values($recentMatches ?? []);
+        $upcomingMatches = array_values($upcomingMatches ?? []);
+
+        // For upcoming page, show all scraped upcoming matches without any filtering
+        $matchesToDisplay = $upcomingMatches;
+        $hasLiveMatches = count($liveMatches) > 0;
+
+        // If no upcoming matches, show live matches as fallback
         if (count($matchesToDisplay) === 0 && $hasLiveMatches) {
             $matchesToDisplay = $liveMatches;
         }
-        
-        // If still no matches, show recent matches
-        if (count($matchesToDisplay) === 0 && is_array($recentMatches) && count($recentMatches) > 0) {
+
+        // If still no matches, show recent matches as fallback
+        if (count($matchesToDisplay) === 0 && count($recentMatches) > 0) {
             $matchesToDisplay = array_slice($recentMatches, 0, 4);
         }
-        // dd($matchesToDisplay);
+
+        // Final fallback - ensure we have some matches
+        if (count($matchesToDisplay) === 0) {
+            $matchesToDisplay = $upcomingMatches;
+        }
+
+        Log::info('Upcoming page - Total scraped - Live: ' . count($liveMatches) . ', Recent: ' . count($recentMatches) . ', Upcoming: ' . count($upcomingMatches));
+        Log::info('Upcoming page - Matches to display: ' . count($matchesToDisplay));
+
         return view('index', [
-            'matches' => $matches,
+            'matches' => $matchesToDisplay,
             'liveMatches' => $liveMatches,
             'recentMatches' => $recentMatches,
-            'upcomingMatches' => $matchesToDisplay,
+            'upcomingMatches' => $upcomingMatches,
             'hasLiveMatches' => $hasLiveMatches,
             'newsItems' => $newsItems,
             'categories' => $categories,
@@ -578,6 +665,30 @@ class Cricketlivescorecontroller extends Controller
         ]);
     }
     // Live match function end
+
+    /**
+     * Check if a match has real scores (not 0/0/0.0)
+     */
+    private function matchHasRealScores(array $match): bool
+    {
+        $matchScore = $match['matchScore'] ?? [];
+        
+        // Check team1 scores
+        $t1Score = $matchScore['team1Score']['inngs1'] ?? [];
+        $t1Runs = (int)($t1Score['runs'] ?? 0);
+        $t1Wickets = (int)($t1Score['wickets'] ?? 0);
+        $t1Overs = (string)($t1Score['overs'] ?? '0.0');
+        
+        // Check team2 scores
+        $t2Score = $matchScore['team2Score']['inngs1'] ?? [];
+        $t2Runs = (int)($t2Score['runs'] ?? 0);
+        $t2Wickets = (int)($t2Score['wickets'] ?? 0);
+        $t2Overs = (string)($t2Score['overs'] ?? '0.0');
+        
+        // Return true if any team has real scores
+        return ($t1Runs > 0 || $t1Wickets > 0 || $t1Overs !== '0.0' ||
+                $t2Runs > 0 || $t2Wickets > 0 || $t2Overs !== '0.0');
+    }
 
     public function matchDetail(Request $request, $id, $name = null)
     {

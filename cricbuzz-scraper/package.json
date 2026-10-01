@@ -1,0 +1,27 @@
+{
+  "name": "cricbuzz-live-scraper",
+  "version": "1.0.0",
+  "description": "Playwright-based scraper for Cricbuzz live cricket data with network interception",
+  "main": "scraper.js",
+  "scripts": {
+    "start": "node scraper.js",
+    "dev": "node scraper.js",
+    "test": "node test-scraper.js"
+  },
+  "keywords": [
+    "cricket",
+    "scraper",
+    "playwright",
+    "cricbuzz",
+    "live-score"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "playwright": "^1.28.0",
+    "axios": "^1.6.0"
+  }
+}

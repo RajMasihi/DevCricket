@@ -39,7 +39,7 @@ class CricbuzzScrapingService
     private function scrapeCricbuzzLiveMatches(): array
     {
         try {
-            $response = Http::timeout(10)->get('https://www.cricbuzz.com/cricket-match/live-scores/');
+            $response = Http::timeout(10)->withOptions(['verify' => false])->get('https://www.cricbuzz.com/cricket-match/live-scores');
             
             if (!$response->successful()) {
                 Log::warning('Failed to fetch Cricbuzz homepage');
@@ -47,6 +47,11 @@ class CricbuzzScrapingService
             }
 
             $html = $response->body();
+            Log::info('Successfully fetched Cricbuzz homepage, HTML length: ' . strlen($html));
+            
+            // Save HTML for debugging
+            file_put_contents(storage_path('logs/cricbuzz_live_debug.html'), $html);
+            
             return $this->parseCricbuzzLiveMatches($html);
 
         } catch (\Exception $e) {
@@ -62,18 +67,47 @@ class CricbuzzScrapingService
     {
         $matches = [];
         
-        // Use regex to extract match information from HTML
-        // This is a simplified parsing approach
+        // Try to extract JSON-LD structured data first
+        if (preg_match_all('/<script type="application\/ld\+json">(.*?)<\/script>/s', $html, $jsonMatches)) {
+            Log::info('Found ' . count($jsonMatches[1]) . ' JSON-LD scripts');
+            foreach ($jsonMatches[1] as $jsonMatch) {
+                try {
+                    $jsonData = json_decode($jsonMatch, true);
+                    if (isset($jsonData['mainEntity']['itemListElement'])) {
+                        $items = $jsonData['mainEntity']['itemListElement'];
+                        Log::info('Found ' . count($items) . ' items in JSON-LD');
+                        foreach ($items as $item) {
+                            if (isset($item['@type']) && $item['@type'] === 'SportsEvent') {
+                                $matchData = $this->extractMatchFromJsonLd($item, $html);
+                                if (!empty($matchData)) {
+                                    $matches[] = $matchData;
+                                }
+                            }
+                        }
+                        
+                        if (count($matches) > 0) {
+                            Log::info('Successfully extracted ' . count($matches) . ' matches from JSON-LD');
+                            return array_slice($matches, 0, 10);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Failed to parse JSON-LD: ' . $e->getMessage());
+                }
+            }
+        }
         
-        // Try to find match cards using various patterns
+        // Fallback to HTML regex parsing
         $patterns = [
             '/<div[^>]*class="[^"]*cb-match-card[^"]*"[^>]*>(.*?)<\/div>/s',
             '/<div[^>]*class="[^"]*cb-lst-sch-mtch[^"]*"[^>]*>(.*?)<\/div>/s',
-            '/<a[^>]*href="\/live-cricket-scores\/[^"]*"[^>]*>(.*?)<\/a>/s'
+            '/<a[^>]*href="\/live-cricket-scores\/[^"]*"[^>]*>(.*?)<\/a>/s',
+            '/<div[^>]*class="[^"]*cb-col-100[^"]*"[^>]*>(.*?)<\/div>/s',
+            '/<div[^>]*class="[^"]*cb-hmscg-bat-txt[^"]*"[^>]*>(.*?)<\/div>/s'
         ];
 
         foreach ($patterns as $pattern) {
             if (preg_match_all($pattern, $html, $matchesData)) {
+                Log::info('Pattern matched: ' . substr($pattern, 0, 50) . '... Found ' . count($matchesData[0]) . ' matches');
                 foreach ($matchesData[0] as $index => $matchHtml) {
                     $matchData = $this->extractMatchFromHtml($matchHtml, $index);
                     if (!empty($matchData)) {
@@ -93,7 +127,94 @@ class CricbuzzScrapingService
             return $this->getFallbackData('live');
         }
 
+        Log::info('Successfully parsed ' . count($matches) . ' matches from HTML');
         return array_slice($matches, 0, 10); // Return max 10 matches
+    }
+
+    /**
+     * Extract match data from JSON-LD structured data
+     */
+    private function extractMatchFromJsonLd(array $item, string $html = ''): array
+    {
+        try {
+            $competitors = $item['competitor'] ?? [];
+            $team1Name = $competitors[0]['name'] ?? 'Team 1';
+            $team2Name = $competitors[1]['name'] ?? 'Team 2';
+
+            $name = $item['name'] ?? 'Cricket Match';
+            $location = $item['location'] ?? '';
+            $startDate = $item['startDate'] ?? '';
+            $eventStatus = $item['eventStatus'] ?? 'Live';
+
+            // Determine match state
+            $state = 'in progress';
+            if (stripos($eventStatus, 'won') !== false || stripos($eventStatus, 'result') !== false) {
+                $state = 'complete';
+            } elseif (stripos($eventStatus, 'upcoming') !== false || stripos($eventStatus, 'starts') !== false) {
+                $state = 'upcoming';
+            }
+
+            // Parse start date
+            $timestamp = strtotime($startDate) * 1000;
+
+            // Extract scores from HTML if available
+            $scores = $this->extractScoresFromHtml($html, $team1Name, $team2Name);
+
+            return [
+                'matchInfo' => [
+                    'matchId' => md5($name . $startDate),
+                    'team1' => ['teamName' => $team1Name],
+                    'team2' => ['teamName' => $team2Name],
+                    'matchFormat' => 'T20',
+                    'seriesName' => $name,
+                    'state' => $state,
+                    'status' => $eventStatus . ' - Real Data from Cricbuzz',
+                    'startDate' => $timestamp,
+                    'matchDesc' => $name . ' - ' . $location
+                ],
+                'matchScore' => $scores
+            ];
+        } catch (\Exception $e) {
+            Log::warning('Failed to extract match from JSON-LD: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Extract scores from HTML for specific teams
+     */
+    private function extractScoresFromHtml(string $html, string $team1Name, string $team2Name): array
+    {
+        // Default scores
+        $team1Score = ['runs' => 0, 'wickets' => 0, 'overs' => '0.0'];
+        $team2Score = ['runs' => 0, 'wickets' => 0, 'overs' => '0.0'];
+        
+        // Try to find score patterns in HTML
+        // Pattern: <div class="cb-hmscg-bat-txt">Team Name</div> followed by score
+        $scorePattern = '/(\d+)\/(\d+)\s*\((\d+\.?\d*)\s*ovs?\)/';
+        
+        if (preg_match_all($scorePattern, $html, $scoreMatches)) {
+            if (count($scoreMatches[0]) >= 2) {
+                // First score
+                $team1Score = [
+                    'runs' => (int)($scoreMatches[1][0] ?? 0),
+                    'wickets' => (int)($scoreMatches[2][0] ?? 0),
+                    'overs' => $scoreMatches[3][0] ?? '0.0'
+                ];
+                
+                // Second score
+                $team2Score = [
+                    'runs' => (int)($scoreMatches[1][1] ?? 0),
+                    'wickets' => (int)($scoreMatches[2][1] ?? 0),
+                    'overs' => $scoreMatches[3][1] ?? '0.0'
+                ];
+            }
+        }
+        
+        return [
+            'team1Score' => ['inngs1' => $team1Score],
+            'team2Score' => ['inngs1' => $team2Score]
+        ];
     }
 
     /**
@@ -106,12 +227,16 @@ class CricbuzzScrapingService
             $team1Name = $this->extractText($html, [
                 '/<div[^>]*class="[^"]*cb-hdr-lnk-nm[^"]*"[^>]*>(.*?)<\/div>/s',
                 '/<span[^>]*class="[^"]*team-name[^"]*"[^>]*>(.*?)<\/span>/s',
-                '/class="[^"]*cb-hdr-lnk[^"]*"[^>]*>(.*?)<\/a>/s'
+                '/class="[^"]*cb-hdr-lnk[^"]*"[^>]*>(.*?)<\/a>/s',
+                '/<div[^>]*class="[^"]*cb-lyn[^"]*"[^>]*>(.*?)<\/div>/s',
+                '/<h3[^>]*class="[^"]*cb-col[^"]*"[^>]*>(.*?)<\/h3>/s'
             ]);
 
             $team2Name = $this->extractText($html, [
                 '/<div[^>]*class="[^"]*cb-hdr-lnk-nm[^"]*"[^>]*>(.*?)<\/div>/s',
-                '/<span[^>]*class="[^"]*team-name[^"]*"[^>]*>(.*?)<\/span>/s'
+                '/<span[^>]*class="[^"]*team-name[^"]*"[^>]*>(.*?)<\/span>/s',
+                '/<div[^>]*class="[^"]*cb-lyn[^"]*"[^>]*>(.*?)<\/div>/s',
+                '/<h3[^>]*class="[^"]*cb-col[^"]*"[^>]*>(.*?)<\/h3>/s'
             ], true); // Get second occurrence
 
             // If no team names found, use realistic fallback names
@@ -137,14 +262,16 @@ class CricbuzzScrapingService
             // Extract match status
             $status = $this->extractText($html, [
                 '/<div[^>]*class="[^"]*cb-mtch-lst-txt[^"]*"[^>]*>(.*?)<\/div>/s',
-                '/<span[^>]*class="[^"]*status[^"]*"[^>]*>(.*?)<\/span>/s'
+                '/<span[^>]*class="[^"]*status[^"]*"[^>]*>(.*?)<\/span>/s',
+                '/<div[^>]*class="[^"]*cb-status[^"]*"[^>]*>(.*?)<\/div>/s',
+                '/<div[^>]*class="[^"]*cb-text[^"]*"[^>]*>(.*?)<\/div>/s'
             ]);
 
             if (empty($status)) {
                 $status = 'Live Match';
             }
 
-            // Determine match state
+            // Determine match state (will be overridden by caller for recent/upcoming)
             $state = 'in progress';
             if (stripos($status, 'won') !== false || stripos($status, 'result') !== false) {
                 $state = 'complete';
@@ -253,14 +380,19 @@ class CricbuzzScrapingService
     private function scrapeCricbuzzRecentMatches(): array
     {
         try {
-            $response = Http::timeout(10)->get('https://www.cricbuzz.com/cricket-match/live-scores/recent-matches');
-            
+            $response = Http::timeout(10)->withOptions(['verify' => false])->get('https://www.cricbuzz.com/cricket-match/live-scores/recent-matches');
+
             if (!$response->successful()) {
                 Log::warning('Failed to fetch Cricbuzz recent matches');
                 return $this->getFallbackData('recent');
             }
 
             $html = $response->body();
+            Log::info('Successfully fetched Cricbuzz recent matches, HTML length: ' . strlen($html));
+
+            // Save HTML for debugging
+            file_put_contents(storage_path('logs/cricbuzz_recent_debug.html'), $html);
+
             return $this->parseCricbuzzMatches($html, 'recent');
 
         } catch (\Exception $e) {
@@ -293,14 +425,19 @@ class CricbuzzScrapingService
     private function scrapeCricbuzzUpcomingMatches(): array
     {
         try {
-            $response = Http::timeout(10)->get('https://www.cricbuzz.com/cricket-match/live-scores/upcoming-matches');
-            
+            $response = Http::timeout(10)->withOptions(['verify' => false])->get('https://www.cricbuzz.com/cricket-match/live-scores/upcoming-matches');
+
             if (!$response->successful()) {
                 Log::warning('Failed to fetch Cricbuzz upcoming matches');
                 return $this->getFallbackData('upcoming');
             }
 
             $html = $response->body();
+            Log::info('Successfully fetched Cricbuzz upcoming matches, HTML length: ' . strlen($html));
+
+            // Save HTML for debugging
+            file_put_contents(storage_path('logs/cricbuzz_upcoming_debug.html'), $html);
+
             return $this->parseCricbuzzMatches($html, 'upcoming');
 
         } catch (\Exception $e) {
@@ -315,46 +452,73 @@ class CricbuzzScrapingService
     private function parseCricbuzzMatches(string $html, string $type): array
     {
         $matches = [];
-        $realTeams = $this->getRealTeamNames();
-        
-        // Create realistic match data based on type
-        for ($i = 0; $i < 5; $i++) {
-            $teamData = $realTeams[$i % count($realTeams)];
-            $matchId = 'cricbuzz_' . $type . '_' . $i . '_' . time();
-            
-            $state = $type === 'recent' ? 'complete' : 'upcoming';
-            $status = $type === 'recent' ? 'Match Complete' : 'Upcoming Match';
-            
-            if ($type === 'recent') {
-                $status = $teamData['team1'] . ' won by ' . rand(1, 50) . ' runs';
-            } else {
-                $status = 'Match starts at ' . date('h:i A', time() + ($i * 3600 * 24));
-            }
 
-            $matches[] = [
-                'matchInfo' => [
-                    'matchId' => $matchId,
-                    'team1' => ['teamName' => $teamData['team1']],
-                    'team2' => ['teamName' => $teamData['team2']],
-                    'matchFormat' => 'T20',
-                    'seriesName' => 'Cricbuzz Series',
-                    'state' => $state,
-                    'status' => $status . ' - From Cricbuzz',
-                    'startDate' => time() * 1000,
-                    'matchDesc' => ucfirst($type) . ' Match from Cricbuzz'
-                ],
-                'matchScore' => [
-                    'team1Score' => [
-                        'inngs1' => ['runs' => rand(150, 250), 'wickets' => rand(0, 10), 'overs' => '20.0']
-                    ],
-                    'team2Score' => [
-                        'inngs1' => ['runs' => rand(100, 200), 'wickets' => rand(0, 10), 'overs' => '18.' . rand(0, 5)]
-                    ]
-                ]
-            ];
+        // Try to extract JSON-LD structured data first
+        if (preg_match_all('/<script type="application\/ld\+json">(.*?)<\/script>/s', $html, $jsonMatches)) {
+            Log::info('Found ' . count($jsonMatches[1]) . ' JSON-LD scripts for ' . $type);
+            foreach ($jsonMatches[1] as $jsonMatch) {
+                try {
+                    $jsonData = json_decode($jsonMatch, true);
+                    if (isset($jsonData['mainEntity']['itemListElement'])) {
+                        $items = $jsonData['mainEntity']['itemListElement'];
+                        Log::info('Found ' . count($items) . ' items in JSON-LD for ' . $type);
+                        foreach ($items as $item) {
+                            if (isset($item['@type']) && $item['@type'] === 'SportsEvent') {
+                                $matchData = $this->extractMatchFromJsonLd($item, $html);
+                                if (!empty($matchData)) {
+                                    // Override state based on type
+                                    $matchData['matchInfo']['state'] = $type === 'recent' ? 'complete' : 'upcoming';
+                                    $matches[] = $matchData;
+                                }
+                            }
+                        }
+
+                        if (count($matches) > 0) {
+                            Log::info('Successfully extracted ' . count($matches) . ' ' . $type . ' matches from JSON-LD');
+                            return array_slice($matches, 0, 10);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Failed to parse JSON-LD for ' . $type . ': ' . $e->getMessage());
+                }
+            }
         }
-        
-        return $matches;
+
+        // Fallback to HTML regex parsing
+        $patterns = [
+            '/<div[^>]*class="[^"]*cb-match-card[^"]*"[^>]*>(.*?)<\/div>/s',
+            '/<div[^>]*class="[^"]*cb-lst-sch-mtch[^"]*"[^>]*>(.*?)<\/div>/s',
+            '/<a[^>]*href="\/live-cricket-scores\/[^"]*"[^>]*>(.*?)<\/a>/s',
+            '/<div[^>]*class="[^"]*cb-col-100[^"]*"[^>]*>(.*?)<\/div>/s',
+            '/<div[^>]*class="[^"]*cb-hmscg-bat-txt[^"]*"[^>]*>(.*?)<\/div>/s'
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match_all($pattern, $html, $matchesData)) {
+                Log::info('Pattern matched for ' . $type . ': ' . substr($pattern, 0, 50) . '... Found ' . count($matchesData[0]) . ' matches');
+                foreach ($matchesData[0] as $index => $matchHtml) {
+                    $matchData = $this->extractMatchFromHtml($matchHtml, $index);
+                    if (!empty($matchData)) {
+                        // Override state based on type
+                        $matchData['matchInfo']['state'] = $type === 'recent' ? 'complete' : 'upcoming';
+                        $matches[] = $matchData;
+                    }
+                }
+
+                if (count($matches) > 0) {
+                    break; // Found matches, don't try other patterns
+                }
+            }
+        }
+
+        // If no matches found through parsing, use fallback
+        if (empty($matches)) {
+            Log::info('No matches found through HTML parsing for ' . $type . ', using fallback');
+            return $this->getFallbackData($type);
+        }
+
+        Log::info('Successfully parsed ' . count($matches) . ' ' . $type . ' matches from HTML');
+        return array_slice($matches, 0, 10); // Return max 10 matches
     }
 
     /**
@@ -410,20 +574,20 @@ class CricbuzzScrapingService
     {
         $matches = [];
         $realTeams = $this->getRealTeamNames();
-        
-        for ($i = 0; $i < 5; $i++) {
+
+        for ($i = 0; $i < 10; $i++) {
             $matchId = 'fallback_' . $type . '_' . $i . '_' . time();
             $teamData = $realTeams[$i % count($realTeams)];
-            
+
             $state = $type === 'live' ? 'in progress' : ($type === 'recent' ? 'complete' : 'upcoming');
             $status = $type === 'live' ? 'Live Match' : ($type === 'recent' ? 'Match Complete' : 'Upcoming Match');
-            
+
             if ($type === 'recent') {
                 $status = $teamData['team1'] . ' won by ' . rand(1, 50) . ' runs';
             } elseif ($type === 'upcoming') {
                 $status = 'Match starts at ' . date('h:i A', time() + ($i * 3600 * 24));
             }
-            
+
             $matches[] = [
                 'matchInfo' => [
                     'matchId' => $matchId,
@@ -446,7 +610,7 @@ class CricbuzzScrapingService
                 ]
             ];
         }
-        
+
         return $matches;
     }
 
